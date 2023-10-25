@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  cheshire-cat-ts:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: cheshire_cat_ts
+    environment:
+      - CORE_HOST=${CORE_HOST:-localhost}
+      - CORE_PORT=${CORE_PORT:-1865}
+      - CORE_USE_SECURE_PROTOCOLS=${CORE_USE_SECURE_PROTOCOLS:-}
+      - API_KEY=${API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEBUG=${DEBUG:-true}
+      - SAVE_MEMORY_SNAPSHOTS=${SAVE_MEMORY_SNAPSHOTS:-false}
+    ports:
+      - ${CORE_PORT:-1865}:80
+    volumes:
+      - ./:/app
+    command:
+      - pnpm
+      - dev
+    restart: unless-stopped

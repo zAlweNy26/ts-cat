@@ -1,0 +1,48 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"lib": [
+			"ES2022"
+		],
+		"moduleDetection": "force",
+		"baseUrl": ".",
+		"rootDir": ".",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@factory/*": ["./src/factory/*"],
+			"@lg/*": ["./src/looking_glass/*"],
+			"@mh/*": ["./src/mad_hatter/*"],
+			"@memory/*": ["./src/memory/*"],
+			"@routes/*": ["./src/routes/*"],
+			"@hook": ["./src/mad_hatter/hook.ts"],
+			"@tool": ["./src/mad_hatter/tool.ts"],
+			"@form": ["./src/mad_hatter/form.ts"]
+		},
+		"resolveJsonModule": true,
+		"typeRoots": [
+			"node_modules/@types"
+		],
+		"allowImportingTsExtensions": true,
+		"allowJs": true,
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noEmit": true,
+		"outDir": "dist",
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"isolatedModules": true,
+		"skipLibCheck": true
+	},
+	"include": [
+		"./src/**/*.ts",
+		"eslint.config.mjs",
+		"globals.d.ts",
+		"index.ts"
+	],
+	"exclude": [
+		"dist"
+	]
+}
