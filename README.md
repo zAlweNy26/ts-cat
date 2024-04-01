@@ -18,20 +18,7 @@
 
 TypeScript version of the [Cheshire Cat AI](https://github.com/zAlweNy26/ts-cat) framework originally made in Python.
 
-## Todos
-
-- [ ] Add built-in CLI.
-- [ ] Add git pre-commit hook for linting and testing.
-- [ ] Improve plugin external packages installation.
-- [ ] Add unit tests.
-- [ ] Make forms work.
-- [ ] Fix relative imports using `tsconfig-paths`.
-- [ ] Improve OpenAPI schema generation using [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod).
-
-## Bugs
-
-- [ ] Fix fastify logger levels.
-- [ ] Replace `node --loader ts-node/esm` with `ts-node` when [this is fixed](https://github.com/TypeStrong/ts-node/issues/1997).
+Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?query=is%3Aopen) for more information on what's being worked on.
 
 ## Pre-requisites
 

@@ -236,15 +236,12 @@ export class Plugin {
 		const requirementsPath = join(this.path, 'requirements.txt')
 		if (existsSync(requirementsPath)) {
 			const requirements = await readFile(requirementsPath, 'utf-8')
-			const names = requirements.split('\n').map(req => req.trim().split('=')[0]!)
+			const names = requirements.split('\n').map(req => req.trim().split('@')[0]!)
 			try {
-				execSync(`npm list ${names.join(' ')}`).toString()
+				execSync(`npm list ${names.join(' ')}`, { cwd: this.path }).toString()
 			}
 			catch (error) {
-				const pkgs = requirements.split('\n').map((req) => {
-					const [name, version] = req.trim().split('=')
-					return name ? `${name}@${version || 'latest'}` : ''
-				}).join(' ')
+				const pkgs = requirements.split('\n').join(' ')
 				try { execSync(`pnpm i ${pkgs}`, { cwd: this.path }) }
 				catch (error) { log.error(`Error installing requirements for ${this.id}: ${error}`) }
 			}
