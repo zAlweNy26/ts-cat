@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { join } from 'node:path'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
 
@@ -40,8 +40,6 @@ function getBaseUrl() {
 	const address = `${protocol}://${parsedEnv.host}${parsedEnv.port ? `:${parsedEnv.port}` : ''}`
 	return new URL(address)
 }
-
-export const isDocker = existsSync('/.dockerenv')
 
 export const catPaths = {
 	basePath: 'src',

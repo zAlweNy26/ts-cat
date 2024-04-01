@@ -15,8 +15,9 @@ import qs from 'qs'
 import type { StrayCat } from '@lg/stray-cat.ts'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
+import isDocker from 'is-docker'
 import pkg from '../package.json' assert { type: 'json' }
-import { isDocker, logWelcome, parsedEnv } from './utils.ts'
+import { logWelcome, parsedEnv } from './utils.ts'
 
 declare module 'fastify' {
 	export interface FastifyRequest {
@@ -242,10 +243,12 @@ fastify.addHook('preParsing', async (req, rep) => {
 	else req.stray = stray
 })
 
+const inDocker = isDocker()
+
 try {
 	await fastify.listen({
-		host: isDocker ? '0.0.0.0' : parsedEnv.host,
-		port: isDocker ? 80 : parsedEnv.port,
+		host: inDocker ? '0.0.0.0' : parsedEnv.host,
+		port: inDocker ? 80 : parsedEnv.port,
 	})
 	await fastify.ready()
 	fastify.swagger()
