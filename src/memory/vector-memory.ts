@@ -19,7 +19,7 @@ export interface VectorMemoryCollections {
 const { qdrantApiKey, qdrantHost, qdrantPort, secure } = parsedEnv
 
 export const vectorDb = new QdrantClient({
-	url: qdrantHost,
+	host: qdrantHost,
 	port: qdrantPort,
 	apiKey: qdrantApiKey,
 	https: secure,

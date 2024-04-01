@@ -13,7 +13,7 @@ import underPressure from '@fastify/under-pressure'
 import requestLogger from '@mgcrea/fastify-request-logger'
 import qs from 'qs'
 import pkg from '../package.json' assert { type: 'json' }
-import { logWelcome, parsedEnv } from './utils.ts'
+import { isDocker, logWelcome, parsedEnv } from './utils.ts'
 import { cheshireCat } from './looking_glass/cheshire-cat.ts'
 import type { StrayCat } from './looking_glass/stray-cat.ts'
 import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from './routes/index.ts'
@@ -244,8 +244,8 @@ fastify.addHook('preParsing', async (req, rep) => {
 
 try {
 	await fastify.listen({
-		host: parsedEnv.host,
-		port: parsedEnv.port,
+		host: isDocker ? '0.0.0.0' : parsedEnv.host,
+		port: isDocker ? 80 : parsedEnv.port,
 	})
 	await fastify.ready()
 	fastify.swagger()
