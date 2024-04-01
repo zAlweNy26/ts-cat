@@ -12,11 +12,11 @@ import underPressure from '@fastify/under-pressure'
 // import { serializerCompiler, validatorCompiler, ZodTypeProvider, jsonSchemaTransform } from "@benjaminlindberg/fastify-type-provider-zod"
 import requestLogger from '@mgcrea/fastify-request-logger'
 import qs from 'qs'
+import type { StrayCat } from '@lg/stray-cat.ts'
+import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
 import pkg from '../package.json' assert { type: 'json' }
 import { isDocker, logWelcome, parsedEnv } from './utils.ts'
-import { cheshireCat } from './looking_glass/cheshire-cat.ts'
-import type { StrayCat } from './looking_glass/stray-cat.ts'
-import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from './routes/index.ts'
 
 declare module 'fastify' {
 	export interface FastifyRequest {
@@ -228,10 +228,10 @@ await fastify.register(websocket, { prefix: '/ws' })
 // Register hooks
 fastify.addHook('preParsing', async (req, rep) => {
 	const apiKey = req.headers.token, realKey = parsedEnv.apiKey
-	const publicRoutes = ['/docs', '/public', '/ws']
+	const publicRoutes = ['/docs', '/assets', '/ws']
 
 	// Check if the request has a valid API key
-	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(url => req.url.startsWith(url))) {
+	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(r => req.url.startsWith(r))) {
 		return rep.unauthorized('Invalid API key')
 	}
 

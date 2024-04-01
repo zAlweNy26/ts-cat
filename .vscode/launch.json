@@ -2,25 +2,16 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Debug Functions",
-			"request": "launch",
+			"name": "Debug TSX",
 			"type": "node",
-			"runtimeArgs": [
-				"-r",
-				"${workspaceFolder}/node_modules/ts-node/register",
-				"-r",
-				"${workspaceFolder}/node_modules/tsconfig-paths/register"
-			],
-			"args": [
-				"${workspaceFolder}/index.ts"
-			],
-			"cwd": "${workspaceFolder}",
-			"env": {
-				"NODE_ENV": "development",
-				"TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
-			},
-			"outFiles": [
-				"${workspaceFolder}/dist/**/*.js"
+			"request": "launch",
+			"program": "${file}",
+			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen",
+			"skipFiles": [
+				"<node_internals>/**",
+				"${workspaceFolder}/node_modules/**"
 			]
 		}
 	]

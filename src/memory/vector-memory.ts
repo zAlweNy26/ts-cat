@@ -1,7 +1,7 @@
 import { QdrantClient } from '@qdrant/js-client-rest'
-import { parsedEnv } from '../utils.ts'
-import { log } from '../logger.ts'
-import { madHatter } from '../mad_hatter/index.ts'
+import { parsedEnv } from '@utils'
+import { madHatter } from '@mh'
+import { log } from '@logger'
 import { VectorMemoryCollection } from './vector-memory-collection.ts'
 
 export interface VectorMemoryConfig {

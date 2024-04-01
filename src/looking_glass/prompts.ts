@@ -2,7 +2,7 @@ import type { PromptTemplateInput, TypedPromptInputValues } from '@langchain/cor
 import { PromptTemplate } from '@langchain/core/prompts'
 import type { InputValues } from '@langchain/core/utils/types'
 import type { AgentStep } from 'langchain/agents'
-import type { Form, Tool } from '../mad_hatter/index.ts'
+import type { Form, Tool } from '@mh'
 
 export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVariableName extends string = any>
 	extends PromptTemplate<RunInput, PartialVariableName> {

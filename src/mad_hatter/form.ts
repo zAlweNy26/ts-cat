@@ -5,8 +5,8 @@ import { safeDestr } from 'destr'
 import { LLMChain } from 'langchain/chains'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { snakeCase } from 'scule'
-import type { StrayCat } from '../looking_glass/index.ts'
-import { log } from '../logger.ts'
+import type { StrayCat } from '@lg'
+import { log } from '@logger'
 
 export enum FormState {
 	INCOMPLETE = 'incomplete',

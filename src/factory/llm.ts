@@ -6,10 +6,9 @@ import { ChatAnthropic } from '@langchain/anthropic'
 import { Cohere } from '@langchain/cohere'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import type { BaseLanguageModel } from '@langchain/core/language_models/base'
-import { madHatter } from '../mad_hatter/index.ts'
-import type { ZodGenericObject } from '../utils.ts'
-import { zodJsonType } from '../utils.ts'
-import { updateDb } from '../database.ts'
+import { type ZodGenericObject, zodJsonType } from '@utils'
+import { madHatter } from '@mh'
+import { updateDb } from '@db'
 import { CustomLLM, CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
 
 export interface LLMSettings<T extends ZodGenericObject = ZodGenericObject> {

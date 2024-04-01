@@ -1,7 +1,7 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyPluginCallback } from 'fastify'
-import { rabbitHole } from '../rabbit-hole.ts'
-import { log } from '../logger.ts'
+import { log } from '@logger'
+import { rabbitHole } from '@rh'
 
 export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/allowed-mimetypes', { schema: {

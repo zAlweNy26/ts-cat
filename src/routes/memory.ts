@@ -1,10 +1,10 @@
 import type { FastifyPluginCallback } from 'fastify'
-import { cheshireCat } from '../looking_glass/cheshire-cat.ts'
-import { getDb } from '../database.ts'
-import type { FilterMatch } from '../memory/vector-memory-collection.ts'
-import type { MemoryDocument } from '../looking_glass/stray-cat.ts'
-import { log } from '../logger.ts'
-import { madHatter } from '../mad_hatter/mad-hatter.ts'
+import type { MemoryDocument } from '@lg/stray-cat.ts'
+import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { getDb } from '@db'
+import type { FilterMatch } from '@memory/vector-memory-collection.ts'
+import { madHatter } from '@mh/mad-hatter.ts'
+import { log } from '@logger'
 
 export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get<{

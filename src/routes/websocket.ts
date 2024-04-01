@@ -1,5 +1,5 @@
 import type { FastifyPluginCallback } from 'fastify'
-import { log } from '../logger.ts'
+import { log } from '@logger'
 
 export const websocket: FastifyPluginCallback = (fastify, _opts, done) => {
 	fastify.get<{

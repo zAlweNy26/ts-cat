@@ -5,9 +5,9 @@ import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai'
 import { OpenAIEmbeddings } from '@langchain/openai'
 import { CohereEmbeddings } from '@langchain/cohere'
 import { ExecutionProvider as FastEmbedExecutionProviders, EmbeddingModel as FastEmbedModels } from 'fastembed'
-import { madHatter } from '../mad_hatter/index.ts'
-import type { ZodGenericObject } from '../utils.ts'
-import { updateDb } from '../database.ts'
+import type { ZodGenericObject } from '@utils'
+import { madHatter } from '@mh'
+import { updateDb } from '@db'
 import { CustomOpenAIEmbeddings, FastEmbedEmbeddings } from './custom_embedder.ts'
 
 export interface EmbedderSettings<T extends ZodGenericObject = ZodGenericObject> {

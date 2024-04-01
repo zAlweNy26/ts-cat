@@ -1,6 +1,6 @@
 import type { FastifyPluginCallback } from 'fastify'
+import { parsedEnv } from '@utils'
 import pkg from '../../package.json' assert { type: 'json' }
-import { parsedEnv } from '../utils.ts'
 
 export const status: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/', { schema: {

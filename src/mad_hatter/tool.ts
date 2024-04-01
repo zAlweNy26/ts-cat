@@ -3,7 +3,7 @@ import { snakeCase } from 'scule'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import type { Callbacks } from '@langchain/core/callbacks/manager'
-import type { StrayCat } from '../looking_glass/index.ts'
+import type { StrayCat } from '@lg'
 
 interface ToolOptions {
 	direct?: boolean

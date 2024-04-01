@@ -8,6 +8,7 @@ export default antfu({
 	typescript: true,
 	yaml: true,
 	markdown: true,
+	ignores: ['package.json', 'dist/', 'node_modules/'],
 	rules: {
 		'unused-imports/no-unused-vars-ts': 'warn',
 		'style/max-statements-per-line': 'off',

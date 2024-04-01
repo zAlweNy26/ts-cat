@@ -3,9 +3,9 @@ import { lstatSync, mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import type { Schemas } from '@qdrant/js-client-rest'
 import { randomUUID } from 'uncrypto'
 import { ofetch } from 'ofetch'
-import type { MemoryDocument } from '../looking_glass/index.ts'
-import { parsedEnv } from '../utils.ts'
-import { log } from '../logger.ts'
+import type { MemoryDocument } from '@lg'
+import { parsedEnv } from '@utils'
+import { log } from '@logger'
 import { vectorDb } from './vector-memory.ts'
 
 export type Filter = Schemas['Filter']

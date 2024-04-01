@@ -1,5 +1,5 @@
 import type { FastifyPluginCallback } from 'fastify'
-import { getDb, updateDb } from '../database.ts'
+import { getDb, updateDb } from '@db'
 
 export const settings: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/', { schema: {
