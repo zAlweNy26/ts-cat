@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.0.2
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.0.1...v1.0.2)
+
+### 🚀 Enhancements
+
+- Add string comparison util ([cfa747c](https://github.com/zAlweNy26/ts-cat/commit/cfa747c))
+
+### 🩹 Fixes
+
+- Docker setup ([0e38407](https://github.com/zAlweNy26/ts-cat/commit/0e38407))
+
+### ❤️ Contributors
+
+- zAlweNy26 <zdanymc@gmail.com>
+
 ## v1.0.1
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.0.0...v1.0.1)
