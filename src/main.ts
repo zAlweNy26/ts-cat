@@ -29,12 +29,11 @@ const fastify = Fastify({
 		level: parsedEnv.logLevel,
 		customLevels: {
 			error: 60,
-			warning: 40,
-			normal: 30,
-			info: 20,
-			debug: 0,
+			warning: 50,
+			normal: 40,
+			info: 30,
+			debug: 20,
 		},
-		levelComparison: 'DESC',
 		transport: {
 			target: '@mgcrea/pino-pretty-compact',
 			options: {
