@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.1.0
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.0.2...v1.1.0)
+
+### 🚀 Enhancements
+
+- Use is-docker module ([cef18d7](https://github.com/zAlweNy26/ts-cat/commit/cef18d7))
+
+### 🩹 Fixes
+
+- #4 and #5 ([#4](https://github.com/zAlweNy26/ts-cat/issues/4), [#5](https://github.com/zAlweNy26/ts-cat/issues/5))
+- Util verbosity and swagger server url ([18d6521](https://github.com/zAlweNy26/ts-cat/commit/18d6521))
+- #3 ([#3](https://github.com/zAlweNy26/ts-cat/issues/3))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.0.2
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.0.1...v1.0.2)
