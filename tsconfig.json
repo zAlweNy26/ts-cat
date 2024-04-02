@@ -12,13 +12,23 @@
 		"paths": {
 			"@/*": ["./src/*"],
 			"@factory/*": ["./src/factory/*"],
+			"@factory": ["./src/factory/index.ts"],
 			"@lg/*": ["./src/looking_glass/*"],
+			"@lg": ["./src/looking_glass/index.ts"],
 			"@mh/*": ["./src/mad_hatter/*"],
+			"@mh": ["./src/mad_hatter/index.ts"],
 			"@memory/*": ["./src/memory/*"],
+			"@memory": ["./src/memory/index.ts"],
 			"@routes/*": ["./src/routes/*"],
+			"@routes": ["./src/routes/index.ts"],
+			"@rh": ["./src/rabbit-hole.ts"],
+			"@logger": ["./src/logger.ts"],
+			"@db": ["./src/database.ts"],
+			"@utils": ["./src/utils.ts"],
 			"@hook": ["./src/mad_hatter/hook.ts"],
 			"@tool": ["./src/mad_hatter/tool.ts"],
-			"@form": ["./src/mad_hatter/form.ts"]
+			"@form": ["./src/mad_hatter/form.ts"],
+			"@plugin": ["./src/mad_hatter/plugin.ts"]
 		},
 		"resolveJsonModule": true,
 		"typeRoots": [

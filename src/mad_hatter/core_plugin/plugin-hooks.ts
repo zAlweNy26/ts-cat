@@ -1,5 +1,5 @@
-import { CatHook } from '../hook.ts'
-import { CatPlugin } from '../plugin.ts'
+import { CatHook } from '@hook'
+import { CatPlugin } from '@plugin'
 
 // Cheshire Cat hooks
 

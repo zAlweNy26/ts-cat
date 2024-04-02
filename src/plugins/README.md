@@ -9,10 +9,10 @@ To let the Cheshire Cat detect your plugin, you need to create at least one `.ts
 To import `tool`, `hook`, `form` and `plugin` methods, you need to:
 
 ```typescript
-import { CatHook } from '../../mad_hatter/hook.ts'
-import { CatTool } from '../../mad_hatter/tool.ts'
-import { CatForm } from '../../mad_hatter/form.ts'
-import { CatPlugin } from '../../mad_hatter/plugin.ts'
+import { CatHook } from '@hook'
+import { CatTool } from '@tool'
+import { CatForm } from '@form'
+import { CatPlugin } from '@plugin'
 ```
 
 And then you can use them like this:

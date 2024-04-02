@@ -12,11 +12,11 @@ import type { TextSplitter } from 'langchain/text_splitter'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 import type { Document } from '@langchain/core/documents'
 import { destr } from 'destr'
-import type { StrayCat } from './looking_glass/stray-cat.ts'
-import { cheshireCat } from './looking_glass/cheshire-cat.ts'
-import { madHatter } from './mad_hatter/mad-hatter.ts'
-import type { PointData } from './memory/vector-memory-collection.ts'
-import { log } from './logger.ts'
+import type { StrayCat } from '@lg/stray-cat.ts'
+import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { madHatter } from '@mh/mad-hatter.ts'
+import type { PointData } from '@memory/vector-memory-collection.ts'
+import { log } from '@logger'
 import { getDb } from './database.ts'
 import { sleep } from './utils.ts'
 
@@ -142,10 +142,10 @@ export class RabbitHole {
 			await this.storeDocuments(stray, docs, url.href)
 		}
 		catch (error) {
-			log.info('Ingesting path...')
+			log.info('The string is not a valid URL, trying with a file-system path...')
 			if (!existsSync(path)) {
 				log.error('The path does not exist. Skipping ingestion...')
-				return
+				throw new Error('The path does not exist.')
 			}
 			const data = readFileSync(resolve(path))
 			const file = new File([data], basename(path), { type: extname(path) })

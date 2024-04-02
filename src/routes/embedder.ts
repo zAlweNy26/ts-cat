@@ -1,10 +1,10 @@
 import type { FastifyPluginCallback } from 'fastify'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { getAllowedEmbedders, getEmbedder } from '../factory/embedder.ts'
-import { getDb, getEmbedderSettings, updateDb } from '../database.ts'
-import { cheshireCat } from '../looking_glass/cheshire-cat.ts'
-import { log } from '../logger.ts'
-import { madHatter } from '../mad_hatter/mad-hatter.ts'
+import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { getAllowedEmbedders, getEmbedder } from '@factory/embedder.ts'
+import { getDb, getEmbedderSettings, updateDb } from '@db'
+import { madHatter } from '@mh/mad-hatter.ts'
+import { log } from '@logger'
 
 export const embedder: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/settings', { schema: {

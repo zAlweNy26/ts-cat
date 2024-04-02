@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { join } from 'node:path'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
 
@@ -30,7 +30,7 @@ const envSchema = z.object({
 	logLevel: s.LOG_LEVEL,
 	saveMemorySnapshots: s.SAVE_MEMORY_SNAPSHOTS,
 	watch: s.WATCH,
-	verbose: LogLevel.indexOf(s.LOG_LEVEL) >= LogLevel.indexOf(LogLevel[3]),
+	verbose: LogLevel.indexOf(s.LOG_LEVEL) < LogLevel.indexOf(LogLevel[2]),
 }))
 
 export const parsedEnv = envSchema.parse(process.env)
@@ -40,8 +40,6 @@ function getBaseUrl() {
 	const address = `${protocol}://${parsedEnv.host}${parsedEnv.port ? `:${parsedEnv.port}` : ''}`
 	return new URL(address)
 }
-
-export const isDocker = existsSync('/.dockerenv')
 
 export const catPaths = {
 	basePath: 'src',

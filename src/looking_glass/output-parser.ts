@@ -1,7 +1,7 @@
 import { AgentActionOutputParser } from 'langchain/agents'
 import type { AgentAction, AgentFinish } from 'langchain/schema'
-import { madHatter } from '../mad_hatter/index.ts'
-import { log } from '../logger.ts'
+import { madHatter } from '@mh'
+import { log } from '@logger'
 
 export class ProceduresOutputParser extends AgentActionOutputParser {
 	lc_namespace = ['looking_glass', 'output-parser']

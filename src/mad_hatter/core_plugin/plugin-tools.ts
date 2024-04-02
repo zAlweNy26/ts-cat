@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { CatForm } from '../form.ts'
-import { CatTool } from '../tool.ts'
+import { CatForm } from '@form'
+import { CatTool } from '@tool'
 
 CatTool.add('get_the_time', 'Useful to get the current time when asked. Input is always null.', async () => {
 	return new Date().toLocaleString()

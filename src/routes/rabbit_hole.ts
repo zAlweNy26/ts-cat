@@ -1,7 +1,7 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyPluginCallback } from 'fastify'
-import { rabbitHole } from '../rabbit-hole.ts'
-import { log } from '../logger.ts'
+import { log } from '@logger'
+import { rabbitHole } from '@rh'
 
 export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/allowed-mimetypes', { schema: {
@@ -64,6 +64,8 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.post<{
 		Body: {
 			file: MultipartFile
+		}
+		Querystring: {
 			async: boolean
 			chunkSize: number
 			chunkOverlap: number
@@ -78,6 +80,12 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 			required: ['file'],
 			properties: {
 				file: { isFile: true },
+			},
+		},
+		querystring: {
+			type: 'object',
+			required: [],
+			properties: {
 				async: { type: 'boolean', default: false },
 				chunkSize: { type: 'number', default: 512 },
 				chunkOverlap: { type: 'number', default: 128 },
@@ -88,7 +96,8 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { file, async, chunkOverlap, chunkSize } = req.body
+		const { file } = req.body
+		const { async, chunkOverlap, chunkSize } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
 			if (async) { await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap) }
@@ -118,7 +127,7 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 			type: 'object',
 			required: ['webUrl'],
 			properties: {
-				webUrl: { type: 'string', minLength: 5 },
+				webUrl: { type: 'string', minLength: 5, default: 'https://example.com' },
 				async: { type: 'boolean', default: false },
 				chunkSize: { type: 'number', default: 512 },
 				chunkOverlap: { type: 'number', default: 128 },
@@ -146,6 +155,8 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.post<{
 		Body: {
 			file: MultipartFile
+		}
+		Querystring: {
 			async: boolean
 		}
 	}>('/memory', { schema: {
@@ -158,6 +169,12 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 			required: ['file'],
 			properties: {
 				file: { isFile: true },
+			},
+		},
+		querystring: {
+			type: 'object',
+			required: [],
+			properties: {
 				async: { type: 'boolean', default: false },
 			},
 		},
@@ -166,7 +183,8 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { file, async } = req.body
+		const { file } = req.body
+		const { async } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
 			if (async) { await rabbitHole.ingestMemory(uploadFile) }

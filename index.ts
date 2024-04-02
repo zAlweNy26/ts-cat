@@ -10,7 +10,7 @@ nodemon({
 	legacyWatch: true,
 	ext: 'ts,json',
 	watch: ['src'],
-	exec: 'node --no-warnings=ExperimentalWarning --enable-source-maps --trace-warnings --loader ts-node/esm -r tsconfig-paths/register',
+	exec: 'tsx --no-warnings=ExperimentalWarning --enable-source-maps --trace-warnings',
 	script: 'src/main.ts',
 	ignore: watch ? ['**/settings.json', '**/tmp_*.ts', 'src/plugins/**', 'src/assets/**'] : ['**/**'],
 	env: {

@@ -44,7 +44,7 @@
 		"dev": "pnpm run \"/dev:/\"",
 		"dev:tsc": "tsc --watch --preserveWatchOutput",
 		"dev:node": "WATCH=true pnpm start",
-		"start": "node --no-warnings=ExperimentalWarning --loader ts-node/esm -r tsconfig-paths/register --watch index.ts"
+		"start": "tsx watch --no-warnings=ExperimentalWarning ./index.ts"
 	},
 	"dependencies": {
 		"@fastify/cors": "^9.0.1",
@@ -80,6 +80,7 @@
 		"fastify": "^4.26.2",
 		"fastify-type-provider-zod": "^1.1.9",
 		"html-to-text": "^9.0.5",
+		"is-docker": "^3.0.0",
 		"js-tiktoken": "^1.0.10",
 		"langchain": "^0.1.30",
 		"lodash": "^4.17.21",
@@ -110,9 +111,8 @@
 		"eslint-plugin-format": "^0.1.0",
 		"magicast": "^0.3.3",
 		"nodemon": "^3.1.0",
-		"ts-node": "^10.9.2",
-		"tsconfig-paths": "^4.2.0",
 		"tsup": "^8.0.2",
+		"tsx": "^4.7.1",
 		"typescript": "^5.4.3",
 		"typescript-eslint": "^7.4.0",
 		"vitest": "^1.4.0"

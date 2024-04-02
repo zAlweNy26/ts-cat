@@ -1,10 +1,10 @@
 import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import type { Document } from '@langchain/core/documents'
 import type { TextSplitter } from 'langchain/text_splitter'
-import type { AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '../looking_glass/index.ts'
-import type { EmbedderSettings, LLMSettings } from '../factory/index.ts'
-import type { VectorMemoryCollection } from '../memory/index.ts'
-import type { Message } from '../utils.ts'
+import type { AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
+import type { EmbedderSettings, LLMSettings } from '@factory'
+import type { VectorMemoryCollection } from '@memory'
+import type { Message } from '@utils'
 
 export interface HookTypes {
 	// Cheshire Cat hooks

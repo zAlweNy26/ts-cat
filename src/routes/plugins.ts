@@ -5,8 +5,8 @@ import { join } from 'node:path'
 import type { FastifyPluginCallback } from 'fastify'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { MultipartFile } from '@fastify/multipart'
-import { madHatter } from '../mad_hatter/mad-hatter.ts'
-import { log } from '../logger.ts'
+import { madHatter } from '@mh/mad-hatter.ts'
+import { log } from '@logger'
 
 export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/', { schema: {

@@ -1,11 +1,11 @@
 import type { FastifyPluginCallback } from 'fastify'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { getDb, getLLMSettings, updateDb } from '../database.ts'
-import { getAllowedLLMs, getLLM } from '../factory/llm.ts'
-import type { Message } from '../utils.ts'
-import { cheshireCat } from '../looking_glass/cheshire-cat.ts'
-import { madHatter } from '../mad_hatter/mad-hatter.ts'
-import { log } from '../logger.ts'
+import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
+import type { Message } from '@utils'
+import { madHatter } from '@mh/mad-hatter.ts'
+import { getDb, getLLMSettings, updateDb } from '@db'
+import { log } from '@logger'
 
 export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/settings', { schema: {
