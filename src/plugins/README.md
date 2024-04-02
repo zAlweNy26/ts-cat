@@ -1,12 +1,12 @@
 # How to create a plugin
 
 To create a plugin, you need to create a new directory in the `plugins` directory (this one).
-The name of the directory will be the name of the plugin.
+The name of the directory will be the identifier of the plugin.
 To let the Cheshire Cat detect your plugin, you need to create at least one `.ts` file in the directory.
 
 ## How to import the methods
 
-To import `tool`, `hook`, `form` and `plugin` methods, you need to:
+To import `tool`, `hook`, `form` or `plugin` methods, you need to:
 
 ```typescript
 import { CatHook } from '@hook'
@@ -24,9 +24,7 @@ CatTool.add('toolName', /* ... the other parameters */)
 
 CatForm.add('formName', /* ... the other parameters */)
 
-CatPlugin.on('eventName', () => {
-  // your code here
-})
+CatPlugin.on('eventName', /* ... the other parameters */)
 ```
 
 For the plugin settings, you must use `zod`. Here is an example:
