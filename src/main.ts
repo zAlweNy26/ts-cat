@@ -17,7 +17,7 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
 import isDocker from 'is-docker'
 import pkg from '../package.json' assert { type: 'json' }
-import { logWelcome, parsedEnv } from './utils.ts'
+import { catPaths, logWelcome, parsedEnv } from './utils.ts'
 
 declare module 'fastify' {
 	export interface FastifyRequest {
@@ -183,7 +183,7 @@ await fastify.register(swagger, {
 			version: pkg.version,
 		},
 		servers: [{
-			url: 'http://localhost:1865',
+			url: catPaths.baseUrl.href,
 		}],
 		components: {
 			securitySchemes: {

@@ -30,7 +30,7 @@ const envSchema = z.object({
 	logLevel: s.LOG_LEVEL,
 	saveMemorySnapshots: s.SAVE_MEMORY_SNAPSHOTS,
 	watch: s.WATCH,
-	verbose: LogLevel.indexOf(s.LOG_LEVEL) >= LogLevel.indexOf(LogLevel[3]),
+	verbose: LogLevel.indexOf(s.LOG_LEVEL) < LogLevel.indexOf(LogLevel[2]),
 }))
 
 export const parsedEnv = envSchema.parse(process.env)
