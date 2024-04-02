@@ -102,6 +102,9 @@ export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.post<{
 		Body: Message
+		Querystring: {
+			save: boolean
+		}
 	}>('/chat', { schema: {
 		description: 'Get a response from the Cheshire Cat via endpoint.',
 		tags: ['LLM'],
@@ -113,12 +116,19 @@ export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 				text: { type: 'string' },
 			},
 		},
+		querystring: {
+			type: 'object',
+			properties: {
+				save: { type: 'boolean', default: true },
+			},
+		},
 		response: {
 			200: { type: 'object', additionalProperties: true },
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const res = await req.stray.run(req.body)
+		const { save } = req.query
+		const res = await req.stray.run(req.body, save)
 		if (!res) { rep.imateapot('I\'m sorry, I can\'t do that.') }
 		return res
 	})

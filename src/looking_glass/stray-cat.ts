@@ -127,7 +127,13 @@ export class StrayCat {
 		}
 	}
 
-	async run(msg: Message) {
+	/**
+	 * Processes the user message and returns the response.
+	 * @param msg the user message
+	 * @param save whether to save the message or not in the chat history. Default is true.
+	 * @returns the response message
+	 */
+	async run(msg: Message, save = true) {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
 		const response = this.userMessage = madHatter.executeHook('beforeReadMessage', msg, this)
@@ -186,8 +192,10 @@ export class StrayCat {
 
 		finalOutput = madHatter.executeHook('beforeSendMessage', finalOutput, this)
 
-		this.chatHistory.push({ what: response.text, who: 'Human', when: Date.now() })
-		this.chatHistory.push(finalOutput)
+		if (save) {
+			this.chatHistory.push({ what: response.text, who: 'Human', when: Date.now() })
+			this.chatHistory.push(finalOutput)
+		}
 
 		return finalOutput
 	}
