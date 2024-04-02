@@ -48,6 +48,7 @@
 	},
 	"include": [
 		"./src/**/*.ts",
+		"./test/**/*.ts",
 		"eslint.config.mjs",
 		"globals.d.ts",
 		"index.ts"
