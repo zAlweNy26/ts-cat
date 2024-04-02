@@ -9,7 +9,7 @@ export class NewTokenHandler extends BaseCallbackHandler {
 		super(input)
 	}
 
-	handleLLMNewToken(token: string, ..._args: any[]) {
+	handleLLMNewToken(token: string) {
 		this.stray.send({
 			type: 'token',
 			content: token,
