@@ -10,13 +10,13 @@
 
 ### 🩹 Fixes
 
-- #4 and #5 ([#4](https://github.com/zAlweNy26/ts-cat/issues/4), [#5](https://github.com/zAlweNy26/ts-cat/issues/5))
+- [#4](https://github.com/zAlweNy26/ts-cat/issues/4) and [#5](https://github.com/zAlweNy26/ts-cat/issues/5)
 - Util verbosity and swagger server url ([18d6521](https://github.com/zAlweNy26/ts-cat/commit/18d6521))
-- #3 ([#3](https://github.com/zAlweNy26/ts-cat/issues/3))
+- [#3](https://github.com/zAlweNy26/ts-cat/issues/3)
 
 ### ❤️ Contributors
 
-- ZAlweNy26 <zdanymc@gmail.com>
+- zAlweNy26 <zdanymc@gmail.com>
 
 ## v1.0.2
 
