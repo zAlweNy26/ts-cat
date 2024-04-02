@@ -142,10 +142,10 @@ export class RabbitHole {
 			await this.storeDocuments(stray, docs, url.href)
 		}
 		catch (error) {
-			log.info('Ingesting path...')
+			log.info('The string is not a valid URL, trying with a file-system path...')
 			if (!existsSync(path)) {
 				log.error('The path does not exist. Skipping ingestion...')
-				return
+				throw new Error('The path does not exist.')
 			}
 			const data = readFileSync(resolve(path))
 			const file = new File([data], basename(path), { type: extname(path) })
