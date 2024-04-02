@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.1.1
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.1.0...v1.1.1)
+
+### 🚀 Enhancements
+
+- Add defaults in parsed env vars ([cb0e1f9](https://github.com/zAlweNy26/ts-cat/commit/cb0e1f9))
+- Publicized ws queue on stray cat ([8efce56](https://github.com/zAlweNy26/ts-cat/commit/8efce56))
+- Add MistralAI llm config ([b12a1b9](https://github.com/zAlweNy26/ts-cat/commit/b12a1b9))
+- Add TogetherAI and Fireworks embedder configs ([c0a1a16](https://github.com/zAlweNy26/ts-cat/commit/c0a1a16))
+
+### 🩹 Fixes
+
+- Swagger server path ([45765dd](https://github.com/zAlweNy26/ts-cat/commit/45765dd))
+
+### 📖 Documentation
+
+- Update various READMEs ([8dbc1f6](https://github.com/zAlweNy26/ts-cat/commit/8dbc1f6))
+
+### ✅ Tests
+
+- Update test setup and add some utils tests ([ca121a8](https://github.com/zAlweNy26/ts-cat/commit/ca121a8))
+
+### ❤️ Contributors
+
+- zAlweNy26 <zdanymc@gmail.com>
+
 ## v1.1.0
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.0.2...v1.1.0)
