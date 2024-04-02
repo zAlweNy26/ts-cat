@@ -1,12 +1,14 @@
 import { madHatter } from '@mh/mad-hatter.ts'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { StrayCat } from '@lg/stray-cat.ts'
 import { rabbitHole } from '@rh'
 import { afterAll, beforeAll, test, vi } from 'vitest'
 
 export const mockTest = test.extend({
-	// cheshireCat,
-	// madHatter,
-	// rabbitHole,
+	/* cheshireCat,
+	madHatter,
+	rabbitHole,
+	strayCat: new StrayCat('Alice'), */
 })
 
 beforeAll(() => {

@@ -60,10 +60,10 @@ type WSMessage = {
 } | ({ type: 'chat' } & MemoryMessage)
 
 export class StrayCat {
-	private wsQueue: WSMessage[] = []
 	private chatHistory: MemoryMessage[] = []
 	private _ws?: WebSocket
 	private userMessage!: Message
+	public wsQueue: WSMessage[] = []
 	public activeForm?: string
 	public workingMemory: WorkingMemory = {
 		episodic: [],
