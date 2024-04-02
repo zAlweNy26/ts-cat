@@ -20,6 +20,25 @@ TypeScript version of the [Cheshire Cat AI](https://github.com/zAlweNy26/ts-cat)
 
 Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?query=is%3Aopen) for more information on what's being worked on.
 
+## Features
+
+- [x] Granular plugins folder reload
+- [x] Sync/Async ingestion endpoints
+- [x] New built-in LLMs and Embedders
+- [ ] Built-in CLI
+- [ ] Instant tool call with `@[toolName]` syntax
+- [ ] Granular activation of hooks and procedures
+
+## How to contribute
+
+1. Fork the repository
+2. Create a new branch named after the feature you're working on
+3. Make your changes
+4. Commit and push your changes using the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format
+5. Open a pull request
+6. Wait for the review
+7. Enjoy your contribution!
+
 ## Pre-requisites
 
 - Node.js 18.x
