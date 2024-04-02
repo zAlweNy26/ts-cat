@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import type { Embeddings } from '@langchain/core/embeddings'
+import { TogetherAIEmbeddings } from '@langchain/community/embeddings/togetherai'
+import { FireworksEmbeddings } from '@langchain/community/embeddings/fireworks'
 import { FakeEmbeddings } from '@langchain/core/utils/testing'
 import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai'
 import { OpenAIEmbeddings } from '@langchain/openai'
@@ -24,7 +26,7 @@ const fakeEmbedderConfig: EmbedderSettings = Object.freeze({
 	humanReadableName: 'Default Embedder',
 	description: 'Fake embeddings for fallback',
 	config: z.object({}),
-	getModel: (_params: z.input<typeof fakeEmbedderConfig.config>) => new FakeEmbeddings(),
+	getModel: () => new FakeEmbeddings(),
 })
 
 const openAIEmbeddingModels = ['text-embedding-3-large', 'text-embedding-3-small', 'text-embedding-ada-002'] as const
@@ -65,6 +67,36 @@ const azureOpenAIEmbedderConfig: EmbedderSettings = Object.freeze({
 			azureOpenAIApiVersion: version,
 			azureOpenAIApiDeploymentName: deployment,
 		})
+	},
+})
+
+const togetherAIEmbedderConfig: EmbedderSettings = Object.freeze({
+	name: 'TogetherAIEmbedder',
+	humanReadableName: 'TogetherAI Embedder',
+	description: 'Configuration for TogetherAI embeddings',
+	link: 'https://docs.together.ai/docs/embedding-models',
+	config: z.object({
+		model: z.string().default('text-embedding-3-small'),
+		apiKey: z.string(),
+	}),
+	getModel(params: z.input<typeof togetherAIEmbedderConfig.config>) {
+		const { apiKey, model } = this.config.parse(params)
+		return new TogetherAIEmbeddings({ apiKey, modelName: model })
+	},
+})
+
+const fireworksEmbedderConfig: EmbedderSettings = Object.freeze({
+	name: 'FireworksEmbedder',
+	humanReadableName: 'Fireworks Embedder',
+	description: 'Configuration for Fireworks embeddings',
+	link: 'https://docs.together.ai/docs/embedding-models',
+	config: z.object({
+		model: z.string().default('nomic-ai/nomic-embed-text-v1.5'),
+		apiKey: z.string(),
+	}),
+	getModel(params: z.input<typeof fireworksEmbedderConfig.config>) {
+		const { apiKey, model } = this.config.parse(params)
+		return new FireworksEmbeddings({ apiKey, modelName: model })
 	},
 })
 
@@ -139,6 +171,8 @@ export function getAllowedEmbedders() {
 		fakeEmbedderConfig,
 		openAIEmbedderConfig,
 		azureOpenAIEmbedderConfig,
+		fireworksEmbedderConfig,
+		togetherAIEmbedderConfig,
 		cohereEmbedderConfig,
 		customOpenAIEmbedderConfig,
 		qdrantFastEmbedSettings,

@@ -1,7 +1,7 @@
 {
   "name": "ts-cat",
   "type": "module",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "packageManager": "pnpm@8.10.2",
   "description": "TypeScript version of the Cheshire Cat AI project",
@@ -115,6 +115,7 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.3",
     "typescript-eslint": "^7.4.0",
+    "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.4.0"
   }
 }

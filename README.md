@@ -38,3 +38,11 @@ docker compose build --no-cache # (for production)
 pnpm run dev # (for development)
 docker compose up # (for production)
 ```
+
+## How to test
+
+To run the tests, be sure to have the Docker compose up and running. Then you can do:
+
+```bash
+docker exec -it ccat_ts pnpm test
+```

@@ -20,13 +20,13 @@ services:
       - ${CORE_PORT:-1865}:80
     volumes:
       - ./:/app
-    command:
-      - pnpm
-      - dev
+    command: pnpm dev
     restart: unless-stopped
   ccat-ts-vector-memory:
     image: qdrant/qdrant:v1.8.3
     container_name: ccat_ts_vector_memory
+    environment:
+      - QDRANT__LOG_LEVEL=INFO
     expose:
       - 6333
     volumes:

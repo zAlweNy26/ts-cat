@@ -1,5 +1,6 @@
-import { expect, it } from 'vitest'
+import { mockTest } from 'test/env-mock.ts'
+import { expect } from 'vitest'
 
-it('test main modules', async () => {
+mockTest('test main module', () => {
 	expect(1 + 1).toBe(2)
 })

@@ -5,6 +5,7 @@ import { AzureChatOpenAI, AzureOpenAI, ChatOpenAI, OpenAI } from '@langchain/ope
 import { ChatAnthropic } from '@langchain/anthropic'
 import { Cohere } from '@langchain/cohere'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
+import { ChatMistralAI } from '@langchain/mistralai'
 import type { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { type ZodGenericObject, zodJsonType } from '@utils'
 import { madHatter } from '@mh'
@@ -171,6 +172,25 @@ const cohereLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	},
 })
 
+const mistralAILLMConfig: Readonly<LLMSettings> = Object.freeze({
+	name: 'MistralAILLM',
+	humanReadableName: 'MistralAI',
+	description: 'Configuration for MistralAI language model',
+	link: 'https://www.together.ai',
+	config: z.object({
+		apiKey: z.string(),
+		model: z.string().default('mistral-small'),
+		maxTokens: z.number().int().gte(1).default(4096),
+		topP: z.number().gte(0).lte(1).default(0.95),
+		temperature: z.number().gte(0).lte(1).default(0.7),
+		streaming: z.boolean().default(false),
+	}),
+	getModel(params: z.input<typeof mistralAILLMConfig.config>) {
+		const { apiKey, model, maxTokens, topP, streaming, temperature } = this.config.parse(params)
+		return new ChatMistralAI({ apiKey, modelName: model, maxTokens, topP, streaming, temperature })
+	},
+})
+
 const anthropicLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	name: 'AnthropicLLM',
 	humanReadableName: 'Anthropic',
@@ -284,6 +304,7 @@ export function getAllowedLLMs() {
 		openAILLMConfig,
 		azureChatOpenAILLMConfig,
 		azureOpenAILLMConfig,
+		mistralAILLMConfig,
 		cohereLLMConfig,
 		hfTextGenInferenceLLMConfig,
 		ollamaLLMConfig,

@@ -1,11 +1,11 @@
 import { defineConfig } from 'vitest/config'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
+	plugins: [tsconfigPaths()],
 	test: {
 		name: 'src',
 		environment: 'node',
-		coverage: {
-			include: ['src/**/*.ts'],
-		},
+		setupFiles: ['./test/env-mock.ts'],
 	},
 })

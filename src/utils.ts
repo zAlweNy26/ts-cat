@@ -10,8 +10,8 @@ const envSchema = z.object({
 	CORE_HOST: z.string().default('localhost'),
 	CORE_PORT: z.coerce.number().default(1865),
 	CORE_USE_SECURE_PROTOCOLS: z.coerce.boolean().default(false),
-	QDRANT_HOST: z.string().optional(),
-	QDRANT_PORT: z.coerce.number().optional(),
+	QDRANT_HOST: z.string().default('localhost'),
+	QDRANT_PORT: z.coerce.number().default(6333),
 	QDRANT_API_KEY: z.string().optional(),
 	API_KEY: z.string().optional(),
 	CORS_ALLOWED_ORIGINS: z.string().transform(v => v.split(',')).default('*'),
@@ -43,7 +43,7 @@ function getBaseUrl() {
 
 export const catPaths = {
 	basePath: 'src',
-	baseUrl: getBaseUrl(),
+	baseUrl: getBaseUrl().href,
 	pluginsPath: join('src', 'plugins'),
 	assetsPath: join('src', 'assets'),
 	assetsUrl: `${getBaseUrl().href}assets`,

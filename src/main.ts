@@ -183,7 +183,7 @@ await fastify.register(swagger, {
 			version: pkg.version,
 		},
 		servers: [{
-			url: catPaths.baseUrl.href,
+			url: catPaths.baseUrl,
 		}],
 		components: {
 			securitySchemes: {
