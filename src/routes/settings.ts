@@ -1,5 +1,5 @@
 import type { FastifyPluginCallback } from 'fastify'
-import { getDb, updateDb } from '@db'
+import { dbConfig, defaultDbKeys, getDb, updateDb } from '@db'
 
 export const settings: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/', { schema: {
@@ -50,11 +50,17 @@ export const settings: FastifyPluginCallback = (fastify, opts, done) => {
 		},
 		response: {
 			200: { type: 'object', additionalProperties: true },
+			400: { $ref: 'HttpError' },
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
 		const key = Object.keys(getDb()).find(k => k === req.params.settingId)
 		if (!key) { return rep.notFound('The passed Setting ID is not present in the database.') }
+		const parsed = dbConfig.safeParse({
+			...getDb(),
+			[key]: req.body,
+		})
+		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join()) }
 		updateDb(db => db[key] = req.body)
 		return {
 			[key]: req.body,
@@ -69,11 +75,13 @@ export const settings: FastifyPluginCallback = (fastify, opts, done) => {
 		summary: 'Delete setting',
 		response: {
 			200: { type: 'object', additionalProperties: true },
+			400: { $ref: 'HttpError' },
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
 		const key = Object.keys(getDb()).find(k => k === req.params.settingId)
 		if (!key) { return rep.notFound('The passed Setting ID is not present in the database.') }
+		if (Object.keys(defaultDbKeys).includes(key)) { return rep.badRequest('Cannot delete default settings.') }
 		const value = getDb()[key]
 		updateDb(db => db[key] = undefined)
 		return {
@@ -93,9 +101,11 @@ export const settings: FastifyPluginCallback = (fastify, opts, done) => {
 		body: { $ref: 'Setting' },
 		response: {
 			200: { type: 'object', additionalProperties: true },
+			400: { $ref: 'HttpError' },
 		},
-	} }, (req) => {
+	} }, (req, rep) => {
 		const { name, value } = req.body
+		if (Object.keys(getDb()).includes(name)) { return rep.badRequest('Setting already exists.') }
 		updateDb(db => db[name] = value)
 		return {
 			[name]: value,

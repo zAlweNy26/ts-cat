@@ -1,20 +1,26 @@
 import { JSONFileSyncPreset } from 'lowdb/node'
+import { z } from 'zod'
 
-export interface DatabaseConfig {
-	selectedLLM: string
-	selectedEmbedder: string
-	llms: {
-		name: string
-		value: Record<string, any>
-	}[]
-	embedders: {
-		name: string
-		value: Record<string, any>
-	}[]
-	activePlugins: string[]
-	activeTools: string[]
-	[key: string]: any
-}
+export const defaultDbKeys = z.object({
+	selectedLLM: z.string(),
+	selectedEmbedder: z.string(),
+	llms: z.array(z.object({
+		name: z.string(),
+		value: z.record(z.any()),
+	})),
+	embedders: z.array(z.object({
+		name: z.string(),
+		value: z.record(z.any()),
+	})),
+	activePlugins: z.array(z.string()),
+	activeTools: z.array(z.string()),
+})
+
+export const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
+	return llms.some(l => l.name === selectedLLM) && embedders.some(e => e.name === selectedEmbedder)
+})
+
+export type DatabaseConfig = z.infer<typeof dbConfig>
 
 const db = JSONFileSyncPreset<DatabaseConfig>('./data/metadata.json', {
 	selectedLLM: 'DefaultLLM',
