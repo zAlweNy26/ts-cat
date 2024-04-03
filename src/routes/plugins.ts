@@ -358,7 +358,7 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		const p = madHatter.getPlugin(id)
 		if (!p) { return rep.notFound('Plugin not found') }
 		const parsed = p.schema.passthrough().safeParse(req.body)
-		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join(', ')) }
+		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join()) }
 		p.settings = parsed.data
 		return {
 			name: id,
