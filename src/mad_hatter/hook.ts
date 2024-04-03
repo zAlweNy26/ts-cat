@@ -5,6 +5,7 @@ import type { AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, Stray
 import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'
 import type { Message } from '@utils'
+import type { FileParsers, WebParser } from '@rh'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
@@ -30,7 +31,8 @@ export interface HookTypes {
 	// Vector Memory hooks
 	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => Record<string, VectorMemoryCollection>
 	// Rabbit Hole hooks
-	fileParsers: (loaders: Record<string, BaseDocumentLoader>) => Record<string, BaseDocumentLoader>
+	fileParsers: (loaders: FileParsers) => FileParsers
+	webParsers: (loaders: WebParser[]) => WebParser[]
 	textSplitter: (splitter: TextSplitter) => TextSplitter
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => Document
