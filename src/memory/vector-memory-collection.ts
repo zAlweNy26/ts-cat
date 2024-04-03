@@ -182,7 +182,7 @@ export class VectorMemoryCollection {
 		})
 	}
 
-	async recallMemoriesFromEmbedding(embedding: EmbeddedVector, filter?: Record<string, FilterMatch>, k = 5, threshold = 0.7) {
+	async recallMemoriesFromEmbedding(embedding: EmbeddedVector, filter?: Record<string, FilterMatch>, k = 5, threshold?: number) {
 		const memories = await vectorDb.search(this.name, {
 			vector: embedding,
 			filter: filter ? this.filterFromDict(filter) : undefined,

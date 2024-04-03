@@ -23,7 +23,7 @@ services:
     command: pnpm dev
     restart: unless-stopped
   ccat-ts-vector-memory:
-    image: qdrant/qdrant:v1.8.3
+    image: qdrant/qdrant:v1.8.1
     container_name: ccat_ts_vector_memory
     environment:
       - QDRANT__LOG_LEVEL=INFO
