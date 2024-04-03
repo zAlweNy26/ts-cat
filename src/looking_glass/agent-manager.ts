@@ -6,6 +6,7 @@ import type { AgentStep, ChainValues } from 'langchain/schema'
 import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
+import { getDb } from '@db'
 import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT, ToolPromptTemplate } from './prompts.ts'
 import type { MemoryDocument, MemoryMessage, StrayCat } from './stray-cat.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
@@ -143,6 +144,15 @@ export class AgentManager {
 			episodic_memory: episodicMemoryFormatted,
 			declarative_memory: declarativeMemoryFormatted,
 		}, stray)
+
+		const calledTool = madHatter.tools.find(({ name }) => agentInput.input.startsWith(`@${name}`))
+		const instantTool = getDb().instantTool
+
+		if (calledTool && instantTool) {
+			const toolInput = agentInput.input.replace(`@${calledTool.name}`, '').trim()
+			calledTool.assignCat(stray)
+			return { output: await calledTool.call(toolInput) }
+		}
 
 		const fastReply = madHatter.executeHook('agentFastReply', undefined, stray)
 
