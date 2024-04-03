@@ -2,6 +2,7 @@ import { JSONFileSyncPreset } from 'lowdb/node'
 import { z } from 'zod'
 
 export const defaultDbKeys = z.object({
+	instantTool: z.boolean(),
 	selectedLLM: z.string(),
 	selectedEmbedder: z.string(),
 	llms: z.array(z.object({
@@ -23,6 +24,7 @@ export const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(
 export type DatabaseConfig = z.infer<typeof dbConfig>
 
 const db = JSONFileSyncPreset<DatabaseConfig>('./data/metadata.json', {
+	instantTool: true,
 	selectedLLM: 'DefaultLLM',
 	selectedEmbedder: 'FakeEmbedder',
 	llms: [
