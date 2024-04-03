@@ -46,7 +46,7 @@ export class MadHatter {
 	 * @returns The result of executing the hook methods sequentially.
 	 */
 	executeHook<T extends HookNames = HookNames>(name: T, ...args: Parameters<HookTypes[T]>) {
-		const hook = this.hooks[name]?.filter(h => h.active)
+		const hook = this.hooks[name]
 		if (!hook || hook.length === 0) { throw new Error(`Hook "${name}" not found in any plugin`) }
 		const timeStart = performance.now()
 		let isFirst = true
@@ -208,7 +208,6 @@ export class MadHatter {
 			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority) as any
 		})
 		updateDb((db) => {
-			db.activeHooks = Object.fromEntries(Object.entries(this.hooks).map(([a, b]) => [a, b.map(h => h.from)]))
 			db.activeForms = this.forms.filter(f => f.active).map(f => f.name)
 			db.activeTools = this.tools.filter(t => t.active).map(t => t.name)
 		})

@@ -46,7 +46,6 @@ export type HookNames = keyof HookTypes
 
 export type Hook<T extends HookNames = HookNames> = {
 	name: T
-	active: boolean
 	fn: HookTypes[T]
 } & Required<HookOptions>
 
@@ -56,9 +55,8 @@ export type Hooks<H extends HookNames = HookNames> = {
 
 export function isHook(hook: any): hook is Hook<HookNames> {
 	return hook && typeof hook == 'object' && 'name' in hook && 'priority' in hook && 'fn' in hook
-		&& 'active' in hook && typeof hook.name == 'string' && typeof hook.priority == 'number'
-		&& typeof hook.fn == 'function' && typeof hook.active == 'boolean'
-		&& Object.keys(hook).length === 4
+		&& typeof hook.name == 'string' && typeof hook.priority == 'number'
+		&& typeof hook.fn == 'function' && Object.keys(hook).length === 3
 }
 
 export const CatHook = Object.freeze({
@@ -76,7 +74,6 @@ export const CatHook = Object.freeze({
 		}
 		const hook: Hook = {
 			name,
-			active: true,
 			priority,
 			fn,
 		}
