@@ -5,7 +5,7 @@ import { safeDestr } from 'destr'
 import { LLMChain } from 'langchain/chains'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { snakeCase } from 'scule'
-import type { StrayCat } from '@lg'
+import type { AgentFastReply, StrayCat } from '@lg'
 import { log } from '@logger'
 import { parsedEnv } from '@utils'
 
@@ -265,7 +265,7 @@ Updated JSON:`
 		}
 	}
 
-	private message() {
+	private message(): AgentFastReply {
 		if (this.state === FormState.CLOSED) { return { output: `Form ${this.name} closed` } }
 
 		let missingFields = ''
