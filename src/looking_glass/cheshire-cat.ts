@@ -198,7 +198,6 @@ export class CheshireCat {
 					trigger: 'startExample',
 				}
 			}
-
 			if (isForm(proc)) {
 				for (const example of proc.stopExamples) {
 					hashes[`${proc.name}.stopExample.${example.toLowerCase().replace(/\s/g, '_')}`] = {

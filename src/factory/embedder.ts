@@ -38,7 +38,7 @@ const openAIEmbedderConfig: EmbedderSettings = Object.freeze({
 	link: 'https://platform.openai.com/docs/models/overview',
 	config: z.object({
 		apiKey: z.string(),
-		model: z.enum(openAIEmbeddingModels).default('text-embedding-3-small'),
+		model: z.enum(openAIEmbeddingModels).default('text-embedding-ada-002'),
 	}),
 	getModel(params: z.input<typeof openAIEmbedderConfig.config>) {
 		const { apiKey, model } = this.config.parse(params)
@@ -52,7 +52,7 @@ const azureOpenAIEmbedderConfig: EmbedderSettings = Object.freeze({
 	description: 'Configuration for Azure OpenAI embeddings',
 	link: 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
 	config: z.object({
-		model: z.enum(openAIEmbeddingModels).default('text-embedding-3-small'),
+		model: z.enum(openAIEmbeddingModels).default('text-embedding-ada-002'),
 		version: z.string().default('2023-05-15'),
 		apiKey: z.string(),
 		base: z.string(),

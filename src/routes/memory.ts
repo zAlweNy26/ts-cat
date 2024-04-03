@@ -33,18 +33,15 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		const userId = req.stray.userId
 
 		const queryEmbedding = await cheshireCat.currentEmbedder.embedQuery(text)
-
-		const collections = Object.keys(cheshireCat.currentMemory.collections)
 		const recalled: Record<string, MemoryDocument[]> = {}
 
-		for (const collection of collections) {
-			const memory = cheshireCat.currentMemory.collections[collection]
-			recalled[collection] = []
+		for (const collection of Object.values(cheshireCat.currentMemory.collections)) {
+			recalled[collection.name] = []
 			let userFilter: Record<string, FilterMatch> | undefined
-			if (collection === 'episodic') { userFilter = { source: { any: [userId] } } }
+			if (collection.name === 'episodic') { userFilter = { source: { any: [userId] } } }
 			try {
-				const docs = await memory!.recallMemoriesFromEmbedding(queryEmbedding, userFilter, k)
-				recalled[collection] = docs
+				const docs = await collection.recallMemoriesFromEmbedding(queryEmbedding, userFilter, k)
+				recalled[collection.name] = docs
 			}
 			catch (error) {
 				log.info('Error recalling memories from collection:', collection)
