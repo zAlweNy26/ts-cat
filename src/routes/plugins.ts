@@ -7,6 +7,8 @@ import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { MultipartFile } from '@fastify/multipart'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
+import { updateDb } from '@db'
+import type { HookNames } from '@hook'
 
 export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/', { schema: {
@@ -179,6 +181,112 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		const active = madHatter.togglePlugin(pluginId)
 		return {
 			active,
+		}
+	})
+
+	fastify.patch<{
+		Params: {
+			pluginId: string
+			toolName: string
+		}
+	}>('/toggle/:pluginId/tool/:toolName', { schema: {
+		description: 'Enable or disable a single tool of a plugin.',
+		tags: ['Plugins'],
+		summary: 'Toggle plugin tool',
+		response: {
+			200: {
+				type: 'object',
+				properties: {
+					active: { type: 'boolean' },
+				},
+			},
+			404: { $ref: 'HttpError' },
+			400: { $ref: 'HttpError' },
+		},
+	} }, (req, rep) => {
+		const { pluginId, toolName } = req.params
+		const p = madHatter.getPlugin(pluginId)
+		if (!p) { return rep.notFound('Plugin not found') }
+		const tool = p.tools.find(t => t.name === toolName)
+		if (!tool) { return rep.notFound('Tool not found') }
+		tool.active = !tool.active
+		updateDb((db) => {
+			if (tool.active) { db.activeTools.push(toolName) }
+			else db.activeTools = db.activeTools.filter(t => t !== toolName)
+		})
+		return {
+			active: tool.active,
+		}
+	})
+
+	fastify.patch<{
+		Params: {
+			pluginId: string
+			formName: string
+		}
+	}>('/toggle/:pluginId/form/:formName', { schema: {
+		description: 'Enable or disable a single form of a plugin.',
+		tags: ['Plugins'],
+		summary: 'Toggle plugin form',
+		response: {
+			200: {
+				type: 'object',
+				properties: {
+					active: { type: 'boolean' },
+				},
+			},
+			404: { $ref: 'HttpError' },
+			400: { $ref: 'HttpError' },
+		},
+	} }, (req, rep) => {
+		const { pluginId, formName } = req.params
+		const p = madHatter.getPlugin(pluginId)
+		if (!p) { return rep.notFound('Plugin not found') }
+		const form = p.forms.find(t => t.name === formName)
+		if (!form) { return rep.notFound('Form not found') }
+		form.active = !form.active
+		updateDb((db) => {
+			if (form.active) { db.activeForms.push(formName) }
+			else db.activeForms = db.activeForms.filter(f => f !== formName)
+		})
+		return {
+			active: form.active,
+		}
+	})
+
+	fastify.patch<{
+		Params: {
+			pluginId: string
+			hookName: HookNames
+		}
+	}>('/toggle/:pluginId/hook/:hookName', { schema: {
+		description: 'Enable or disable a single hook of a plugin.',
+		tags: ['Plugins'],
+		summary: 'Toggle plugin hook',
+		response: {
+			200: {
+				type: 'object',
+				properties: {
+					active: { type: 'boolean' },
+				},
+			},
+			404: { $ref: 'HttpError' },
+			400: { $ref: 'HttpError' },
+		},
+	} }, (req, rep) => {
+		const { pluginId, hookName } = req.params
+		const p = madHatter.getPlugin(pluginId)
+		if (!p) { return rep.notFound('Plugin not found') }
+		if (p.id === 'core_plugin') { return rep.badRequest('Cannot toggle core plugin hooks') }
+		const hook = p.hooks.find(t => t.name === hookName)
+		if (!hook) { return rep.notFound('Hook not found') }
+		hook.active = !hook.active
+		updateDb((db) => {
+			if (hook.active) { db.activeHooks[hookName]!.push(pluginId) }
+			else db.activeHooks[hookName] = db.activeHooks[hookName]!.filter(h => h !== hookName)
+		})
+		return {
+			active: hook.active,
 		}
 	})
 

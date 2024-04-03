@@ -57,7 +57,7 @@ export class Form<
 > {
 	private cat!: StrayCat
 	private _state: FormState = FormState.INCOMPLETE
-	private _active = true
+	active = true
 	name: string
 	schema: z.ZodObject<T>
 	model: S = {} as S
@@ -84,10 +84,6 @@ export class Form<
 		return this._state
 	}
 
-	get active() {
-		return this._active
-	}
-
 	assignCat(cat: StrayCat) {
 		this.cat = cat
 		return this
@@ -98,13 +94,6 @@ export class Form<
 		this._state = FormState.INCOMPLETE
 		this.errors = []
 		this.missingFields = []
-	}
-
-	/**
-	 * Toggles the active state of the form.
-	 */
-	toggle() {
-		this._active = !this._active
 	}
 
 	private async askUserConfirm() {

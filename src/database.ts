@@ -1,4 +1,5 @@
 import { JSONFileSyncPreset } from 'lowdb/node'
+import type { HookTypes } from '@hook'
 
 export interface DatabaseConfig {
 	selectedLLM: string
@@ -11,8 +12,10 @@ export interface DatabaseConfig {
 		name: string
 		value: Record<string, any>
 	}[]
+	activeHooks: Partial<{ [K in keyof HookTypes]: string[] }>
 	activePlugins: string[]
 	activeTools: string[]
+	activeForms: string[]
 	[key: string]: any
 }
 
@@ -25,6 +28,8 @@ const db = JSONFileSyncPreset<DatabaseConfig>('./data/metadata.json', {
 	embedders: [
 		{ name: 'FakeEmbedder', value: {} },
 	],
+	activeHooks: {},
+	activeForms: [],
 	activeTools: [],
 	activePlugins: ['core_plugin'],
 })
