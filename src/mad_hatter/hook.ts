@@ -1,7 +1,7 @@
 import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import type { Document } from '@langchain/core/documents'
 import type { TextSplitter } from 'langchain/text_splitter'
-import type { AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
+import type { AgentFastReply, AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
 import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'
 import type { Message } from '@utils'
@@ -17,7 +17,7 @@ export interface HookTypes {
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => string
 	allowedTools: (tools: string[], stray: StrayCat) => string[]
 	beforeAgentStarts: (input: AgentInput, stray: StrayCat) => AgentInput
-	agentFastReply: (reply: Record<string, any>, stray: StrayCat) => Record<string, any>
+	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayCat) => Nullable<AgentFastReply>
 	agentPromptPrefix: (prefix: string, stray: StrayCat) => string
 	agentPromptSuffix: (suffix: string, stray: StrayCat) => string
 	// Stray Cat hooks

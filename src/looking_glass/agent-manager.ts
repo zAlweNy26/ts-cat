@@ -25,6 +25,11 @@ export interface IntermediateStep {
 	observation: string
 }
 
+export interface AgentFastReply {
+	output: string
+	intermediateSteps?: IntermediateStep[]
+}
+
 /**
  * Manager of Langchain Agent.
  * This class manages the Agent that uses the LLM. It takes care of formatting the prompt and filtering the tools
@@ -139,9 +144,9 @@ export class AgentManager {
 			declarative_memory: declarativeMemoryFormatted,
 		}, stray)
 
-		const fastReply = madHatter.executeHook('agentFastReply', {}, stray)
+		const fastReply = madHatter.executeHook('agentFastReply', undefined, stray)
 
-		if (Object.keys(fastReply).length > 0) { return fastReply }
+		if (fastReply) { return fastReply }
 
 		const promptPrefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const promptSuffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)

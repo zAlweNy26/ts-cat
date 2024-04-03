@@ -9,6 +9,7 @@ import type { EmbeddedVector, FilterMatch } from '@memory'
 import type { Message } from '@utils'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
+import type { AgentFastReply } from './agent-manager.ts'
 import { NewTokenHandler } from './callbacks.ts'
 import { cheshireCat } from './cheshire-cat.ts'
 
@@ -158,10 +159,9 @@ export class StrayCat {
 		catch (error) {
 			log.error(error)
 			catMsg = {
-				input: response.text,
 				intermediateSteps: [],
 				output: 'I am sorry, I could not process your request.',
-			}
+			} satisfies AgentFastReply
 		}
 
 		log.info('Agent response:')
