@@ -207,6 +207,10 @@ export class MadHatter {
 			// TODO: Fix this type
 			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority) as any
 		})
+		updateDb((db) => {
+			db.activeForms = this.forms.filter(f => f.active).map(f => f.name)
+			db.activeTools = this.tools.filter(t => t.active).map(t => t.name)
+		})
 		this.onPluginsSyncCallback?.()
 	}
 }

@@ -55,8 +55,8 @@ export type Hooks<H extends HookNames = HookNames> = {
 
 export function isHook(hook: any): hook is Hook<HookNames> {
 	return hook && typeof hook == 'object' && 'name' in hook && 'priority' in hook && 'fn' in hook
-		&& typeof hook.name == 'string' && typeof hook.priority == 'number' && typeof hook.fn == 'function'
-		&& Object.keys(hook).length === 3
+		&& typeof hook.name == 'string' && typeof hook.priority == 'number'
+		&& typeof hook.fn == 'function' && Object.keys(hook).length === 3
 }
 
 export const CatHook = Object.freeze({

@@ -47,7 +47,7 @@ export class AgentManager {
 		const allowedTools: Tool[] = []
 		const returnDirectTools: string[] = []
 
-		Array.from([...madHatter.forms, ...madHatter.tools]).forEach((p) => {
+		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p)) {
 					allowedTools.push(p.assignCat(stray))
