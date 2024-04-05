@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { snakeCase } from 'scule'
+import { kebabCase } from 'scule'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import type { Callbacks } from '@langchain/core/callbacks/manager'
@@ -42,7 +42,7 @@ export class Tool extends DynamicStructuredTool {
 		const { direct = false, examples = [] } = { ...options }
 
 		super({
-			name: snakeCase(name),
+			name: kebabCase(name),
 			description,
 			func: ({ text }) => {
 				if (!this.cat) { throw new Error('Cat not assigned to tool') }

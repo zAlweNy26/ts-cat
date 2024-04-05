@@ -4,7 +4,7 @@ import _Merge from 'lodash/merge.js'
 import { safeDestr } from 'destr'
 import { LLMChain } from 'langchain/chains'
 import { PromptTemplate } from '@langchain/core/prompts'
-import { snakeCase } from 'scule'
+import { kebabCase } from 'scule'
 import type { AgentFastReply, StrayCat } from '@lg'
 import { log } from '@logger'
 import { parsedEnv } from '@utils'
@@ -71,7 +71,7 @@ export class Form<
 
 	constructor(name: string, schema: T, submit: FormSubmit<S>, options: FormOptions) {
 		const { askConfirm = false, description, startExamples, stopExamples = [] } = options
-		this.name = snakeCase(name)
+		this.name = kebabCase(name)
 		this.schema = z.object(schema)
 		this.submit = submit
 		this.askConfirm = askConfirm

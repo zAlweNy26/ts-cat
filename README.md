@@ -16,7 +16,7 @@
     <img alt="GitHub Top Language" src="https://img.shields.io/github/languages/top/zAlweNy26/ts-cat">
 </a>
 
-TypeScript version of the [Cheshire Cat AI](https://github.com/zAlweNy26/ts-cat) framework originally made in Python.
+TypeScript version of the [Cheshire Cat AI](https://github.com/cheshire-cat-ai/core) framework originally made in Python.
 
 Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?query=is%3Aopen) for more information on what's being worked on.
 
@@ -25,8 +25,8 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Granular plugins folder reload
 - [x] Sync/Async ingestion endpoints
 - [x] New built-in LLMs and Embedders
-- [x] Instant tool call with `@[toolName]` syntax
-- [x] Granular activation of procedures
+- [x] Instant tool call with `@[tool-name]` syntax
+- [x] Granular management of procedures (forms and tools)
 - [ ] Built-in CLI
 
 ## How to contribute

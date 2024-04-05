@@ -2,20 +2,20 @@ import { z } from 'zod'
 import { CatForm } from '@form'
 import { CatTool } from '@tool'
 
-CatTool.add('get_the_time', 'Useful to get the current time when asked. Input is always null.', async () => {
+CatTool.add('GetTime', 'Useful to get the current time when asked. Input is always null.', async () => {
 	return new Date().toLocaleString()
 }, {
 	direct: true,
 	examples: ['What time is it', 'Get the time'],
 })
 
-CatTool.add('get_the_name', 'Useful to get the current user name when asked. Input is the user name.', async (input) => {
+CatTool.add('GetName', 'Useful to get the current user name when asked. Input is the user name.', async (input) => {
 	return `Your name is ${input}`
 }, {
 	examples: ['My name is Daniele', 'I\'m John'],
 })
 
-CatForm.add('pizza_form', {
+CatForm.add('PizzaForm', {
 	pizza: z.string(),
 	size: z.enum(['small', 'medium', 'large']),
 }, async ({ pizza, size }) => {
