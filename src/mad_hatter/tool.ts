@@ -35,8 +35,8 @@ export const CatTool = Object.freeze({
 
 export class Tool extends DynamicStructuredTool {
 	private cat: StrayCat | undefined
-	private _active = true
 	private _examples: string[]
+	active = true
 
 	constructor(name: string, description: string, fn: ToolFun, options?: ToolOptions) {
 		const { direct = false, examples = [] } = { ...options }
@@ -68,10 +68,6 @@ export class Tool extends DynamicStructuredTool {
 		return this._examples
 	}
 
-	get active() {
-		return this._active
-	}
-
 	toString() {
 		return `Tool(name=${this.name}, direct=${this.returnDirect}, description=${this.description})`
 	}
@@ -79,9 +75,5 @@ export class Tool extends DynamicStructuredTool {
 	assignCat(cat: StrayCat) {
 		this.cat = cat
 		return this
-	}
-
-	toggle() {
-		this._active = !this._active
 	}
 }

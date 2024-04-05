@@ -15,6 +15,7 @@ export const defaultDbKeys = z.object({
 	})),
 	activePlugins: z.array(z.string()),
 	activeTools: z.array(z.string()),
+	activeForms: z.array(z.string()),
 })
 
 export const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
@@ -34,6 +35,7 @@ const db = JSONFileSyncPreset<DatabaseConfig>('./data/metadata.json', {
 		{ name: 'FakeEmbedder', value: {} },
 	],
 	activeTools: [],
+	activeForms: [],
 	activePlugins: ['core_plugin'],
 })
 
