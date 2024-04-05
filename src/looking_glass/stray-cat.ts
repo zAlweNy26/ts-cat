@@ -99,6 +99,13 @@ export class StrayCat {
 		return cheshireCat.currentLLM
 	}
 
+	getPluginInfo(id: string) {
+		const plugin = madHatter.getPlugin(id)
+		if (!plugin) { return undefined }
+		const { active, manifest, settings } = plugin
+		return { active, manifest, settings }
+	}
+
 	set ws(value: WebSocket | undefined) {
 		this._ws = value
 		this._ws?.on('open', () => {
