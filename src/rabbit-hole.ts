@@ -132,10 +132,7 @@ export class RabbitHole {
 
 	async ingestFile(stray: StrayCat, file: File, chunkSize = 512, chunkOverlap = 128) {
 		const mime = file.type as keyof typeof this.fileHandlers
-		if (!Object.keys(this.fileHandlers).includes(mime)) {
-			log.error('The file type is not supported. Skipping ingestion...')
-			return
-		}
+		if (!Object.keys(this.fileHandlers).includes(mime)) { throw new Error('The file type is not supported. Skipping ingestion...') }
 		log.info('Ingesting file...')
 		const loader = new this.fileHandlers[mime]!(file)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
@@ -159,10 +156,7 @@ export class RabbitHole {
 		}
 		catch (error) {
 			log.info('The string is not a valid URL, trying with a file-system path...')
-			if (!existsSync(path)) {
-				log.error('The path does not exist. Skipping ingestion...')
-				throw new Error('The path does not exist.')
-			}
+			if (!existsSync(path)) { throw new Error('The path does not exist. Skipping ingestion...') }
 			const data = readFileSync(resolve(path))
 			const file = new File([data], basename(path), { type: extname(path) })
 			await this.ingestFile(stray, file, chunkSize, chunkOverlap)
