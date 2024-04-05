@@ -1,5 +1,49 @@
 # Changelog
 
+## v1.2.0
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.1.1...v1.2.0)
+
+### 🚀 Enhancements
+
+- Add save param for /chat endpoint ([8a1b2d4](https://github.com/zAlweNy26/ts-cat/commit/8a1b2d4))
+- Add Zod in the database config ([1e6762f](https://github.com/zAlweNy26/ts-cat/commit/1e6762f))
+- Add instant tool call syntax ([d7255c8](https://github.com/zAlweNy26/ts-cat/commit/d7255c8))
+- Toggle procedures via endpoint ([756c1ad](https://github.com/zAlweNy26/ts-cat/commit/756c1ad))
+- Add web parsers ([74b6ab8](https://github.com/zAlweNy26/ts-cat/commit/74b6ab8))
+
+### 🩹 Fixes
+
+- Small code improvements ([b2179ca](https://github.com/zAlweNy26/ts-cat/commit/b2179ca))
+- Improve hooks map type ([2a694c5](https://github.com/zAlweNy26/ts-cat/commit/2a694c5))
+
+### 💅 Refactors
+
+- Removed automatic embedder selection ([6af0bcf](https://github.com/zAlweNy26/ts-cat/commit/6af0bcf))
+
+### 📖 Documentation
+
+- Update README.md ([ec58341](https://github.com/zAlweNy26/ts-cat/commit/ec58341))
+
+### 🌊 Types
+
+- Add AgentFastReply interface ([cceb122](https://github.com/zAlweNy26/ts-cat/commit/cceb122))
+
+### 🏡 Chore
+
+- Add `from` property in hooks ([a803a2a](https://github.com/zAlweNy26/ts-cat/commit/a803a2a))
+- Change procedures casing (snake to kebab) ([6346c13](https://github.com/zAlweNy26/ts-cat/commit/6346c13))
+- Update deps ([bee8219](https://github.com/zAlweNy26/ts-cat/commit/bee8219))
+- Improve rabbit hole error handling ([28cf108](https://github.com/zAlweNy26/ts-cat/commit/28cf108))
+
+### 🎨 Styles
+
+- Improve welcome log spacing ([727a1f9](https://github.com/zAlweNy26/ts-cat/commit/727a1f9))
+
+### ❤️ Contributors
+
+- zAlweNy26 <zdanymc@gmail.com>
+
 ## v1.1.1
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.1.0...v1.1.1)
