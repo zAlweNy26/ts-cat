@@ -4,8 +4,8 @@ import _Merge from 'lodash/merge.js'
 import { safeDestr } from 'destr'
 import { LLMChain } from 'langchain/chains'
 import { PromptTemplate } from '@langchain/core/prompts'
-import { snakeCase } from 'scule'
-import type { StrayCat } from '@lg'
+import { kebabCase } from 'scule'
+import type { AgentFastReply, StrayCat } from '@lg'
 import { log } from '@logger'
 import { parsedEnv } from '@utils'
 
@@ -57,7 +57,7 @@ export class Form<
 > {
 	private cat!: StrayCat
 	private _state: FormState = FormState.INCOMPLETE
-	private _active = true
+	active = true
 	name: string
 	schema: z.ZodObject<T>
 	model: S = {} as S
@@ -71,7 +71,7 @@ export class Form<
 
 	constructor(name: string, schema: T, submit: FormSubmit<S>, options: FormOptions) {
 		const { askConfirm = false, description, startExamples, stopExamples = [] } = options
-		this.name = snakeCase(name)
+		this.name = kebabCase(name)
 		this.schema = z.object(schema)
 		this.submit = submit
 		this.askConfirm = askConfirm
@@ -84,10 +84,6 @@ export class Form<
 		return this._state
 	}
 
-	get active() {
-		return this._active
-	}
-
 	assignCat(cat: StrayCat) {
 		this.cat = cat
 		return this
@@ -98,13 +94,6 @@ export class Form<
 		this._state = FormState.INCOMPLETE
 		this.errors = []
 		this.missingFields = []
-	}
-
-	/**
-	 * Toggles the active state of the form.
-	 */
-	toggle() {
-		this._active = !this._active
 	}
 
 	private async askUserConfirm() {
@@ -265,7 +254,7 @@ Updated JSON:`
 		}
 	}
 
-	private message() {
+	private message(): AgentFastReply {
 		if (this.state === FormState.CLOSED) { return { output: `Form ${this.name} closed` } }
 
 		let missingFields = ''

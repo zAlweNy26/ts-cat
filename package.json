@@ -59,8 +59,8 @@
     "@langchain/anthropic": "^0.1.9",
     "@langchain/azure-openai": "^0.0.5",
     "@langchain/cohere": "^0.0.6",
-    "@langchain/community": "^0.0.43",
-    "@langchain/core": "^0.1.52",
+    "@langchain/community": "^0.0.44",
+    "@langchain/core": "^0.1.53",
     "@langchain/google-genai": "^0.0.10",
     "@langchain/mistralai": "^0.0.16",
     "@langchain/openai": "^0.0.25",
@@ -98,10 +98,10 @@
     "zod-to-json-schema": "^3.22.5"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.11.6",
+    "@antfu/eslint-config": "^2.12.1",
     "@total-typescript/ts-reset": "^0.5.1",
     "@types/lodash": "^4.17.0",
-    "@types/node": "^20.12.2",
+    "@types/node": "^20.12.3",
     "@types/nodemon": "^1.19.6",
     "@types/qs": "^6.9.14",
     "@types/ws": "^8.5.10",
@@ -114,7 +114,7 @@
     "tsup": "^8.0.2",
     "tsx": "^4.7.1",
     "typescript": "^5.4.3",
-    "typescript-eslint": "^7.4.0",
+    "typescript-eslint": "^7.5.0",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.4.0"
   }

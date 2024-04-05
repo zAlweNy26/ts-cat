@@ -49,6 +49,8 @@ CatHook.add('memoryCollections', collections => collections)
 
 CatHook.add('fileParsers', parsers => parsers)
 
+CatHook.add('webParsers', parsers => parsers)
+
 CatHook.add('textSplitter', splitter => splitter)
 
 CatHook.add('beforeStoreDocuments', docs => docs)

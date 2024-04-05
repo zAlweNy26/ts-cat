@@ -1,10 +1,11 @@
 import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import type { Document } from '@langchain/core/documents'
 import type { TextSplitter } from 'langchain/text_splitter'
-import type { AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
+import type { AgentFastReply, AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
 import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'
 import type { Message } from '@utils'
+import type { FileParsers, WebParser } from '@rh'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
@@ -17,7 +18,7 @@ export interface HookTypes {
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => string
 	allowedTools: (tools: string[], stray: StrayCat) => string[]
 	beforeAgentStarts: (input: AgentInput, stray: StrayCat) => AgentInput
-	agentFastReply: (reply: Record<string, any>, stray: StrayCat) => Record<string, any>
+	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayCat) => Nullable<AgentFastReply>
 	agentPromptPrefix: (prefix: string, stray: StrayCat) => string
 	agentPromptSuffix: (suffix: string, stray: StrayCat) => string
 	// Stray Cat hooks
@@ -30,7 +31,8 @@ export interface HookTypes {
 	// Vector Memory hooks
 	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => Record<string, VectorMemoryCollection>
 	// Rabbit Hole hooks
-	fileParsers: (loaders: Record<string, BaseDocumentLoader>) => Record<string, BaseDocumentLoader>
+	fileParsers: (loaders: FileParsers) => FileParsers
+	webParsers: (loaders: WebParser[]) => WebParser[]
 	textSplitter: (splitter: TextSplitter) => TextSplitter
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => Document
@@ -47,16 +49,17 @@ export type HookNames = keyof HookTypes
 export type Hook<T extends HookNames = HookNames> = {
 	name: T
 	fn: HookTypes[T]
+	from: string
 } & Required<HookOptions>
 
 export type Hooks<H extends HookNames = HookNames> = {
-	[K in H]: Array<Omit<Hook<K>, 'name'> & { from: string }>
+	[K in H]: Array<Hook<H>>
 }
 
 export function isHook(hook: any): hook is Hook<HookNames> {
 	return hook && typeof hook == 'object' && 'name' in hook && 'priority' in hook && 'fn' in hook
-		&& typeof hook.name == 'string' && typeof hook.priority == 'number' && typeof hook.fn == 'function'
-		&& Object.keys(hook).length === 3
+		&& 'from' in hook && typeof hook.name == 'string' && typeof hook.priority == 'number'
+		&& typeof hook.from == 'string' && typeof hook.fn == 'function' && Object.keys(hook).length === 4
 }
 
 export const CatHook = Object.freeze({
@@ -76,6 +79,7 @@ export const CatHook = Object.freeze({
 			name,
 			priority,
 			fn,
+			from: 'unknown',
 		}
 		return hook
 	},

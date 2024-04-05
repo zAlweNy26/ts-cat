@@ -6,6 +6,7 @@ import { TextLoader } from 'langchain/document_loaders/fs/text'
 import { DocxLoader } from 'langchain/document_loaders/fs/docx'
 import { JSONLoader } from 'langchain/document_loaders/fs/json'
 import { PPTXLoader } from 'langchain/document_loaders/fs/pptx'
+import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import { CheerioWebBaseLoader } from 'langchain/document_loaders/web/cheerio'
 import { getEncoding } from 'js-tiktoken'
 import type { TextSplitter } from 'langchain/text_splitter'
@@ -30,15 +31,24 @@ export interface MemoryJson {
 	}
 }
 
+export type WebParser = [RegExp, new (content: string) => BaseDocumentLoader]
+
+export type FileParsers = Record<`${string}/${string}`, new (content: string | Blob) => BaseDocumentLoader>
+
 export class RabbitHole {
 	private static instance: RabbitHole
 	private splitter: TextSplitter
-	private fileHandlers = {
+	private webHandlers: WebParser[] = [
+		[/^(https?:\/\/)?(www\.)?.*\..*$/g, CheerioWebBaseLoader],
+	]
+
+	private fileHandlers: FileParsers = {
 		'text/csv': CSVLoader,
 		'text/plain': TextLoader,
 		'text/markdown': TextLoader,
 		'application/pdf': PDFLoader,
 		'application/json': JSONLoader,
+		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': CSVLoader,
 		'application/vnd.openxmlformats-officedocument.wordprocessingml.document': DocxLoader,
 		'application/vnd.openxmlformats-officedocument.presentationml.presentation': PPTXLoader,
 	}
@@ -48,6 +58,7 @@ export class RabbitHole {
 			...this.fileHandlers,
 			...madHatter.executeHook('fileParsers', {}),
 		}
+		this.webHandlers = [...this.webHandlers, ...madHatter.executeHook('webParsers', [])]
 		this.splitter = new RecursiveCharacterTextSplitter({
 			separators: ['\\n\\n', '\n\n', '.\\n', '.\n', '\\n', '\n', ' ', ''],
 			keepSeparator: true,
@@ -72,6 +83,10 @@ export class RabbitHole {
 		return this.fileHandlers
 	}
 
+	get webParsers() {
+		return this.webHandlers
+	}
+
 	/**
 	 * Upload memories to the declarative memory from a JSON file.
 	 * When doing this, please, make sure the embedder used to export the memories is the same as the one used when uploading.
@@ -85,7 +100,7 @@ export class RabbitHole {
 		if (json instanceof File) {
 			if (json.type !== 'application/json') {
 				log.error('The file is not a JSON file. Skipping ingestion...')
-				return
+				throw new Error('The file is not a valid JSON file.')
 			}
 			content = destr(await json.text())
 		}
@@ -109,20 +124,20 @@ export class RabbitHole {
 		await cheshireCat.currentMemory.collections.declarative.addPoints(declarativeMemories)
 	}
 
-	async ingestContent(stray: StrayCat, content: string) {
+	async ingestContent(stray: StrayCat, content: string | string[]) {
 		log.info('Ingesting textual content...')
-		const docs = await this.splitTexts(stray, [content], content.length, 0)
+		const docs = await this.splitTexts(stray, Array.isArray(content) ? content : [content], content.length, 0)
 		await this.storeDocuments(stray, docs, 'textual content')
 	}
 
 	async ingestFile(stray: StrayCat, file: File, chunkSize = 512, chunkOverlap = 128) {
 		const mime = file.type as keyof typeof this.fileHandlers
-		if (!(mime in this.fileHandlers)) {
+		if (!Object.keys(this.fileHandlers).includes(mime)) {
 			log.error('The file type is not supported. Skipping ingestion...')
 			return
 		}
 		log.info('Ingesting file...')
-		const loader = new this.fileHandlers[mime](file)
+		const loader = new this.fileHandlers[mime]!(file)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 		const content = (await loader.load()).map(d => d.pageContent)
 		stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
@@ -134,7 +149,8 @@ export class RabbitHole {
 		try {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
-			const loader = new CheerioWebBaseLoader(url.href)
+			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href)) ?? this.webHandlers[0]!
+			const loader = new webHandler[1](url.href)
 			stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 			const content = (await loader.load()).map(d => d.pageContent)
 			stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })

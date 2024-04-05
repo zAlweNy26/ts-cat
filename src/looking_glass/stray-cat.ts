@@ -9,6 +9,7 @@ import type { EmbeddedVector, FilterMatch } from '@memory'
 import type { Message } from '@utils'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
+import type { AgentFastReply } from './agent-manager.ts'
 import { NewTokenHandler } from './callbacks.ts'
 import { cheshireCat } from './cheshire-cat.ts'
 
@@ -127,7 +128,13 @@ export class StrayCat {
 		}
 	}
 
-	async run(msg: Message) {
+	/**
+	 * Processes the user message and returns the response.
+	 * @param msg the user message
+	 * @param save whether to save the message or not in the chat history. Default is true.
+	 * @returns the response message
+	 */
+	async run(msg: Message, save = true) {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
 		const response = this.userMessage = madHatter.executeHook('beforeReadMessage', msg, this)
@@ -152,10 +159,9 @@ export class StrayCat {
 		catch (error) {
 			log.error(error)
 			catMsg = {
-				input: response.text,
 				intermediateSteps: [],
 				output: 'I am sorry, I could not process your request.',
-			}
+			} satisfies AgentFastReply
 		}
 
 		log.info('Agent response:')
@@ -186,8 +192,10 @@ export class StrayCat {
 
 		finalOutput = madHatter.executeHook('beforeSendMessage', finalOutput, this)
 
-		this.chatHistory.push({ what: response.text, who: 'Human', when: Date.now() })
-		this.chatHistory.push(finalOutput)
+		if (save) {
+			this.chatHistory.push({ what: response.text, who: 'Human', when: Date.now() })
+			this.chatHistory.push(finalOutput)
+		}
 
 		return finalOutput
 	}

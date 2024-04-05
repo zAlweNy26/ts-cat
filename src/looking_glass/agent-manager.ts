@@ -6,6 +6,7 @@ import type { AgentStep, ChainValues } from 'langchain/schema'
 import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
+import { getDb } from '@db'
 import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT, ToolPromptTemplate } from './prompts.ts'
 import type { MemoryDocument, MemoryMessage, StrayCat } from './stray-cat.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
@@ -25,6 +26,11 @@ export interface IntermediateStep {
 	observation: string
 }
 
+export interface AgentFastReply {
+	output: string
+	intermediateSteps?: IntermediateStep[]
+}
+
 /**
  * Manager of Langchain Agent.
  * This class manages the Agent that uses the LLM. It takes care of formatting the prompt and filtering the tools
@@ -41,7 +47,7 @@ export class AgentManager {
 		const allowedTools: Tool[] = []
 		const returnDirectTools: string[] = []
 
-		Array.from([...madHatter.forms, ...madHatter.tools]).forEach((p) => {
+		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p)) {
 					allowedTools.push(p.assignCat(stray))
@@ -139,9 +145,18 @@ export class AgentManager {
 			declarative_memory: declarativeMemoryFormatted,
 		}, stray)
 
-		const fastReply = madHatter.executeHook('agentFastReply', {}, stray)
+		const calledTool = madHatter.tools.filter(t => t.active).find(({ name }) => agentInput.input.startsWith(`@${name}`))
+		const instantTool = getDb().instantTool
 
-		if (Object.keys(fastReply).length > 0) { return fastReply }
+		if (calledTool && instantTool) {
+			const toolInput = agentInput.input.replace(`@${calledTool.name}`, '').trim()
+			calledTool.assignCat(stray)
+			return { output: await calledTool.call(toolInput) }
+		}
+
+		const fastReply = madHatter.executeHook('agentFastReply', undefined, stray)
+
+		if (fastReply) { return fastReply }
 
 		const promptPrefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const promptSuffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)

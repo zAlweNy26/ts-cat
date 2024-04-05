@@ -2,6 +2,7 @@ import '@total-typescript/ts-reset'
 
 declare global {
 	type TODO = any
+	type Nullable<T> = T | null | undefined
 
 	namespace NodeJS {
 		interface ProcessEnv {

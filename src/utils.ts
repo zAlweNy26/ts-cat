@@ -52,11 +52,11 @@ export const catPaths = {
 export function logWelcome() {
 	const cat = readFileSync('src/welcome.txt', 'utf8')
 	console.log(cat)
-	console.log('=================== ^._.^ ===================')
-	console.log(`Cat REST API:\t${getBaseUrl().href}docs`)
-	console.log(`Cat ADMIN:\t${getBaseUrl().href}admin`)
-	console.log(`Cat WEBSOCKET:\t${getBaseUrl().href.replace('http', 'ws')}ws`)
-	console.log('=============================================')
+	console.log('===================== ^._.^ =====================')
+	console.log(`Cat REST API:	${getBaseUrl().href}docs`)
+	console.log(`Cat ADMIN:		${getBaseUrl().href}admin`)
+	console.log(`Cat WEBSOCKET:	${getBaseUrl().href.replace('http', 'ws')}ws`)
+	console.log('=================================================')
 }
 
 /**

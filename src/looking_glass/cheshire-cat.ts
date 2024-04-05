@@ -112,42 +112,11 @@ export class CheshireCat {
 	loadLanguageEmbedder() {
 		const selected = getDb().selectedEmbedder, embSettings = getEmbedderSettings(), llmSettings = getLLMSettings()
 		try {
+			if (!llmSettings) { throw new Error('LLM settings not found') }
 			const embedder = getEmbedder(selected)
 			if (!embedder) { throw new Error('Embedder not found') }
-			if (!llmSettings) { throw new Error('LLM settings not found') }
-			if (embSettings && selected !== 'FakeEmbedder') { return embedder.getModel(embSettings) }
-			let emb: Embeddings | undefined
-			switch (getDb().selectedLLM) {
-				case 'ChatOpenAILLM' || 'OpenAILLM':
-					emb = embedder.getModel(embedder.config.parse({
-						apiKey: llmSettings.apiKey,
-					}))
-					break
-				case 'AzureChatOpenAILLM' || 'AzureOpenAILLM':
-					emb = embedder.getModel(embedder.config.parse({
-						apiKey: llmSettings.apiKey,
-						base: llmSettings.base,
-					}))
-					break
-				case 'CohereLLM':
-					emb = embedder.getModel(embedder.config.parse({
-						apiKey: llmSettings.apiKey,
-					}))
-					break
-				case 'CustomOpenAILLM':
-					emb = embedder.getModel(embedder.config.parse({
-						url: llmSettings.url,
-					}))
-					break
-				case 'GeminiChatLLM':
-					emb = embedder.getModel(embedder.config.parse({
-						apiKey: llmSettings.apiKey,
-					}))
-					break
-				default:
-					emb = getEmbedder('FakeEmbedder')!.getModel({})
-			}
-			return emb
+			if (!embSettings && embedder.name !== 'FakeEmbedder') { throw new Error('Embedder settings not found') }
+			return embedder.getModel(embSettings ?? {})
 		}
 		catch (error) {
 			log.error(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
@@ -198,7 +167,6 @@ export class CheshireCat {
 					trigger: 'startExample',
 				}
 			}
-
 			if (isForm(proc)) {
 				for (const example of proc.stopExamples) {
 					hashes[`${proc.name}.stopExample.${example.toLowerCase().replace(/\s/g, '_')}`] = {
