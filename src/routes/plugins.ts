@@ -7,6 +7,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { MultipartFile } from '@fastify/multipart'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
+import { updateDb } from '@db'
 
 export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.get('/', { schema: {
@@ -179,6 +180,49 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		const active = madHatter.togglePlugin(pluginId)
 		return {
 			active,
+		}
+	})
+
+	fastify.patch<{
+		Params: {
+			pluginId: string
+			procedureName: string
+		}
+	}>('/toggle/:pluginId/procedure/:procedureName', { schema: {
+		description: 'Enable or disable a single procedure of a plugin.',
+		tags: ['Plugins'],
+		summary: 'Toggle plugin procedure',
+		response: {
+			200: {
+				type: 'object',
+				properties: {
+					active: { type: 'boolean' },
+				},
+			},
+			404: { $ref: 'HttpError' },
+			400: { $ref: 'HttpError' },
+		},
+	} }, (req, rep) => {
+		const { pluginId, procedureName } = req.params
+		const p = madHatter.getPlugin(pluginId)
+		if (!p) { return rep.notFound('Plugin not found') }
+		const tool = p.tools.find(t => t.name === procedureName)
+		const form = p.forms.find(f => f.name === procedureName)
+		if (!tool && !form) { return rep.notFound('Procedure not found') }
+		if (tool) { tool.active = !tool.active }
+		if (form) { form.active = !form.active }
+		updateDb((db) => {
+			if (tool) {
+				if (tool.active) { db.activeTools.push(procedureName) }
+				else db.activeTools = db.activeTools.filter(t => t !== procedureName)
+			}
+			else if (form) {
+				if (form.active) { db.activeForms.push(procedureName) }
+				else db.activeForms = db.activeForms.filter(f => f !== procedureName)
+			}
+		})
+		return {
+			active: (tool?.active ?? form?.active) ?? false,
 		}
 	})
 

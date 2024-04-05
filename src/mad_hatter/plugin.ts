@@ -183,7 +183,7 @@ export class Plugin {
 		const callback = this.events[event]
 		if (callback) {
 			const timeStart = performance.now()
-			// TODO: Fix this check
+			// TODO: Improve this check
 			event === 'installed' || event === 'removed' ? callback(this.manifest) : callback(this.settings as any)
 			const timeEnd = performance.now()
 			const eventTime = (timeEnd - timeStart).toFixed(2)
@@ -266,7 +266,7 @@ export class Plugin {
 					if (v instanceof z.ZodObject) { this._schema = v }
 					else if (isForm(v)) { this.forms.push(v) }
 					else if (isTool(v)) { this.tools.push(v) }
-					else if (isHook(v)) { this.hooks.push(v) }
+					else if (isHook(v)) { this.hooks.push({ ...v, from: this.id }) }
 					else if (isPluginEvent(v)) { this.events[v.name] = v.fn as any }
 				})
 			}

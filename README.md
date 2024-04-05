@@ -25,9 +25,9 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Granular plugins folder reload
 - [x] Sync/Async ingestion endpoints
 - [x] New built-in LLMs and Embedders
+- [x] Instant tool call with `@[toolName]` syntax
+- [x] Granular activation of procedures
 - [ ] Built-in CLI
-- [ ] Instant tool call with `@[toolName]` syntax
-- [ ] Granular activation of hooks and procedures
 
 ## How to contribute
 
