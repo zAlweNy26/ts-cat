@@ -47,18 +47,17 @@ export type HookNames = keyof HookTypes
 export type Hook<T extends HookNames = HookNames> = {
 	name: T
 	fn: HookTypes[T]
+	from: string
 } & Required<HookOptions>
 
-export type MapHook<T extends HookNames = HookNames> = Omit<Hook<T>, 'name'> & { from: string }
-
 export type Hooks<H extends HookNames = HookNames> = {
-	[K in H]: Array<Omit<Hook<K>, 'name'> & { from: string }>
+	[K in H]: Array<Hook<H>>
 }
 
 export function isHook(hook: any): hook is Hook<HookNames> {
 	return hook && typeof hook == 'object' && 'name' in hook && 'priority' in hook && 'fn' in hook
-		&& typeof hook.name == 'string' && typeof hook.priority == 'number' && typeof hook.fn == 'function'
-		&& Object.keys(hook).length === 3
+		&& 'from' in hook && typeof hook.name == 'string' && typeof hook.priority == 'number'
+		&& typeof hook.from == 'string' && typeof hook.fn == 'function' && Object.keys(hook).length === 4
 }
 
 export const CatHook = Object.freeze({
@@ -78,6 +77,7 @@ export const CatHook = Object.freeze({
 			name,
 			priority,
 			fn,
+			from: 'unknown',
 		}
 		return hook
 	},

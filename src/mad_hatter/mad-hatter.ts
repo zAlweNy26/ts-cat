@@ -195,10 +195,9 @@ export class MadHatter {
 				this.tools.push(...plugin.tools)
 				this.forms.push(...plugin.forms)
 				plugin.hooks.forEach((hook) => {
-					const { name, ...rest } = hook
+					const { name } = hook
 					if (!this.hooks[name]) { this.hooks[name] = [] }
-					// TODO: Fix this type
-					this.hooks[name]!.push({ ...(rest as any), from: plugin.id })
+					this.hooks[name]!.push(hook)
 				})
 			}
 		})

@@ -266,7 +266,7 @@ export class Plugin {
 					if (v instanceof z.ZodObject) { this._schema = v }
 					else if (isForm(v)) { this.forms.push(v) }
 					else if (isTool(v)) { this.tools.push(v) }
-					else if (isHook(v)) { this.hooks.push(v) }
+					else if (isHook(v)) { this.hooks.push({ ...v, from: this.id }) }
 					else if (isPluginEvent(v)) { this.events[v.name] = v.fn as any }
 				})
 			}
