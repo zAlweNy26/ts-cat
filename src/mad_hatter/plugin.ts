@@ -183,7 +183,7 @@ export class Plugin {
 		const callback = this.events[event]
 		if (callback) {
 			const timeStart = performance.now()
-			// TODO: Fix this check
+			// TODO: Improve this check
 			event === 'installed' || event === 'removed' ? callback(this.manifest) : callback(this.settings as any)
 			const timeEnd = performance.now()
 			const eventTime = (timeEnd - timeStart).toFixed(2)

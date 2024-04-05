@@ -49,6 +49,8 @@ export type Hook<T extends HookNames = HookNames> = {
 	fn: HookTypes[T]
 } & Required<HookOptions>
 
+export type MapHook<T extends HookNames = HookNames> = Omit<Hook<T>, 'name'> & { from: string }
+
 export type Hooks<H extends HookNames = HookNames> = {
 	[K in H]: Array<Omit<Hook<K>, 'name'> & { from: string }>
 }

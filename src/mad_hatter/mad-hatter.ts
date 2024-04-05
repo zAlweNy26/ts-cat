@@ -204,8 +204,7 @@ export class MadHatter {
 		})
 		// Sort hooks by higher priority
 		Object.entries(this.hooks).forEach(([name, hooks]) => {
-			// TODO: Fix this type
-			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority) as any
+			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority)
 		})
 		this.onPluginsSyncCallback?.()
 	}
