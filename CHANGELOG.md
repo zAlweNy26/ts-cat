@@ -14,7 +14,7 @@
 
 ### ❤️ Contributors
 
-- ZAlweNy26 <zdanymc@gmail.com>
+- zAlweNy26 <zdanymc@gmail.com>
 
 ## v1.2.0
 
