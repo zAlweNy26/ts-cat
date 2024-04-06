@@ -49,17 +49,17 @@ export class MadHatter {
 		const hook = this.hooks[name]
 		if (!hook || hook.length === 0) { throw new Error(`Hook "${name}" not found in any plugin`) }
 		const timeStart = performance.now()
-		let isFirst = true
-		// TODO: Find a way to type these any properly
-		const result = hook.reduce((acc, { fn }: { fn: any }) => {
-			const res = isFirst ? fn(...acc) : fn(acc)
-			isFirst = false
-			return res
-		}, args)
+		// First argument is the pipeable one
+		let teaCup = args[0]
+		for (const h of hook) {
+			// TODO: Find a way to type these any properly
+			const teaSpoon = (h.fn as any)(teaCup, ...args.slice(1))
+			teaCup = teaSpoon || teaCup
+		}
 		const timeEnd = performance.now()
 		const hookTime = (timeEnd - timeStart).toFixed(2)
 		log.tag('bgGreenBright', 'HOOK', name, `executed in ${hookTime}ms`)
-		return result as ReturnType<HookTypes[T]>
+		return teaCup as ReturnType<HookTypes[T]>
 	}
 
 	/**

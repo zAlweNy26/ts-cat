@@ -1,4 +1,3 @@
-import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import type { Document } from '@langchain/core/documents'
 import type { TextSplitter } from 'langchain/text_splitter'
 import type { AgentFastReply, AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
