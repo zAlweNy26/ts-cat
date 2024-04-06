@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.2.1
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.0...v1.2.1)
+
+### 🚀 Enhancements
+
+- Easily get plugin info from stray cat #14 ([#14](https://github.com/zAlweNy26/ts-cat/issues/14))
+
+### 🩹 Fixes
+
+- Fix #15 ([#15](https://github.com/zAlweNy26/ts-cat/issues/15))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.0
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.1.1...v1.2.0)
