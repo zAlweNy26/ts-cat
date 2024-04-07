@@ -28,6 +28,7 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Instant tool call with `@[tool-name]` syntax
 - [x] Granular management of procedures (forms and tools)
 - [ ] Built-in CLI
+- [ ] Supports multimodality
 
 ## How to contribute
 

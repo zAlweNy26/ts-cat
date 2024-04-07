@@ -37,6 +37,15 @@ CatPlugin.settings({
 })
 ```
 
+If you need to use the internal logger, you can do:
+
+```typescript
+import { log } from '@logger'
+
+log.info('Hello, world!')
+log.error('An error occurred!')
+```
+
 ## Install other packages
 
 To install other packages, you need to add a `requirements.txt` file in the main directory of your plugin.
