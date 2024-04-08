@@ -10,10 +10,10 @@ import { log } from '@logger'
 import { parsedEnv } from '@utils'
 
 export enum FormState {
-	INCOMPLETE = 'incomplete',
-	COMPLETE = 'complete',
-	CLOSED = 'closed',
-	WAIT_CONFIRM = 'wait_confirm',
+	WAIT_CONFIRM,
+	INCOMPLETE,
+	COMPLETE,
+	CLOSED,
 }
 
 interface FormOptions {
@@ -113,7 +113,7 @@ JSON:
 
 		const res = await this.cat.llm(confirmPrompt, true)
 
-		return res.includes('true')
+		return res.toLowerCase().includes('true')
 	}
 
 	private async checkExitIntent() {
@@ -146,7 +146,7 @@ JSON:
 		return res.toLowerCase().includes('true')
 	}
 
-	async next() {
+	async next(): Promise<AgentFastReply> {
 		if (await this.checkExitIntent()) { this._state = FormState.CLOSED }
 
 		if (this.state === FormState.WAIT_CONFIRM) {
@@ -154,6 +154,7 @@ JSON:
 			if (confirm) {
 				this._state = FormState.CLOSED
 				await this.submit(this.model, this.cat)
+				return { output: JSON.stringify(this.model, undefined, 4) }
 			}
 			else { this._state = FormState.INCOMPLETE }
 		}
@@ -162,10 +163,10 @@ JSON:
 
 		if (this.state === FormState.COMPLETE) {
 			if (this.askConfirm) { this._state = FormState.WAIT_CONFIRM }
-
 			else {
 				this._state = FormState.CLOSED
 				await this.submit(this.model, this.cat)
+				return { output: JSON.stringify(this.model, undefined, 4) }
 			}
 		}
 
@@ -205,7 +206,7 @@ Updated JSON:`
 
 		const extractionChain = new LLMChain({
 			llm: this.cat.currentLLM,
-			prompt: PromptTemplate.fromTemplate(prompt),
+			prompt: PromptTemplate.fromTemplate(prompt.replace('{', '{{').replace('}', '}}')),
 			verbose: parsedEnv.verbose,
 			outputKey: 'output',
 		})
@@ -224,34 +225,6 @@ Updated JSON:`
 		}
 
 		return output
-	}
-
-	private sanitize(model: S) {
-		const nullFields = [null, undefined, '', 'null', 'undefined', 'NaN', 'lower-case', 'missing', 'unknown']
-		for (const key in this.model) {
-			if (nullFields.includes(this.model[key])) { _Unset(model, key) }
-		}
-
-		return model
-	}
-
-	private validate(model: S) {
-		this.missingFields = []
-		this.errors = []
-
-		const result = this.schema.safeParse(model)
-
-		if (result.success) {
-			this._state = FormState.COMPLETE
-			return result.data
-		}
-		else {
-			this._state = FormState.INCOMPLETE
-			this.errors = result.error.errors.map(e => e.message)
-			this.missingFields = result.error.errors.map(e => e.path.join('.'))
-			for (const key of this.missingFields) { _Unset(model, key) }
-			return model
-		}
 	}
 
 	private message(): AgentFastReply {
@@ -277,9 +250,36 @@ ${invalidFields}`
 		const userMsg = this.cat.lastUserMessage.text
 		const chatHistory = this.cat.getHistory(10)
 
-		let history = chatHistory.map(m => `${m.who}: ${m.what}`).join('\n')
-		history += `Human: ${userMsg}`
+		let history = chatHistory.map(m => `- ${m.who}: ${m.what}`).join('\n')
+		history += `\nHuman: ${userMsg}`
 
 		return history
+	}
+
+	private validate(model: S) {
+		this.missingFields = []
+		this.errors = []
+
+		const result = this.schema.safeParse(model)
+
+		if (result.success) {
+			this._state = FormState.COMPLETE
+			return result.data
+		}
+		else {
+			this._state = FormState.INCOMPLETE
+			this.errors = result.error.errors.map(e => e.message)
+			this.missingFields = result.error.errors.map(e => e.path.join('.'))
+			for (const key of this.missingFields) { _Unset(model, key) }
+			return model
+		}
+	}
+
+	private sanitize(model: S) {
+		const nullFields = [null, undefined, '', 'null', 'undefined', 'NaN', 'lower-case', 'missing', 'unknown']
+		for (const key in this.model) {
+			if (nullFields.includes(this.model[key])) { _Unset(model, key) }
+		}
+		return model
 	}
 }

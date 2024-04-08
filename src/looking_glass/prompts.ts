@@ -26,7 +26,7 @@ export const TOOL_PROMPT = `Answer the following question: \`{input}\`
 You can only reply using these tools:
 
 {tools}
-none_of_the_others(null) - Use this tool if none of the others tools help. Input is always null.
+- none_of_the_others: Use this tool if none of the others tools help. Input is always null.
 
 If you want to use tools, use the following format:
 Action: the name of the action to take, should be one of [{tool_names}]

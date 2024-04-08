@@ -92,9 +92,10 @@ export class AgentManager {
 		}
 		result.intermediateSteps = intermediateSteps
 
-		if (Object.keys(result).includes('form')) {
+		if ('form' in result && typeof result.form === 'string') {
 			const form = allowedProcedures[result.form] as Form
 			form.assignCat(stray)
+			stray.activeForm = result.form
 			result = form.next()
 			result.returnDirect = true
 		}
