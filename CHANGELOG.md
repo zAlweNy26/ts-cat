@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.2.2
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.1...v1.2.2)
+
+### 🚀 Enhancements
+
+- Add git pre-commit hook ([2b93bcf](https://github.com/zAlweNy26/ts-cat/commit/2b93bcf))
+- Conversational forms now work ([060f2dc](https://github.com/zAlweNy26/ts-cat/commit/060f2dc))
+
+### 🩹 Fixes
+
+- Small form fixes ([e786c98](https://github.com/zAlweNy26/ts-cat/commit/e786c98))
+
+### 📖 Documentation
+
+- Add CONTRIBUTING and CODE OF CONDUCT ([533c4d0](https://github.com/zAlweNy26/ts-cat/commit/533c4d0))
+
+### 🏡 Chore
+
+- Update dependencies ([d24498d](https://github.com/zAlweNy26/ts-cat/commit/d24498d))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.1
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.0...v1.2.1)
