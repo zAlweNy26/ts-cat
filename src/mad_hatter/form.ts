@@ -113,7 +113,7 @@ JSON:
 
 		const res = await this.cat.llm(confirmPrompt, true)
 
-		return res.toLowerCase().includes('true')
+		return JSON.stringify(res).toLowerCase().includes('true')
 	}
 
 	private async checkExitIntent() {
@@ -143,7 +143,7 @@ JSON:
 
 		const res = await this.cat.llm(checkExitPrompt, true)
 
-		return res.toLowerCase().includes('true')
+		return JSON.stringify(res).toLowerCase().includes('true')
 	}
 
 	async next(): Promise<AgentFastReply> {
@@ -183,35 +183,42 @@ JSON:
 
 	private async extract() {
 		const history = this.stringifyChatHistory()
+
+		const prompt = `Your task is to fill up a JSON out of a conversation.
+The JSON must have this format:
+\`\`\`json
+{structure}
+\`\`\`
+
+This is the current JSON:
+\`\`\`json
+${JSON.stringify(this.model, null, 4).replace('{', '{{').replace('}', '}}')}
+\`\`\`
+
+This is the conversation:
+
+${history}
+
+Updated JSON:
+\`\`\`json`
+
+		log.debug(prompt)
+
+		const extractionChain = new LLMChain({
+			llm: this.cat.currentLLM,
+			prompt: PromptTemplate.fromTemplate(prompt),
+			verbose: parsedEnv.verbose,
+			outputKey: 'output',
+		})
+
 		let structure = '{'
 		for (const key in this.schema.shape) {
 			const zodType = ((this.schema.shape[key]!._def as any).typeName as string).replace('Zod', '').toLowerCase()
 			structure += `\n\t"${key}": // ${this.schema.shape[key]!.description ?? ''} must be of type ${zodType}`
 		}
 		structure += '\n}'
-		const prompt = `Your task is to fill up a JSON out of a conversation.
-The JSON must have this format:
-${structure}
 
-This is the current JSON:
-${JSON.stringify(this.model, null, 4)}
-
-This is the conversation:
-
-${history}
-
-Updated JSON:`
-
-		log.debug(prompt)
-
-		const extractionChain = new LLMChain({
-			llm: this.cat.currentLLM,
-			prompt: PromptTemplate.fromTemplate(prompt.replace('{', '{{').replace('}', '}}')),
-			verbose: parsedEnv.verbose,
-			outputKey: 'output',
-		})
-
-		const json = (await extractionChain.invoke({ stop: ['}'] })).output
+		const json = (await extractionChain.invoke({ structure, stop: ['```'] })).output
 
 		log.debug(`Form JSON after parser:\n${json}`)
 
