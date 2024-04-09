@@ -41,6 +41,12 @@ CatHook.add('beforeRecallMemories', configs => configs)
 
 CatHook.add('afterRecallMemories', () => {})
 
+CatHook.add('instantToolTrigger', input => input)
+
+CatHook.add('afterMemoryChain', output => output)
+
+CatHook.add('afterProceduresChain', output => output)
+
 // Vector Memory hooks
 
 CatHook.add('memoryCollections', collections => collections)

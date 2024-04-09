@@ -1,6 +1,7 @@
 import type { Document } from '@langchain/core/documents'
 import type { TextSplitter } from 'langchain/text_splitter'
-import type { AgentFastReply, AgentInput, CheshireCat, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
+import type { ChainValues } from 'langchain/schema'
+import type { AgentFastReply, AgentInput, CheshireCat, InstantToolTrigger, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
 import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'
 import type { Message } from '@utils'
@@ -20,6 +21,9 @@ export interface HookTypes {
 	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayCat) => Nullable<AgentFastReply>
 	agentPromptPrefix: (prefix: string, stray: StrayCat) => string
 	agentPromptSuffix: (suffix: string, stray: StrayCat) => string
+	afterProceduresChain: (output: ChainValues, stray: StrayCat) => ChainValues
+	afterMemoryChain: (output: ChainValues, stray: StrayCat) => ChainValues
+	instantToolTrigger: (input: Nullable<InstantToolTrigger>, stray: StrayCat) => Nullable<InstantToolTrigger>
 	// Stray Cat hooks
 	recallQuery: (query: string, stray: StrayCat) => string
 	beforeReadMessage: (msg: Message, stray: StrayCat) => Message
