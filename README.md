@@ -20,25 +20,21 @@ TypeScript version of the [Cheshire Cat AI](https://github.com/cheshire-cat-ai/c
 
 Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?query=is%3Aopen) for more information on what's being worked on.
 
+📜 For the full list of changes, please read the [changelog](./CHANGELOG.md) file.
+
+👥 If you want to contribute, please read the [contributing](./CONTRIBUTING.md) file.
+
+📃 To be sure to respect everything, please read the [code of conduct](./CODE_OF_CONDUCT.md) file.
+
 ## Features
 
 - [x] Granular plugins folder reload
 - [x] Sync/Async ingestion endpoints
 - [x] New built-in LLMs and Embedders
-- [x] Instant tool call with `@[tool-name]` syntax
+- [x] Instant tool call hook
 - [x] Granular management of procedures (forms and tools)
 - [ ] Built-in CLI
 - [ ] Supports multimodality
-
-## How to contribute
-
-1. Fork the repository
-2. Create a new branch named after the feature you're working on
-3. Make your changes
-4. Commit and push your changes using the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format
-5. Open a pull request
-6. Wait for the review
-7. Enjoy your contribution!
 
 ## Pre-requisites
 
@@ -48,15 +44,22 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 ## Installation
 
 ```bash
-pnpm install # (for development)
-docker compose build --no-cache # (for production)
+# (for development)
+pnpm install
+rm -f .git/hooks/pre-commit && ln -s ../../pre-commit .git/hooks/pre-commit
+
+# (for production)
+docker compose build --no-cache
 ```
 
 ## How to run
 
 ```bash
-pnpm run dev # (for development)
-docker compose up # (for production)
+# (for development)
+pnpm run dev
+
+# (for production)
+docker compose up
 ```
 
 ## How to test

@@ -44,8 +44,7 @@
 		"dev": "pnpm run \"/dev:/\"",
 		"dev:tsc": "tsc --watch --preserveWatchOutput",
 		"dev:node": "WATCH=true pnpm start",
-		"start": "tsx watch --no-warnings=ExperimentalWarning ./index.ts",
-		"postinstall": "rm -f .git/hooks/pre-commit && ln -s ../../pre-commit .git/hooks/pre-commit"
+		"start": "tsx watch --no-warnings=ExperimentalWarning ./index.ts"
 	},
 	"dependencies": {
 		"@fastify/cors": "^9.0.1",
