@@ -1,4 +1,5 @@
 import type { RawData, WebSocket } from 'ws'
+import callsites from 'callsites'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import type { DocumentInput } from '@langchain/core/documents'
 import { Document } from '@langchain/core/documents'
@@ -95,11 +96,21 @@ export class StrayCat {
 		return this._ws
 	}
 
+	get plugins() {
+		return madHatter.installedPlugins
+	}
+
 	get currentLLM() {
 		return cheshireCat.currentLLM
 	}
 
-	getPluginInfo(id: string) {
+	getPluginInfo() {
+		const paths = callsites().map(site => site.getFileName())
+		const folder = paths.find(path => path?.includes('src/plugins/'))
+		if (!folder) { return undefined }
+		const match = folder.match(/src\/plugins\/(.+?)\/tmp/)
+		if (!match || !match[1]) { return undefined }
+		const id = match[1]
 		const plugin = madHatter.getPlugin(id)
 		if (!plugin) { return undefined }
 		const { active, manifest, settings } = plugin

@@ -68,6 +68,7 @@
     "@mgcrea/fastify-request-logger": "^1.5.0",
     "@mgcrea/pino-pretty-compact": "^1.3.0",
     "@qdrant/js-client-rest": "^1.8.2",
+    "callsites": "^4.1.0",
     "cheerio": "1.0.0-rc.12",
     "chokidar": "^3.6.0",
     "consola": "^3.2.3",
