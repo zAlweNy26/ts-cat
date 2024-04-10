@@ -63,7 +63,7 @@ export class MadHatter {
 	}
 
 	/**
-	 * Gets the installed plugins.
+	 * Gets a copy of the installed plugins.
 	 */
 	get installedPlugins() {
 		return Array.from([...this.plugins.values()])
