@@ -137,6 +137,69 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	})
 
+	fastify.post<{
+		Params: { collectionId: string }
+		Querystring: {
+			k?: number
+		}
+		Body: {
+			metadata: Record<string, any>
+		}
+	}>('/collections/:collectionId/documents', { schema: {
+		description: 'Get list of documents filtered by metadata.',
+		tags: ['Memory'],
+		summary: 'Get collection\'s documents by metadata',
+		externalDocs: {
+			description: 'Metadata filtering conditions',
+			url: 'https://qdrant.tech/documentation/concepts/filtering/#filtering-conditions',
+		},
+		params: {
+			type: 'object',
+			properties: {
+				collectionId: { type: 'string' },
+			},
+		},
+		querystring: {
+			type: 'object',
+			required: [],
+			properties: {
+				k: { type: 'number', default: 10 },
+			},
+		},
+		body: {
+			type: 'object',
+			properties: {
+				metadata: { type: 'object' },
+			},
+		},
+		response: {
+			200: {
+				type: 'object',
+				properties: {
+					documents: { type: 'array', items: { type: 'object', additionalProperties: true } },
+				},
+			},
+			404: { $ref: 'HttpError' },
+			500: { $ref: 'HttpError' },
+		},
+	} }, async (req, rep) => {
+		const id = req.params.collectionId
+		const limit = req.query.k
+		const metadata = req.body.metadata
+		try {
+			const collections = Object.keys(cheshireCat.currentMemory.collections)
+			if (!collections.includes(id)) { return rep.notFound('Collection not found.') }
+			const points = await cheshireCat.currentMemory.collections[id]!.getAllPoints(limit, metadata)
+			return {
+				documents: points.map(p => ({ ...p.payload, id: p.id })),
+			}
+		}
+		catch (error) {
+			log.error(error)
+			return rep.internalServerError(`Error while retrieving "${id}" collection's documents.`)
+		}
+	})
+
 	fastify.delete<{
 		Params: { collectionId: string }
 		Body: {
@@ -146,6 +209,10 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		description: 'Delete points in memory by filter.',
 		tags: ['Memory'],
 		summary: 'Wipe memory points by metadata',
+		externalDocs: {
+			description: 'Metadata filtering conditions',
+			url: 'https://qdrant.tech/documentation/concepts/filtering/#filtering-conditions',
+		},
 		params: {
 			type: 'object',
 			properties: {
@@ -183,7 +250,7 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 			collectionId: string
 			pointId: string
 		}
-	}>('/collections/:collectionId/points/:memoryId', { schema: {
+	}>('/collections/:collectionId/points/:pointId', { schema: {
 		description: 'Delete a specific point in memory.',
 		tags: ['Memory'],
 		summary: 'Wipe memory point',
@@ -240,8 +307,9 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		response: {
 			204: { description: 'The conversation history was wiped successfully.', type: 'null' },
 		},
-	} }, (req) => {
+	} }, (req, rep) => {
 		req.stray.clearHistory()
+		return rep.code(204)
 	})
 
 	done()

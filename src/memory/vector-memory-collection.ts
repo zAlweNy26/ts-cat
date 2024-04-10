@@ -213,9 +213,11 @@ export class VectorMemoryCollection {
 		return documents
 	}
 
-	async getAllPoints(limit = 10000) {
+	async getAllPoints(limit = 10000, filter?: Record<string, FilterMatch>) {
 		const list = await vectorDb.scroll(this.name, {
+			filter: filter ? this.filterFromDict(filter) : undefined,
 			with_vector: true,
+			with_payload: true,
 			limit,
 		})
 		return list.points as PointData[]
