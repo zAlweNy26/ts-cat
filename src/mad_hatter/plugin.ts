@@ -1,6 +1,6 @@
 import { basename, dirname, extname, join, relative } from 'node:path'
 import type { Dirent } from 'node:fs'
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { readFile, unlink, writeFile } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { execSync } from 'node:child_process'
@@ -83,7 +83,7 @@ export const CatPlugin = Object.freeze({
 export class Plugin {
 	private events: Partial<PluginEvents> = {}
 	private _schema: z.AnyZodObject = z.object({})
-	private _settings: z.infer<typeof this._schema> = {}
+	private _settings: z.infer<z.AnyZodObject> = {}
 	private _manifest = defaultManifest
 	private _id: string
 	private _reloading = false
@@ -114,10 +114,10 @@ export class Plugin {
 		if (this._reloading) { return }
 
 		this._reloading = true
-		await this.loadManifest()
 		await this.installRequirements()
 		await this.importAll(tsFiles)
-		await this.loadSettings()
+		this.loadManifest()
+		this.loadSettings()
 		this._reloading = false
 	}
 
@@ -172,7 +172,7 @@ export class Plugin {
 	set settings(settings: Record<string, any>) {
 		this._settings = this.schema.parse(settings)
 		const settingsPath = join(this.path, 'settings.json')
-		writeFile(settingsPath, JSON.stringify(this.settings, null, 2))
+		writeFile(settingsPath, JSON.stringify(this._settings, null, 2))
 	}
 
 	/**
@@ -192,12 +192,12 @@ export class Plugin {
 		else log.info(`Plugin ${this.id} ${event}`)
 	}
 
-	private async loadManifest(): Promise<PluginManifest> {
+	private loadManifest(): PluginManifest {
 		log.debug('Loading plugin manifest...')
 		const manifestPath = join(this.path, 'plugin.json')
 		if (existsSync(manifestPath)) {
 			try {
-				const json = destr<PluginManifest>(await readFile(manifestPath, 'utf-8'))
+				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
 				this._manifest = pluginManifestSchema.parse({
 					...defaultManifest,
 					...json,
@@ -209,17 +209,16 @@ export class Plugin {
 				log.error(msg)
 			}
 		}
-
 		return this.manifest
 	}
 
-	private async loadSettings(): Promise<Record<string, any>> {
+	private loadSettings(): Record<string, any> {
 		log.debug('Loading plugin settings...')
 		const settingsPath = join(this.path, 'settings.json')
 		if (existsSync(settingsPath)) {
 			try {
-				const json = destr<Record<string, any>>(await readFile(settingsPath, 'utf-8'))
-				this.settings = this.schema.parse(json)
+				const json = destr<Record<string, any>>(readFileSync(settingsPath, 'utf-8'))
+				this._settings = this.schema.parse(json)
 			}
 			catch (err) {
 				let msg = `Error reading settings.json for ${this.id}`
@@ -227,7 +226,8 @@ export class Plugin {
 				log.error(msg)
 			}
 		}
-
+		// TODO: Add undefined to those keys that don't have a default value
+		else if (Object.keys(this.schema.shape).length > 0) { this.settings = {} }
 		return this.settings
 	}
 
