@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { readFile } from 'node:fs/promises'
 import Fastify from 'fastify'
 import ws from '@fastify/websocket'
 import swagger from '@fastify/swagger'
@@ -208,12 +209,31 @@ await fastify.register(swagger, {
 		],
 	},
 })
+const logoIcon = await readFile('./src/assets/favicon.png')
+const swaggerCss = await readFile('./src/assets/swagger-ui-theme.css', { encoding: 'utf-8' })
 await fastify.register(swaggerUi, {
 	routePrefix: '/docs',
 	uiConfig: {
 		docExpansion: 'list',
 		deepLinking: false,
 		withCredentials: true,
+	},
+	theme: {
+		css: [
+			{
+				filename: 'custom.css',
+				content: `section.swagger-ui > .topbar { display: none; }\n${swaggerCss}`,
+			},
+		],
+		favicon: [
+			{
+				filename: 'favicon.png',
+				rel: 'icon',
+				sizes: '64x64',
+				type: 'image/png',
+				content: logoIcon,
+			},
+		],
 	},
 })
 

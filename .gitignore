@@ -131,4 +131,6 @@ src/assets/*
 data/*
 !src/plugins/README.md
 !src/assets/README.md
+!src/assets/favicon.png
+!src/assets/swagger-ui-theme.css
 !data/README.md
