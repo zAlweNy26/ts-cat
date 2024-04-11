@@ -104,6 +104,9 @@ dependencies:
   fastify-type-provider-zod:
     specifier: ^1.1.9
     version: 1.1.9(fastify@4.26.2)(zod@3.22.4)
+  get-port-please:
+    specifier: ^3.1.2
+    version: 3.1.2
   html-to-text:
     specifier: ^9.0.5
     version: 9.0.5
@@ -4392,6 +4395,10 @@ packages:
       has-proto: 1.0.1
       has-symbols: 1.0.3
       hasown: 2.0.0
+    dev: false
+
+  /get-port-please@3.1.2:
+    resolution: {integrity: sha512-Gxc29eLs1fbn6LQ4jSU4vXjlwyZhF5HsGuMAa7gqBP4Rw4yxxltyDUuF5MBclFzDTXO+ACchGQoeela4DSfzdQ==}
     dev: false
 
   /get-stream@2.3.1:

@@ -53,9 +53,9 @@ export function logWelcome() {
 	const cat = readFileSync('src/welcome.txt', 'utf8')
 	console.log(cat)
 	console.log('===================== ^._.^ =====================')
-	console.log(`Cat REST API:	${getBaseUrl().href}docs`)
-	console.log(`Cat ADMIN:		${getBaseUrl().href}admin`)
-	console.log(`Cat WEBSOCKET:	${getBaseUrl().href.replace('http', 'ws')}ws`)
+	console.log(`WEBSOCKET: ${getBaseUrl().href.replace('http', 'ws')}ws`)
+	console.log(`REST API:  ${getBaseUrl().href}docs`)
+	console.log(`ADMIN:     ${getBaseUrl().href}admin`)
 	console.log('=================================================')
 }
 

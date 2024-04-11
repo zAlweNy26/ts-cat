@@ -9,6 +9,7 @@ import sensible from '@fastify/sensible'
 import cors from '@fastify/cors'
 import statics from '@fastify/static'
 import underPressure from '@fastify/under-pressure'
+import { checkPort } from 'get-port-please'
 // import { serializerCompiler, validatorCompiler, ZodTypeProvider, jsonSchemaTransform } from "@benjaminlindberg/fastify-type-provider-zod"
 import requestLogger from '@mgcrea/fastify-request-logger'
 import qs from 'qs'
@@ -246,15 +247,16 @@ fastify.addHook('preParsing', async (req, rep) => {
 const inDocker = isDocker()
 
 try {
-	await fastify.listen({
-		host: inDocker ? '0.0.0.0' : parsedEnv.host,
-		port: inDocker ? 80 : parsedEnv.port,
-	})
+	const port = inDocker ? 80 : parsedEnv.port
+	const host = inDocker ? '0.0.0.0' : parsedEnv.host
+	await checkPort(port, host)
+	await fastify.listen({ host, port })
 	await fastify.ready()
 	fastify.swagger()
 	logWelcome()
 }
 catch (err) {
 	fastify.log.error(err)
+	await fastify.close()
 	process.exit(1)
 }
