@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ccat-ts-vector-memory
+  name: ccat-ts-vector-memory
+spec:
+  ports:
+    - name: "6333"
+      port: 6333
+      targetPort: 6333
+  selector:
+    io.kompose.service: ccat-ts-vector-memory
+status:
+  loadBalancer: {}
