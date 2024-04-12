@@ -104,3 +104,41 @@ export interface Message {
 export const zodJsonType: z.ZodType<Json> = z.lazy(() =>
 	z.union([literalSchema, z.array(zodJsonType), z.record(zodJsonType)]),
 )
+
+export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminantValue?: string): T['_input'] | undefined {
+	if (schema instanceof z.ZodDiscriminatedUnion) {
+		if (!discriminantValue) { throw new Error('Discriminant value is required for discriminated unions') }
+		for (const [key, val] of schema._def.optionsMap.entries()) {
+			if (key === discriminantValue) { return getZodDefaults(val) }
+		}
+		return getZodDefaults(schema._def.options[0])
+	}
+	else if (schema instanceof z.ZodObject) {
+		const shape = schema._def.shape()
+		const result: any = {}
+		for (const key in shape) {
+			const value = getZodDefaults(shape[key])
+			if (value !== undefined) { result[key] = value }
+		}
+		return result
+	}
+	else if (schema instanceof z.ZodArray) {
+		const result = getZodDefaults(schema.element)
+		const isObj = typeof result === 'object' && Object.keys(result).length > 0
+		const isOther = typeof result !== 'object' && result !== undefined
+		return isOther || isObj ? [result] : []
+	}
+	else if (schema instanceof z.ZodUnion) {
+		for (const val of schema.options) {
+			const value = getZodDefaults(val)
+			if (value !== undefined) { return value }
+		}
+		return undefined
+	}
+	else if (schema instanceof z.ZodEnum) { return schema.options[0] }
+	else if (schema instanceof z.ZodNativeEnum) { return Object.values(schema.enum)[0] }
+	else if (schema instanceof z.ZodLiteral) { return schema.value }
+	else if (schema instanceof z.ZodEffects) { return getZodDefaults(schema.innerType()) }
+	else if (schema instanceof z.ZodDefault) { return schema._def.defaultValue() }
+	else return undefined
+}

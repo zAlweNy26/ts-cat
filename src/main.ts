@@ -280,3 +280,5 @@ catch (err) {
 	await fastify.close()
 	process.exit(1)
 }
+
+export default fastify

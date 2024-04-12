@@ -4,9 +4,10 @@ import { existsSync, readFileSync, statSync } from 'node:fs'
 import { readFile, unlink, writeFile } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { execSync } from 'node:child_process'
+import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
-import { getFilesRecursively } from '@utils'
+import { getFilesRecursively, getZodDefaults } from '@utils'
 import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
@@ -80,10 +81,13 @@ export const CatPlugin = Object.freeze({
 	on: <T extends EventNames>(event: T, fn: PluginEvents[T]) => ({ name: event, fn } as PluginEvent<T>),
 })
 
-export class Plugin {
+export class Plugin<
+	T extends Record<string, z.ZodType> = Record<string, z.ZodType>,
+	S extends z.infer<z.ZodObject<T>> = z.infer<z.ZodObject<T>>,
+> {
 	private events: Partial<PluginEvents> = {}
-	private _schema: z.AnyZodObject = z.object({})
-	private _settings: z.infer<z.AnyZodObject> = {}
+	private _schema: z.ZodObject<T> = z.object({}) as z.ZodObject<T>
+	private _settings: S = {} as S
 	private _manifest = defaultManifest
 	private _id: string
 	private _reloading = false
@@ -138,15 +142,15 @@ export class Plugin {
 	}
 
 	get hooks() {
-		return this._hooks
+		return [...this._hooks]
 	}
 
 	get tools() {
-		return this._tools
+		return [...this._tools]
 	}
 
 	get forms() {
-		return this._forms
+		return [...this._forms]
 	}
 
 	get info() {
@@ -170,7 +174,7 @@ export class Plugin {
 	}
 
 	set settings(settings: Record<string, any>) {
-		this._settings = this.schema.parse(settings)
+		this._settings = this.schema.parse(settings) as S
 		const settingsPath = join(this.path, 'settings.json')
 		writeFile(settingsPath, JSON.stringify(this._settings, null, 2))
 	}
@@ -192,16 +196,13 @@ export class Plugin {
 		else log.info(`Plugin ${this.id} ${event}`)
 	}
 
-	private loadManifest(): PluginManifest {
+	private loadManifest() {
 		log.debug('Loading plugin manifest...')
 		const manifestPath = join(this.path, 'plugin.json')
 		if (existsSync(manifestPath)) {
 			try {
 				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
-				this._manifest = pluginManifestSchema.parse({
-					...defaultManifest,
-					...json,
-				})
+				this._manifest = pluginManifestSchema.parse(defu(json, defaultManifest))
 			}
 			catch (err) {
 				let msg = `Error reading plugin.json for ${this.id}`
@@ -209,16 +210,15 @@ export class Plugin {
 				log.error(msg)
 			}
 		}
-		return this.manifest
 	}
 
-	private loadSettings(): Record<string, any> {
+	private loadSettings() {
 		log.debug('Loading plugin settings...')
 		const settingsPath = join(this.path, 'settings.json')
 		if (existsSync(settingsPath)) {
 			try {
 				const json = destr<Record<string, any>>(readFileSync(settingsPath, 'utf-8'))
-				this._settings = this.schema.parse(json)
+				this._settings = this.schema.parse(json) as S
 			}
 			catch (err) {
 				let msg = `Error reading settings.json for ${this.id}`
@@ -226,9 +226,7 @@ export class Plugin {
 				log.error(msg)
 			}
 		}
-		// TODO: Add undefined to those keys that don't have a default value
-		else if (Object.keys(this.schema.shape).length > 0) { this.settings = {} }
-		return this.settings
+		else if (Object.keys(this.schema.shape).length > 0) { this.settings = getZodDefaults(this.schema) as S }
 	}
 
 	private async installRequirements() {
@@ -264,9 +262,9 @@ export class Plugin {
 				const exported = await import(pathToFileURL(tmpFile).href)
 				Object.values(exported).forEach((v) => {
 					if (v instanceof z.ZodObject) { this._schema = v }
-					else if (isForm(v)) { this.forms.push(v) }
-					else if (isTool(v)) { this.tools.push(v) }
-					else if (isHook(v)) { this.hooks.push({ ...v, from: this.id }) }
+					else if (isForm(v)) { this._forms.push(v) }
+					else if (isTool(v)) { this._tools.push(v) }
+					else if (isHook(v)) { this._hooks.push({ ...v, from: this.id }) }
 					else if (isPluginEvent(v)) { this.events[v.name] = v.fn as any }
 				})
 			}

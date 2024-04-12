@@ -52,7 +52,7 @@ export interface MemoryMessage {
 	}
 }
 
-type WSMessage = {
+export type WSMessage = {
 	type: 'error'
 	name: string
 	description: string
