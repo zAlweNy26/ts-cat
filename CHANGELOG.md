@@ -1,5 +1,39 @@
 # Changelog
 
+## v1.2.3
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.2...v1.2.3)
+
+### 🚀 Enhancements
+
+- **MadHatter:** Add 3 new hooks: #17 ([#17](https://github.com/zAlweNy26/ts-cat/issues/17))
+- **Plugin:** `getPluginInfo` is now specific ([fec1eb1](https://github.com/zAlweNy26/ts-cat/commit/fec1eb1))
+- **Plugin:** Revert loading of manifest and settings to be sync ([ef6f67f](https://github.com/zAlweNy26/ts-cat/commit/ef6f67f))
+- **Memory:** Add route to retrieve documents by metadata ([1532d3d](https://github.com/zAlweNy26/ts-cat/commit/1532d3d))
+- **Plugin:** Add defaults to settings schema ([9042a97](https://github.com/zAlweNy26/ts-cat/commit/9042a97))
+
+### 🩹 Fixes
+
+- Try to fix [#12] ([#12](https://github.com/zAlweNy26/ts-cat/issues/12))
+
+### 📖 Documentation
+
+- **Plugin:** Update README ([90a9820](https://github.com/zAlweNy26/ts-cat/commit/90a9820))
+- Update README ([599f618](https://github.com/zAlweNy26/ts-cat/commit/599f618))
+
+### 🏡 Chore
+
+- Update Swagger UI css ([6631b0a](https://github.com/zAlweNy26/ts-cat/commit/6631b0a))
+- Update Swagger UI config ([de1bdaa](https://github.com/zAlweNy26/ts-cat/commit/de1bdaa))
+
+### ✅ Tests
+
+- Add sample files ([d039f26](https://github.com/zAlweNy26/ts-cat/commit/d039f26))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.2
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.1...v1.2.2)
