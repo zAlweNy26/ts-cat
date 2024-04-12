@@ -215,10 +215,18 @@ await fastify.register(swaggerUi, {
 	routePrefix: '/docs',
 	uiConfig: {
 		docExpansion: 'list',
-		deepLinking: false,
-		withCredentials: true,
+		withCredentials: parsedEnv.secure,
+		deepLinking: true,
+		tryItOutEnabled: true,
+		persistAuthorization: true,
+		displayRequestDuration: true,
+		syntaxHighlight: {
+			activate: true,
+			theme: 'agate',
+		},
 	},
 	theme: {
+		title: 'Cheshire Cat - Swagger',
 		css: [
 			{
 				filename: 'custom.css',
