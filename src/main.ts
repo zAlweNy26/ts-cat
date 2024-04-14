@@ -230,7 +230,7 @@ await fastify.register(swaggerUi, {
 		css: [
 			{
 				filename: 'custom.css',
-				content: `section.swagger-ui > .topbar { display: none; }\n${swaggerCss}`,
+				content: swaggerCss,
 			},
 		],
 		favicon: [
