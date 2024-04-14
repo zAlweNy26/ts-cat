@@ -7,12 +7,12 @@ import { Cohere } from '@langchain/cohere'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
 import type { BaseLanguageModel } from '@langchain/core/language_models/base'
-import { type ZodGenericObject, zodJsonType } from '@utils'
+import { zodJson } from '@utils'
 import { madHatter } from '@mh'
 import { updateDb } from '@db'
 import { CustomLLM, CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
 
-export interface LLMSettings<T extends ZodGenericObject = ZodGenericObject> {
+export interface LLMSettings<T extends z.AnyZodObject = z.AnyZodObject> {
 	name: string
 	humanReadableName: string
 	description: string
@@ -35,7 +35,7 @@ const customLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	description: 'Configuration for custom language model',
 	config: z.object({
 		authKey: z.string().optional(),
-		options: zodJsonType,
+		options: zodJson,
 	}),
 	getModel: (params: z.input<typeof customLLMConfig.config>) => new CustomLLM(params),
 })

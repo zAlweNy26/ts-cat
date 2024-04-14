@@ -15,7 +15,7 @@ const envSchema = z.object({
 	QDRANT_API_KEY: z.string().optional(),
 	API_KEY: z.string().optional(),
 	CORS_ALLOWED_ORIGINS: z.string().transform(v => v.split(',')).default('*'),
-	LOG_LEVEL: z.string().transform(v => v.toLowerCase() as typeof LogLevel[number]).refine(v => LogLevel.includes(v)).default('normal'),
+	LOG_LEVEL: z.preprocess(v => String(v).toLowerCase(), z.enum(LogLevel).default('normal')),
 	SAVE_MEMORY_SNAPSHOTS: z.coerce.boolean().default(false),
 	WATCH: z.coerce.boolean().default(false),
 }).transform(s => ({
@@ -85,25 +85,47 @@ export async function compareStrings(input: string, prediction: string, criteria
 
 /**
  * Pauses the execution for a specified number of milliseconds.
- * @param ms The number of milliseconds to sleep.
+ * @param ms The number of milliseconds to wait.
  */
 export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 
 type Literal = z.infer<typeof literalSchema>
+
 type Json = Literal | { [key: string]: Json } | Json[]
 
-export type ZodGenericObject<T extends z.ZodRawShape = any> = z.ZodObject<T>
+type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
+
+/**
+ * A Zod schema for JSON objects.
+ */
+export const zodJson: z.ZodType<Json> = z.lazy(() =>
+	z.union([literalSchema, z.array(zodJson), z.record(zodJson)]),
+)
+
+/**
+ * A Zod schema for primitive values.
+ */
+export const zodPrimitive: z.ZodType<Primitive> = z.lazy(() =>
+	z.union([z.string(), z.number(), z.boolean(), z.bigint(), z.symbol(), z.record(zodPrimitive)]),
+)
 
 export interface Message {
 	text: string
 	[key: string]: any
 }
 
-export const zodJsonType: z.ZodType<Json> = z.lazy(() =>
-	z.union([literalSchema, z.array(zodJsonType), z.record(zodJsonType)]),
-)
+export function generateRandomString(length: number) {
+	let result = ''
+	for (let i = 0; i < length; i++) {
+		const isUpperCase = Math.random() < 0.5
+		const base = isUpperCase ? 65 : 97
+		const letter = String.fromCharCode(base + Math.floor(Math.random() * 26))
+		result += letter
+	}
+	return result
+}
 
 export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminantValue?: string): T['_input'] | undefined {
 	if (schema instanceof z.ZodDiscriminatedUnion) {

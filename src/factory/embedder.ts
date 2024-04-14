@@ -7,12 +7,11 @@ import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai'
 import { OpenAIEmbeddings } from '@langchain/openai'
 import { CohereEmbeddings } from '@langchain/cohere'
 import { ExecutionProvider as FastEmbedExecutionProviders, EmbeddingModel as FastEmbedModels } from 'fastembed'
-import type { ZodGenericObject } from '@utils'
 import { madHatter } from '@mh'
 import { updateDb } from '@db'
 import { CustomOpenAIEmbeddings, FastEmbedEmbeddings } from './custom_embedder.ts'
 
-export interface EmbedderSettings<T extends ZodGenericObject = ZodGenericObject> {
+export interface EmbedderSettings<T extends z.AnyZodObject = z.AnyZodObject> {
 	name: string
 	humanReadableName: string
 	description: string

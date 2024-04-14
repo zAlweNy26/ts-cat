@@ -7,22 +7,22 @@ import { execSync } from 'node:child_process'
 import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
-import { getFilesRecursively, getZodDefaults } from '@utils'
+import { generateRandomString, getFilesRecursively, getZodDefaults } from '@utils'
 import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
 import { type Form, isForm } from './form.ts'
 
-function generateRandomString(length: number) {
-	let result = ''
-	for (let i = 0; i < length; i++) {
-		const isUpperCase = Math.random() < 0.5
-		const base = isUpperCase ? 65 : 97
-		const letter = String.fromCharCode(base + Math.floor(Math.random() * 26))
-		result += letter
-	}
-	return result
-}
+const pluginManifestSchema = z.object({
+	name: z.string().min(1).trim(),
+	version: z.string().refine(value => /^(\d+\.)(\d+\.)(\*|\d+)$/.test(value)).default('0.0.1'),
+	description: z.string().min(1).trim().default('No description provided'),
+	authorName: z.string().min(1).default('Anonymous'),
+	authorUrl: z.string().url().optional(),
+	pluginUrl: z.string().url().optional(),
+	thumb: z.string().min(5).optional(),
+	tags: z.array(z.string()).default(['miscellaneous', 'unknown']),
+})
 
 export type PluginManifest = z.infer<typeof pluginManifestSchema>
 
@@ -53,17 +53,6 @@ function isPluginEvent(event: any): event is PluginEvent {
 		&& typeof event.name == 'string' && typeof event.fn == 'function' && Object.keys(event).length === 2
 		&& ['installed', 'enabled', 'disabled', 'removed'].includes(event.name)
 }
-
-const pluginManifestSchema = z.object({
-	name: z.string().min(1).trim(),
-	version: z.string().refine(value => /^(\d+\.)(\d+\.)(\*|\d+)$/.test(value)).default('0.0.1'),
-	description: z.string().min(1).trim().default('No description provided'),
-	authorName: z.string().min(1).default('Anonymous'),
-	authorUrl: z.string().url().optional(),
-	pluginUrl: z.string().url().optional(),
-	thumb: z.string().min(5).optional(),
-	tags: z.array(z.string()).default(['miscellaneous', 'unknown']),
-})
 
 export const CatPlugin = Object.freeze({
 	/**

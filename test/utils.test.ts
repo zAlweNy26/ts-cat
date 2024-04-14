@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { catPaths, sleep, zodJsonType } from '@utils'
+import { catPaths, sleep, zodJson } from '@utils'
 
 const isGithubAction = process.env.GITHUB_ACTIONS === 'true'
 
@@ -23,15 +23,15 @@ it('test sleep', async () => {
 it('test zod json type', () => {
 	const json = { a: 1, b: '2' }
 
-	expect(zodJsonType.parse(json)).toMatchObject(json)
+	expect(zodJson.parse(json)).toMatchObject(json)
 
-	expect(zodJsonType.parse([1, 2, 3])).toMatchObject([1, 2, 3])
+	expect(zodJson.parse([1, 2, 3])).toMatchObject([1, 2, 3])
 
-	expect(zodJsonType.parse('hello')).toBe('hello')
+	expect(zodJson.parse('hello')).toBe('hello')
 
-	expect(zodJsonType.parse(6)).toBe(6)
+	expect(zodJson.parse(6)).toBe(6)
 
-	expect(zodJsonType.parse(null)).toBe(null)
+	expect(zodJson.parse(null)).toBe(null)
 
-	expect(zodJsonType.parse(true)).toBe(true)
+	expect(zodJson.parse(true)).toBe(true)
 })

@@ -50,6 +50,7 @@
 		"./src/**/*.ts",
 		"./test/**/*.ts",
 		"eslint.config.mjs",
+		"vitest.config.ts",
 		"globals.d.ts",
 		"index.ts"
 	],
