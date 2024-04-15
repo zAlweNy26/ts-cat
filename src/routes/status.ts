@@ -1,22 +1,24 @@
-import type { FastifyPluginCallback } from 'fastify'
+import { z } from 'zod'
+import type { FastifyPluginAsyncZodOpenApi } from 'fastify-zod-openapi'
 import { parsedEnv } from '@utils'
 import pkg from '../../package.json' assert { type: 'json' }
+import { SwaggerTags } from '@/context.ts'
 
-export const status: FastifyPluginCallback = (fastify, opts, done) => {
+export const status: FastifyPluginAsyncZodOpenApi = async (fastify) => {
 	fastify.get('/', { schema: {
-		description: 'Retrieve the current server status.',
-		tags: ['Status'],
+		tags: [SwaggerTags.Status],
 		summary: 'Get server status',
+		description: 'Retrieve the current server status.',
 		response: {
-			200: {
-				type: 'object',
-				required: ['status', 'version', 'protected'],
-				properties: {
-					status: { type: 'string' },
-					version: { type: 'string' },
-					protected: { type: 'boolean' },
-				},
-			},
+			200: z.object({
+				status: z.string(),
+				version: z.string().regex(/^\d{1,3}\.\d{1,3}\.\d{1,3}$/),
+				protected: z.boolean(),
+			}).openapi({ example: {
+				status: 'We\'re all mad here, dear!',
+				version: '1.0.0',
+				protected: true,
+			} }),
 		},
 	} }, () => {
 		return {
@@ -25,6 +27,4 @@ export const status: FastifyPluginCallback = (fastify, opts, done) => {
 			protected: parsedEnv.apiKey !== undefined,
 		}
 	})
-
-	done()
 }

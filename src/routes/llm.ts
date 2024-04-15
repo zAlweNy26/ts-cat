@@ -6,24 +6,19 @@ import type { Message } from '@utils'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { getDb, getLLMSettings, updateDb } from '@db'
 import { log } from '@logger'
+import { z } from 'zod'
+import { SwaggerTags, customSetting, modelInfo } from '@/context.ts'
 
-export const llm: FastifyPluginCallback = (fastify, opts, done) => {
+export const llm: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/settings', { schema: {
 		description: 'Get the list of the available Large Language Models.',
-		tags: ['LLM'],
+		tags: [SwaggerTags['Large Language Model']],
 		summary: 'Get LLMs settings',
 		response: {
-			200: {
-				type: 'object',
-				required: ['selected', 'options'],
-				properties: {
-					selected: { type: 'string' },
-					options: {
-						type: 'array',
-						items: { $ref: 'ModelInfo' },
-					},
-				},
-			},
+			200: z.object({
+				selected: z.string(),
+				options: z.array(modelInfo),
+			}),
 		},
 	} }, () => {
 		const allowedLlms = getAllowedLLMs()
@@ -42,10 +37,13 @@ export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 		Params: { llmId: string }
 	}>('/settings/:llmId', { schema: {
 		description: 'Get settings and schema of the specified Large Language Model.',
-		tags: ['LLM'],
+		tags: [SwaggerTags['Large Language Model']],
 		summary: 'Get LLM settings',
+		params: z.object({
+			llmId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: { $ref: 'ModelInfo' },
+			200: modelInfo,
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
@@ -65,11 +63,14 @@ export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 		Body: Record<string, any>
 	}>('/settings/:llmId', { schema: {
 		description: 'Upsert the specified Large Language Model setting.',
-		tags: ['LLM'],
+		tags: [SwaggerTags['Large Language Model']],
 		summary: 'Update LLM settings',
-		body: { type: 'object' },
+		body: z.record(z.any()),
+		params: z.object({
+			llmId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: { $ref: 'Setting' },
+			200: customSetting,
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -107,21 +108,14 @@ export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/chat', { schema: {
 		description: 'Get a response from the Cheshire Cat via endpoint.',
-		tags: ['LLM'],
+		tags: [SwaggerTags['Large Language Model']],
 		summary: 'Chat with the cat',
-		body: {
-			type: 'object',
-			required: ['text'],
-			properties: {
-				text: { type: 'string' },
-			},
-		},
-		querystring: {
-			type: 'object',
-			properties: {
-				save: { type: 'boolean', default: true },
-			},
-		},
+		body: z.object({
+			text: z.string().default('Hello world'),
+		}).passthrough(),
+		querystring: z.object({
+			save: z.boolean().default(true),
+		}),
 		response: {
 			200: { type: 'object', additionalProperties: true },
 			400: { $ref: 'HttpError' },
@@ -132,6 +126,4 @@ export const llm: FastifyPluginCallback = (fastify, opts, done) => {
 		if (!res) { rep.imateapot('I\'m sorry, I can\'t do that.') }
 		return res
 	})
-
-	done()
 }

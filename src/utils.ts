@@ -15,7 +15,7 @@ const envSchema = z.object({
 	QDRANT_API_KEY: z.string().optional(),
 	API_KEY: z.string().optional(),
 	CORS_ALLOWED_ORIGINS: z.string().transform(v => v.split(',')).default('*'),
-	LOG_LEVEL: z.preprocess(v => String(v).toLowerCase(), z.enum(LogLevel).default('normal')),
+	LOG_LEVEL: z.preprocess(v => String(v).toLowerCase(), z.enum(LogLevel).default('normal')).default(LogLevel[2]),
 	SAVE_MEMORY_SNAPSHOTS: z.coerce.boolean().default(false),
 	WATCH: z.coerce.boolean().default(false),
 }).transform(s => ({

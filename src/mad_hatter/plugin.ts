@@ -12,27 +12,9 @@ import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
 import { type Form, isForm } from './form.ts'
-
-const pluginManifestSchema = z.object({
-	name: z.string().min(1).trim(),
-	version: z.string().refine(value => /^(\d+\.)(\d+\.)(\*|\d+)$/.test(value)).default('0.0.1'),
-	description: z.string().min(1).trim().default('No description provided'),
-	authorName: z.string().min(1).default('Anonymous'),
-	authorUrl: z.string().url().optional(),
-	pluginUrl: z.string().url().optional(),
-	thumb: z.string().min(5).optional(),
-	tags: z.array(z.string()).default(['miscellaneous', 'unknown']),
-})
+import { pluginManifestSchema } from '@/context.ts'
 
 export type PluginManifest = z.infer<typeof pluginManifestSchema>
-
-const defaultManifest: PluginManifest = {
-	name: 'Untitled plugin',
-	description: 'No description provided',
-	authorName: 'Anonymous',
-	tags: ['miscellaneous', 'unknown'],
-	version: '0.0.1',
-}
 
 interface PluginEvents {
 	installed: (manifest: PluginManifest) => void
@@ -77,7 +59,7 @@ export class Plugin<
 	private events: Partial<PluginEvents> = {}
 	private _schema: z.ZodObject<T> = z.object({}) as z.ZodObject<T>
 	private _settings: S = {} as S
-	private _manifest = defaultManifest
+	private _manifest = getZodDefaults(pluginManifestSchema) as PluginManifest
 	private _id: string
 	private _reloading = false
 	private _active = false
@@ -191,7 +173,7 @@ export class Plugin<
 		if (existsSync(manifestPath)) {
 			try {
 				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
-				this._manifest = pluginManifestSchema.parse(defu(json, defaultManifest))
+				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema)))
 			}
 			catch (err) {
 				let msg = `Error reading plugin.json for ${this.id}`

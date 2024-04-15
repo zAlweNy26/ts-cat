@@ -8,20 +8,19 @@ import type { MultipartFile } from '@fastify/multipart'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { updateDb } from '@db'
+import { z } from 'zod'
+import { SwaggerTags, customSetting, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
 
-export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
+export const plugins: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/', { schema: {
 		description: 'Get list of available plugins.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Get plugins',
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					installed: { type: 'array', items: { $ref: 'PluginInfo' } },
-					registry: { type: 'array', items: { $ref: 'PluginInfo' } },
-				},
-			},
+			200: z.object({
+				installed: z.array(pluginInfo),
+				registry: z.array(pluginInfo),
+			}),
 		},
 	} }, () => {
 		const ps = madHatter.installedPlugins.map(({ info }) => info)
@@ -36,10 +35,13 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		Params: { pluginId: string }
 	}>('/:pluginId', { schema: {
 		description: 'Returns information on a single plugin.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Get plugin details',
+		params: z.object({
+			pluginId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: { $ref: 'PluginInfo' },
+			200: pluginInfo,
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
@@ -53,8 +55,11 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		Params: { pluginId: string }
 	}>('/:pluginId', { schema: {
 		description: 'Totally removes the specified plugin.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Delete plugin',
+		params: z.object({
+			pluginId: z.string().min(1).trim(),
+		}),
 		response: {
 			204: { description: 'Plugin deleted successfully.', type: 'null' },
 			404: { $ref: 'HttpError' },
@@ -73,20 +78,22 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		Body: {
 			file: MultipartFile
 		}
+		Querystring: {
+			async: boolean
+		}
 	}>('/upload', { schema: {
 		description: 'Install a new plugin from a zip file.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Install plugin',
 		consumes: ['multipart/form-data'],
-		body: {
-			type: 'object',
-			required: ['file'],
-			properties: {
-				file: { isFile: true },
-			},
-		},
+		body: z.object({
+			file: fileSchema,
+		}),
+		querystring: z.object({
+			async: z.boolean().default(false),
+		}),
 		response: {
-			200: { type: 'object', properties: { info: { type: 'string' } } },
+			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 			500: { $ref: 'HttpError' },
 		},
@@ -133,17 +140,19 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		Body: {
 			url: string
 		}
+		Querystring: {
+			async: boolean
+		}
 	}>('/upload/registry', { schema: {
 		description: 'Install a new plugin from the registry.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Install plugin from registry',
-		body: {
-			type: 'object',
-			required: ['url'],
-			properties: {
-				url: { type: 'string' },
-			},
-		},
+		body: z.object({
+			url: z.string().url(),
+		}),
+		querystring: z.object({
+			async: z.boolean().default(false),
+		}),
 		response: {
 			200: { type: 'object', properties: { info: { type: 'string' } } },
 			400: { $ref: 'HttpError' },
@@ -160,15 +169,15 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		Params: { pluginId: string }
 	}>('/toggle/:pluginId', { schema: {
 		description: 'Enable or disable a single plugin.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Toggle plugin',
+		params: z.object({
+			pluginId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					active: { type: 'boolean' },
-				},
-			},
+			200: z.object({
+				active: z.boolean(),
+			}),
 			404: { $ref: 'HttpError' },
 			400: { $ref: 'HttpError' },
 		},
@@ -190,15 +199,16 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/toggle/:pluginId/procedure/:procedureName', { schema: {
 		description: 'Enable or disable a single procedure of a plugin.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Toggle plugin procedure',
+		params: z.object({
+			pluginId: z.string().min(1).trim(),
+			procedureName: z.string().min(1).trim(),
+		}),
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					active: { type: 'boolean' },
-				},
-			},
+			200: z.object({
+				active: z.boolean(),
+			}),
 			404: { $ref: 'HttpError' },
 			400: { $ref: 'HttpError' },
 		},
@@ -228,18 +238,12 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.get('/settings', { schema: {
 		description: 'Returns the settings of all the plugins.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Get plugins settings',
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					settings: {
-						type: 'array',
-						items: { $ref: 'PluginSetting' },
-					},
-				},
-			},
+			200: z.object({
+				settings: z.array(pluginSettings),
+			}),
 		},
 	} }, () => {
 		const ps = madHatter.installedPlugins.map(p => ({
@@ -259,10 +263,13 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/settings/:pluginId', { schema: {
 		description: 'Returns the settings of the specified plugin.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Get plugin settings',
+		params: z.object({
+			pluginId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: { $ref: 'PluginSetting' },
+			200: pluginSettings,
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
@@ -271,22 +278,26 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 		if (!p) { return rep.notFound('Plugin not found') }
 		return {
 			name: p.id,
-			value: p.settings,
 			schema: zodToJsonSchema(p.schema),
+			value: p.settings,
 		}
 	})
 
 	fastify.put<{
+		Body: Record<string, any>
 		Params: {
 			pluginId: string
 		}
 	}>('/settings/:pluginId', { schema: {
 		description: 'Updates the settings of the specified plugin.',
-		tags: ['Plugins'],
+		tags: [SwaggerTags.Plugins],
 		summary: 'Update plugin settings',
-		body: { type: 'object' },
+		params: z.object({
+			pluginId: z.string().min(1).trim(),
+		}),
+		body: z.record(z.any()),
 		response: {
-			200: { $ref: 'Setting' },
+			200: customSetting,
 			400: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
@@ -301,6 +312,4 @@ export const plugins: FastifyPluginCallback = (fastify, opts, done) => {
 			value: parsed.data,
 		}
 	})
-
-	done()
 }

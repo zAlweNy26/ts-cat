@@ -11,15 +11,22 @@ import cors from '@fastify/cors'
 import statics from '@fastify/static'
 import underPressure from '@fastify/under-pressure'
 import { checkPort } from 'get-port-please'
-// import { serializerCompiler, validatorCompiler, ZodTypeProvider, jsonSchemaTransform } from "@benjaminlindberg/fastify-type-provider-zod"
 import requestLogger from '@mgcrea/fastify-request-logger'
-import qs from 'qs'
+import {
+	fastifyZodOpenApiPlugin,
+	fastifyZodOpenApiTransform,
+	fastifyZodOpenApiTransformObject,
+	serializerCompiler,
+	validatorCompiler,
+} from 'fastify-zod-openapi'
 import type { StrayCat } from '@lg/stray-cat.ts'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
+import qs from 'qs'
 import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
 import isDocker from 'is-docker'
 import pkg from '../package.json' assert { type: 'json' }
 import { catPaths, logWelcome, parsedEnv } from './utils.ts'
+import { SwaggerTags } from './context.ts'
 
 declare module 'fastify' {
 	export interface FastifyRequest {
@@ -53,140 +60,46 @@ const fastify = Fastify({
 	},
 })
 
-// fastify.setValidatorCompiler(validatorCompiler)
-// fastify.setSerializerCompiler(serializerCompiler)
+fastify.setValidatorCompiler(validatorCompiler)
+fastify.setSerializerCompiler(serializerCompiler)
 
 // Register plugins
 await fastify.register(requestLogger)
+
 await fastify.register(underPressure)
+
 await fastify.register(statics, {
 	prefix: '/assets',
 	root: path.resolve(process.cwd(), 'src', 'assets'),
 })
-await fastify.register(sensible, {
-	sharedSchemaId: 'HttpError',
-})
+
+await fastify.register(sensible, { sharedSchemaId: 'HttpError' })
+
 await fastify.register(ws)
+
 await fastify.register(formbody, { parser: str => qs.parse(str) })
-await fastify.register(multipart, {
-	attachFieldsToBody: true,
-})
+
+await fastify.register(multipart, { attachFieldsToBody: true })
+
 await fastify.register(cors, {
 	origin: parsedEnv.corsAllowedOrigins,
 	methods: '*',
 	allowedHeaders: '*',
 	credentials: true,
 })
-fastify.addSchema({
-	$id: 'ModelInfo',
-	type: 'object',
-	required: ['name', 'description', 'humanReadableName', 'schema', 'value'],
-	properties: {
-		name: { type: 'string' },
-		humanReadableName: { type: 'string' },
-		link: { type: 'string' },
-		description: { type: 'string' },
-		schema: { type: 'object', additionalProperties: true },
-		value: { type: 'object', additionalProperties: true },
-	},
-})
-fastify.addSchema({
-	$id: 'PluginSetting',
-	type: 'object',
-	required: ['name', 'schema', 'value'],
-	properties: {
-		name: { type: 'string' },
-		schema: { type: 'object', additionalProperties: true },
-		value: { type: 'object', additionalProperties: true },
-	},
-})
-fastify.addSchema({
-	$id: 'PluginInfo',
-	type: 'object',
-	required: ['id', 'active', 'manifest'],
-	properties: {
-		id: { type: 'string' },
-		active: { type: 'boolean' },
-		manifest: {
-			type: 'object',
-			required: ['name', 'description', 'version', 'authorName', 'tags'],
-			properties: {
-				name: { type: 'string' },
-				description: { type: 'string' },
-				version: { type: 'string' },
-				authorName: { type: 'string' },
-				authorUrl: { type: 'string' },
-				pluginUrl: { type: 'string' },
-				thumb: { type: 'string' },
-				tags: { type: 'array', items: { type: 'string' } },
-			},
-		},
-		upgradable: { type: 'boolean' },
-		forms: {
-			type: 'array',
-			items: {
-				type: 'object',
-				required: ['name', 'description', 'active'],
-				properties: {
-					name: { type: 'string' },
-					description: { type: 'string' },
-					active: { type: 'boolean' },
-				},
-			},
-		},
-		tools: {
-			type: 'array',
-			items: {
-				type: 'object',
-				required: ['name', 'description', 'active'],
-				properties: {
-					name: { type: 'string' },
-					description: { type: 'string' },
-					active: { type: 'boolean' },
-				},
-			},
-		},
-		hooks: {
-			type: 'array',
-			items: {
-				type: 'object',
-				required: ['name', 'priority'],
-				properties: {
-					name: { type: 'string' },
-					priority: { type: 'number' },
-				},
-			},
-		},
-	},
-})
-fastify.addSchema({
-	$id: 'Setting',
-	type: 'object',
-	required: ['name', 'value'],
-	properties: {
-		name: { type: 'string' },
-		value: {
-			anyOf: [
-				{ type: 'object', additionalProperties: true },
-				{ type: 'boolean' },
-				{ type: 'array' },
-				{ type: 'string' },
-				{ type: 'number' },
-			],
-		},
-	},
-})
+
+await fastify.register(fastifyZodOpenApiPlugin)
+
 await fastify.register(swagger, {
-	// transform: jsonSchemaTransform,
+	transform: fastifyZodOpenApiTransform,
+	transformObject: fastifyZodOpenApiTransformObject,
 	openapi: {
 		info: {
 			title: '😸 Cheshire Cat API',
 			description: pkg.description,
 			version: pkg.version,
 		},
-		servers: [{
-			url: catPaths.baseUrl,
-		}],
+		servers: [{ url: catPaths.baseUrl }],
 		components: {
 			securitySchemes: {
 				apiKey: {
@@ -198,17 +111,10 @@ await fastify.register(swagger, {
 			},
 		},
 		security: [{ apiKey: ['token'] }],
-		tags: [
-			{ name: 'Status', description: 'Status' },
-			{ name: 'Settings', description: 'Settings' },
-			{ name: 'LLM', description: 'Large Language Model' },
-			{ name: 'Embedder', description: 'Embedder' },
-			{ name: 'Plugins', description: 'Plugins' },
-			{ name: 'Rabbit Hole', description: 'Rabbit Hole' },
-			{ name: 'Memory', description: 'Memory' },
-		],
+		tags: Object.entries(SwaggerTags).map(([key, value]) => ({ name: value, description: key })),
 	},
 })
+
 const logoIcon = await readFile('./src/assets/favicon.png')
 const swaggerCss = await readFile('./src/assets/swagger-ui-theme.css', { encoding: 'utf-8' })
 await fastify.register(swaggerUi, {

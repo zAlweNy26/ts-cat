@@ -5,24 +5,19 @@ import { getAllowedEmbedders, getEmbedder } from '@factory/embedder.ts'
 import { getDb, getEmbedderSettings, updateDb } from '@db'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
+import { z } from 'zod'
+import { SwaggerTags, customSetting, modelInfo } from '@/context.ts'
 
-export const embedder: FastifyPluginCallback = (fastify, opts, done) => {
+export const embedder: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/settings', { schema: {
 		description: 'Get the list of the available Embedders.',
-		tags: ['Embedder'],
+		tags: [SwaggerTags.Embedder],
 		summary: 'Get Embedders settings',
 		response: {
-			200: {
-				type: 'object',
-				required: ['selected', 'options'],
-				properties: {
-					selected: { type: 'string' },
-					options: {
-						type: 'array',
-						items: { $ref: 'ModelInfo' },
-					},
-				},
-			},
+			200: z.object({
+				selected: z.string(),
+				options: z.array(modelInfo),
+			}),
 		},
 	} }, () => {
 		const allowedEmbedders = getAllowedEmbedders()
@@ -41,10 +36,13 @@ export const embedder: FastifyPluginCallback = (fastify, opts, done) => {
 		Params: { embedderId: string }
 	}>('/settings/:embedderId', { schema: {
 		description: 'Get settings and schema of the specified Embedder.',
-		tags: ['Embedder'],
+		tags: [SwaggerTags.Embedder],
 		summary: 'Get Embedder settings',
+		params: z.object({
+			embedderId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: { $ref: 'ModelInfo' },
+			200: modelInfo,
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
@@ -64,11 +62,14 @@ export const embedder: FastifyPluginCallback = (fastify, opts, done) => {
 		Body: Record<string, any>
 	}>('/settings/:embedderId', { schema: {
 		description: 'Upsert the specified Embedder setting.',
-		tags: ['Embedder'],
+		tags: [SwaggerTags.Embedder],
 		summary: 'Update Embedder settings',
-		body: { type: 'object' },
+		body: z.record(z.any()),
+		params: z.object({
+			embedderId: z.string().min(1).trim(),
+		}),
 		response: {
-			200: { $ref: 'Setting' },
+			200: customSetting,
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -98,6 +99,4 @@ export const embedder: FastifyPluginCallback = (fastify, opts, done) => {
 			value: parsed.data,
 		}
 	})
-
-	done()
 }

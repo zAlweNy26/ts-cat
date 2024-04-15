@@ -5,27 +5,66 @@ import { getDb } from '@db'
 import type { FilterMatch } from '@memory/vector-memory-collection.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
+import { z } from 'zod'
+import { SwaggerTags } from '@/context.ts'
 
-export const memory: FastifyPluginCallback = (fastify, opts, done) => {
+export const memory: FastifyPluginCallback = async (fastify) => {
 	fastify.get<{
 		Querystring: {
 			text: string
-			k?: number
+			k: number
 		}
 	}>('/recall', { schema: {
 		description: 'Search k memories similar to given text.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Recall memories from text',
-		querystring: {
-			type: 'object',
-			required: ['text'],
-			properties: {
-				text: { type: 'string', minLength: 1 },
-				k: { type: 'number', default: 10 },
-			},
-		},
+		querystring: z.object({
+			text: z.string().min(1).trim(),
+			k: z.coerce.number().default(10),
+		}),
 		response: {
-			200: { type: 'object', additionalProperties: true },
+			200: z.object({
+				query: z.object({
+					text: z.string(),
+					vector: z.array(z.number()),
+				}),
+				vectors: z.object({
+					embedder: z.string(),
+					collections: z.record(z.array(z.object({
+						id: z.string(),
+						vector: z.array(z.number()),
+						score: z.number(),
+						pageContent: z.string(),
+						metadata: z.record(z.any()).optional(),
+					}))),
+				}),
+			}).openapi({
+				example: {
+					query: {
+						text: 'Hello, world!',
+						vector: [0.1, 0.2, 0.3],
+					},
+					vectors: {
+						embedder: 'OpenAIEmbedder',
+						collections: {
+							declarative: [],
+							procedural: [],
+							episodic: [
+								{
+									id: '1da746f8-a832-4a45-a120-4549e17a1df7',
+									score: 0.8,
+									vector: [0.1, 0.2, 0.3],
+									pageContent: 'Hello, John!',
+									metadata: {
+										source: 'user',
+										when: 1712950290994,
+									},
+								},
+							],
+						},
+					},
+				},
+			}),
 			500: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -64,8 +103,34 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.get('/collections', { schema: {
 		description: 'Get list of available collections.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Get collections',
+		response: {
+			200: z.object({
+				collections: z.array(z.object({
+					name: z.string(),
+					size: z.number(),
+				})),
+			}).openapi({
+				example: {
+					collections: [
+						{
+							name: 'declarative',
+							size: 3,
+						},
+						{
+							name: 'episodic',
+							size: 6,
+						},
+						{
+							name: 'procedural',
+							size: 9,
+						},
+					],
+				},
+			}),
+			500: { $ref: 'HttpError' },
+		},
 	} }, async () => {
 		const collections = Object.keys(cheshireCat.currentMemory.collections)
 		const infos = []
@@ -83,7 +148,7 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.delete('/collections', { schema: {
 		description: 'Delete and recreate all the collections.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Wipe collections',
 		response: {
 			204: { description: 'All collections were wiped successfully.', type: 'null' },
@@ -108,14 +173,11 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		Params: { collectionId: string }
 	}>('/collections/:collectionId', { schema: {
 		description: 'Delete and recreate the specified collection.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Wipe single collection',
-		params: {
-			type: 'object',
-			properties: {
-				collectionId: { type: 'string' },
-			},
-		},
+		params: z.object({
+			collectionId: z.string().min(1).trim(),
+		}),
 		response: {
 			204: { description: 'The collection was wiped successfully.', type: 'null' },
 			404: { $ref: 'HttpError' },
@@ -140,38 +202,30 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 	fastify.post<{
 		Params: { collectionId: string }
 		Querystring: {
-			k?: number
+			k: number
 		}
-		Body: {
-			metadata: Record<string, any>
-		}
+		Body: Record<string, any>
 	}>('/collections/:collectionId/documents', { schema: {
 		description: 'Get list of documents filtered by metadata.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Get collection\'s documents by metadata',
 		externalDocs: {
 			description: 'Metadata filtering conditions',
 			url: 'https://qdrant.tech/documentation/concepts/filtering/#filtering-conditions',
 		},
-		params: {
-			type: 'object',
-			properties: {
-				collectionId: { type: 'string' },
+		params: z.object({
+			collectionId: z.string().min(1).trim(),
+		}),
+		querystring: z.object({
+			k: z.number().default(10),
+		}),
+		body: z.record(z.any()).openapi({
+			example: {
+				source: {
+					any: ['user'],
+				},
 			},
-		},
-		querystring: {
-			type: 'object',
-			required: [],
-			properties: {
-				k: { type: 'number', default: 10 },
-			},
-		},
-		body: {
-			type: 'object',
-			properties: {
-				metadata: { type: 'object' },
-			},
-		},
+		}),
 		response: {
 			200: {
 				type: 'object',
@@ -185,11 +239,10 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 	} }, async (req, rep) => {
 		const id = req.params.collectionId
 		const limit = req.query.k
-		const metadata = req.body.metadata
 		try {
 			const collections = Object.keys(cheshireCat.currentMemory.collections)
 			if (!collections.includes(id)) { return rep.notFound('Collection not found.') }
-			const points = await cheshireCat.currentMemory.collections[id]!.getAllPoints(limit, metadata)
+			const points = await cheshireCat.currentMemory.collections[id]!.getAllPoints(limit, req.body)
 			return {
 				documents: points.map(p => ({ ...p.payload, id: p.id })),
 			}
@@ -202,29 +255,25 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.delete<{
 		Params: { collectionId: string }
-		Body: {
-			metadata: Record<string, any>
-		}
+		Body: Record<string, any>
 	}>('/collections/:collectionId/points', { schema: {
 		description: 'Delete points in memory by filter.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Wipe memory points by metadata',
 		externalDocs: {
 			description: 'Metadata filtering conditions',
 			url: 'https://qdrant.tech/documentation/concepts/filtering/#filtering-conditions',
 		},
-		params: {
-			type: 'object',
-			properties: {
-				collectionId: { type: 'string' },
+		params: z.object({
+			collectionId: z.string().min(1).trim(),
+		}),
+		body: z.record(z.any()).openapi({
+			example: {
+				source: {
+					any: ['user'],
+				},
 			},
-		},
-		body: {
-			type: 'object',
-			properties: {
-				metadata: { type: 'object' },
-			},
-		},
+		}),
 		response: {
 			204: { description: 'The collection\'s points was wiped successfully.', type: 'null' },
 			404: { $ref: 'HttpError' },
@@ -252,15 +301,12 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/collections/:collectionId/points/:pointId', { schema: {
 		description: 'Delete a specific point in memory.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Wipe memory point',
-		params: {
-			type: 'object',
-			properties: {
-				collectionId: { type: 'string' },
-				pointId: { type: 'string' },
-			},
-		},
+		params: z.object({
+			collectionId: z.string().min(1).trim(),
+			pointId: z.string().min(1).trim(),
+		}),
 		response: {
 			204: { description: 'The point was wiped successfully.', type: 'null' },
 			404: { $ref: 'HttpError' },
@@ -284,15 +330,21 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.get('/conversation-history', { schema: {
 		description: 'Get the specified user\'s conversation history from working memory.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Get conversation history',
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					history: { type: 'array', items: { type: 'object' } },
-				},
-			},
+			200: z.object({
+				history: z.array(z.object({
+					what: z.string(),
+					who: z.string(),
+					when: z.number(),
+					why: z.object({
+						input: z.string(),
+						intermediateSteps: z.tuple([z.string(), z.string(), z.string()]).or(z.array(z.string())),
+						memory: z.record(z.any()).optional(),
+					}).optional(),
+				})),
+			}),
 		},
 	} }, (req) => {
 		return {
@@ -302,7 +354,7 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 
 	fastify.delete('/conversation-history', { schema: {
 		description: 'Delete the specified user\'s conversation history from working memory.',
-		tags: ['Memory'],
+		tags: [SwaggerTags.Memory],
 		summary: 'Wipe conversation history',
 		response: {
 			204: { description: 'The conversation history was wiped successfully.', type: 'null' },
@@ -311,6 +363,4 @@ export const memory: FastifyPluginCallback = (fastify, opts, done) => {
 		req.stray.clearHistory()
 		return rep.code(204)
 	})
-
-	done()
 }

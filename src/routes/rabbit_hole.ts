@@ -2,22 +2,18 @@ import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyPluginCallback } from 'fastify'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
+import { z } from 'zod'
+import { SwaggerTags, fileSchema } from '@/context.ts'
 
-export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
+export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/allowed-mimetypes', { schema: {
 		description: 'Retrieve the allowed mimetypes that can be ingested by the Rabbit Hole.',
-		tags: ['Rabbit Hole'],
+		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Get allowed mimetypes',
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					allowedMimetypes: {
-						type: 'array',
-						items: { type: 'string' },
-					},
-				},
-			},
+			200: z.object({
+				allowedMimetypes: z.array(z.string()),
+			}),
 		},
 	} }, () => {
 		return {
@@ -32,18 +28,14 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/chunk', { schema: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
-		tags: ['Rabbit Hole'],
+		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload text chunk',
-		body: {
-			type: 'object',
-			required: ['chunk'],
-			properties: {
-				chunk: { type: 'string', minLength: 10 },
-				async: { type: 'boolean', default: false },
-			},
-		},
+		body: z.object({
+			chunk: z.string().min(10),
+			async: z.boolean().default(false),
+		}),
 		response: {
-			200: { type: 'object', properties: { info: { type: 'string' } } },
+			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -72,27 +64,19 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/file', { schema: {
 		description: 'Upload a file whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
-		tags: ['Rabbit Hole'],
+		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload file',
 		consumes: ['multipart/form-data'],
-		body: {
-			type: 'object',
-			required: ['file'],
-			properties: {
-				file: { isFile: true },
-			},
-		},
-		querystring: {
-			type: 'object',
-			required: [],
-			properties: {
-				async: { type: 'boolean', default: false },
-				chunkSize: { type: 'number', default: 512 },
-				chunkOverlap: { type: 'number', default: 128 },
-			},
-		},
+		body: z.object({
+			file: fileSchema,
+		}),
+		querystring: z.object({
+			async: z.boolean().default(false),
+			chunkSize: z.number().default(512),
+			chunkOverlap: z.number().default(128),
+		}),
 		response: {
-			200: { type: 'object', properties: { info: { type: 'string' } } },
+			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -121,20 +105,16 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/web', { schema: {
 		description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
-		tags: ['Rabbit Hole'],
+		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload URL',
-		body: {
-			type: 'object',
-			required: ['webUrl'],
-			properties: {
-				webUrl: { type: 'string', minLength: 5, default: 'https://example.com' },
-				async: { type: 'boolean', default: false },
-				chunkSize: { type: 'number', default: 512 },
-				chunkOverlap: { type: 'number', default: 128 },
-			},
-		},
+		body: z.object({
+			webUrl: z.string().min(5),
+			async: z.boolean().default(false),
+			chunkSize: z.number().default(512),
+			chunkOverlap: z.number().default(128),
+		}),
 		response: {
-			200: { type: 'object', properties: { info: { type: 'string' } } },
+			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -161,25 +141,17 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 		}
 	}>('/memory', { schema: {
 		description: 'Upload a memory json file to the cat memory.',
-		tags: ['Rabbit Hole'],
+		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload memory',
 		consumes: ['multipart/form-data'],
-		body: {
-			type: 'object',
-			required: ['file'],
-			properties: {
-				file: { isFile: true },
-			},
-		},
-		querystring: {
-			type: 'object',
-			required: [],
-			properties: {
-				async: { type: 'boolean', default: false },
-			},
-		},
+		body: z.object({
+			file: fileSchema,
+		}),
+		querystring: z.object({
+			async: z.boolean().default(false),
+		}),
 		response: {
-			200: { type: 'object', properties: { info: { type: 'string' } } },
+			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
@@ -198,6 +170,4 @@ export const fileIngestion: FastifyPluginCallback = (fastify, opts, done) => {
 			info: async ? 'Memory file is being ingested asynchronously...' : 'Memory file has been ingested successfully.',
 		}
 	})
-
-	done()
 }
