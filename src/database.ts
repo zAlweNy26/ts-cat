@@ -16,7 +16,7 @@ export const defaultDbKeys = z.object({
 	activePlugins: z.array(z.string()),
 	activeTools: z.array(z.string()),
 	activeForms: z.array(z.string()),
-})
+}).passthrough()
 
 export const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
 	return llms.some(l => l.name === selectedLLM) && embedders.some(e => e.name === selectedEmbedder)

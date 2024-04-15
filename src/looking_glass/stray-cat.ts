@@ -104,6 +104,10 @@ export class StrayCat {
 		return cheshireCat.currentLLM
 	}
 
+	get currentEmbedder() {
+		return cheshireCat.currentEmbedder
+	}
+
 	getPluginInfo() {
 		const paths = callsites().map(site => site.getFileName())
 		const folder = paths.find(path => path?.includes('src/plugins/'))

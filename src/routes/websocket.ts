@@ -1,7 +1,7 @@
 import type { FastifyPluginCallback } from 'fastify'
 import { log } from '@logger'
 
-export const websocket: FastifyPluginCallback = (fastify, _opts, done) => {
+export const websocket: FastifyPluginCallback = async (fastify) => {
 	fastify.get<{
 		Params: { userId?: string }
 	}>('/:userId?', {
@@ -15,6 +15,4 @@ export const websocket: FastifyPluginCallback = (fastify, _opts, done) => {
 		}
 		req.stray.ws = connection.socket
 	})
-
-	done()
 }
