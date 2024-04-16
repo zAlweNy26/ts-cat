@@ -47,12 +47,13 @@ CatTool.add('myToolName', 'myToolDescription', async (input, cat) => {
 CatForm.add('myFormName', {
     myKey1: z.string().describe('myKey1Description'),
     myKey2: z.number().describe('myKey2Description'),
-}, async ({ myKey1, myKey2 }, cat) => {
-    const info = cat.getPluginInfo()
-    // ...
 }, {
     description: 'myFormDescription',
     startExamples: ['myFormExample1', 'myFormExample2'],
+    async onSubmit({ myKey1, myKey2 }, cat) {
+        const info = cat.getPluginInfo()
+        // ...
+    }
 })
 ```
 

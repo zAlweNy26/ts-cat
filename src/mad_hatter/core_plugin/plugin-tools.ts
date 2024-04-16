@@ -18,10 +18,13 @@ CatTool.add('GetName', 'Useful to get the current user name when asked. Input is
 CatForm.add('PizzaForm', {
 	pizza: z.string().describe('The pizza you want to order'),
 	size: z.enum(['small', 'medium', 'large']).describe('The size of the pizza'),
-}, async ({ pizza, size }) => {
-	console.log(`Pizza form submitted succesfully with output:`)
-	console.log(`Pizza: ${pizza} | Size: ${size}`)
 }, {
 	description: 'Useful when you want to order a pizza.',
 	startExamples: ['I want to order a pizza', 'Order a pizza'],
+	async onSubmit({ pizza, size }) {
+		console.log(`Pizza: ${pizza} | Size: ${size}`)
+		return {
+			output: 'Pizza form submitted successfully!',
+		}
+	},
 })
