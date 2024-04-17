@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.2.4
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.3...v1.2.4)
+
+### 🚀 Enhancements
+
+- Improve OpenAPI schema with Zod ([9375bf0](https://github.com/zAlweNy26/ts-cat/commit/9375bf0))
+- **Form:** Improve class management ([1713123](https://github.com/zAlweNy26/ts-cat/commit/1713123))
+
+### 📖 Documentation
+
+- **RabbitHole:** Add JSDoc to methods ([9c0bca5](https://github.com/zAlweNy26/ts-cat/commit/9c0bca5))
+
+### 🏡 Chore
+
+- Clean Swagger UI css file ([811a014](https://github.com/zAlweNy26/ts-cat/commit/811a014))
+- Small Zod fixes ([0a4d800](https://github.com/zAlweNy26/ts-cat/commit/0a4d800))
+- General fixes ([2fc986a](https://github.com/zAlweNy26/ts-cat/commit/2fc986a))
+- **RabbitHole:** Update hooks logic ([2a13a66](https://github.com/zAlweNy26/ts-cat/commit/2a13a66))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.3
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.2...v1.2.3)
