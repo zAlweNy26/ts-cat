@@ -124,15 +124,30 @@ export class RabbitHole {
 		await cheshireCat.currentMemory.collections.declarative.addPoints(declarativeMemories)
 	}
 
+	/**
+	 * Ingests textual content into the memory.
+	 * @param stray The StrayCat instance.
+	 * @param content The textual content to ingest.
+	 */
 	async ingestContent(stray: StrayCat, content: string | string[]) {
 		log.info('Ingesting textual content...')
 		const docs = await this.splitTexts(stray, Array.isArray(content) ? content : [content], content.length, 0)
 		await this.storeDocuments(stray, docs, 'textual content')
 	}
 
+	/**
+	 * Ingests a file and processes its content.
+	 * @param stray The StrayCat instance.
+	 * @param file The file to ingest.
+	 * @param chunkSize The size of each chunk for splitting the content (default: 512).
+	 * @param chunkOverlap The overlap between chunks (default: 128).
+	 * @throws An error if the file type is not supported.
+	 */
 	async ingestFile(stray: StrayCat, file: File, chunkSize = 512, chunkOverlap = 128) {
 		const mime = file.type as keyof typeof this.fileHandlers
-		if (!Object.keys(this.fileHandlers).includes(mime)) { throw new Error('The file type is not supported. Skipping ingestion...') }
+		if (!Object.keys(this.fileHandlers).includes(mime)) {
+			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
+		}
 		log.info('Ingesting file...')
 		const loader = new this.fileHandlers[mime]!(file)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
@@ -142,11 +157,22 @@ export class RabbitHole {
 		await this.storeDocuments(stray, docs, file.name)
 	}
 
+	/**
+	 * Ingests a path or URL and processes the content.
+	 * If the input is a URL, it uses a web handler to load the content.
+	 * If the input is a file system path, it reads the file and processes the content.
+	 * @param stray The StrayCat instance.
+	 * @param path The path or URL to ingest.
+	 * @param chunkSize The size of each chunk for splitting the content (default: 512).
+	 * @param chunkOverlap The overlap between chunks (default: 128).
+	 * @throws If the URL doesn't match any web handler or the path doesn't exist.
+	 */
 	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize = 512, chunkOverlap = 128) {
 		try {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
-			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href)) ?? this.webHandlers[0]!
+			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href))
+			if (!webHandler) { throw new Error(`No matching regex found for "${path}". Skipping ingestion...`) }
 			const loader = new webHandler[1](url.href)
 			stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 			const content = (await loader.load()).map(d => d.pageContent)
@@ -163,6 +189,14 @@ export class RabbitHole {
 		}
 	}
 
+	/**
+	 * Stores the given documents in memory.
+	 * The method also executes the beforeStoreDocuments and beforeInsertInMemory hooks.
+	 * It sends a websocket notification of the progress and when the reading process is completed
+	 * @param stray The StrayCat instance.
+	 * @param docs An array of documents to store.
+	 * @param source The source of the documents.
+	 */
 	async storeDocuments(stray: StrayCat, docs: Document[], source: string) {
 		log.info(`Preparing to store ${docs.length} documents`)
 		docs = madHatter.executeHook('beforeStoreDocuments', docs, stray)
@@ -194,10 +228,19 @@ export class RabbitHole {
 		log.warn(`Done uploading ${source}`)
 	}
 
-	async splitTexts(stray: StrayCat, texts: string[], chunkSize?: number, chunkOverlap?: number) {
+	/**
+	 * Splits an array of texts into smaller chunks and creates documents.
+	 * The method also executes the beforeSplitTexts and afterSplitTexts hooks.
+	 * @param stray The StrayCat instance.
+	 * @param texts The array of texts to be split.
+	 * @param chunkSize The size of each chunk for splitting the content (default: 512).
+	 * @param chunkOverlap The overlap between chunks (default: 128).
+	 * @returns An array of documents.
+	 */
+	async splitTexts(stray: StrayCat, texts: string[], chunkSize = 512, chunkOverlap = 128) {
 		texts = madHatter.executeHook('beforeSplitTexts', texts, stray)
-		if (chunkOverlap) { this.splitter.chunkOverlap = chunkOverlap }
-		if (chunkSize) { this.splitter.chunkSize = chunkSize }
+		this.splitter.chunkOverlap = chunkOverlap
+		this.splitter.chunkSize = chunkSize
 		log.info('Splitting texts with chunk size', chunkSize, 'and overlap', chunkOverlap)
 		const split = await this.splitter.createDocuments(texts)
 		let docs = split.filter(d => d.pageContent.length > 10)
