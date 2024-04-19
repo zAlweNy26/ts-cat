@@ -61,7 +61,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			pluginId: z.string().min(1).trim(),
 		}),
 		response: {
-			204: { description: 'Plugin deleted successfully.', type: 'null' },
+			204: z.null().describe('Plugin deleted successfully.'),
 			404: { $ref: 'HttpError' },
 			400: { $ref: 'HttpError' },
 		},
@@ -90,7 +90,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			file: fileSchema,
 		}),
 		querystring: z.object({
-			async: z.boolean().default(false),
+			async: z.coerce.boolean().default(false),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
@@ -151,10 +151,10 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			url: z.string().url(),
 		}),
 		querystring: z.object({
-			async: z.boolean().default(false),
+			async: z.coerce.boolean().default(false),
 		}),
 		response: {
-			200: { type: 'object', properties: { info: { type: 'string' } } },
+			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, (req) => {

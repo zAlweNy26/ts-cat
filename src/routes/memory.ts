@@ -151,7 +151,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		tags: [SwaggerTags.Memory],
 		summary: 'Wipe collections',
 		response: {
-			204: { description: 'All collections were wiped successfully.', type: 'null' },
+			204: z.null().describe('All collections were wiped successfully.'),
 			500: { $ref: 'HttpError' },
 		},
 	} }, async (_req, rep) => {
@@ -179,7 +179,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 			collectionId: z.string().min(1).trim(),
 		}),
 		response: {
-			204: { description: 'The collection was wiped successfully.', type: 'null' },
+			204: z.null().describe('The collection was wiped successfully.'),
 			404: { $ref: 'HttpError' },
 			500: { $ref: 'HttpError' },
 		},
@@ -217,7 +217,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 			collectionId: z.string().min(1).trim(),
 		}),
 		querystring: z.object({
-			k: z.number().default(10),
+			k: z.coerce.number().default(10),
 		}),
 		body: z.record(z.any()).openapi({
 			example: {
@@ -227,12 +227,20 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 			},
 		}),
 		response: {
-			200: {
-				type: 'object',
-				properties: {
-					documents: { type: 'array', items: { type: 'object', additionalProperties: true } },
-				},
-			},
+			200: z.object({
+				documents: z.array(z.object({
+					id: z.string(),
+					pageContent: z.string(),
+					metadata: z.record(z.any()).openapi({
+						example: {
+							source: 'pizza-form',
+							trigger: 'description',
+							type: 'form',
+							when: 1712950292521,
+						},
+					}),
+				})),
+			}),
 			404: { $ref: 'HttpError' },
 			500: { $ref: 'HttpError' },
 		},
@@ -275,7 +283,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 			},
 		}),
 		response: {
-			204: { description: 'The collection\'s points was wiped successfully.', type: 'null' },
+			204: z.null().describe('The collection\'s points was wiped successfully.'),
 			404: { $ref: 'HttpError' },
 			500: { $ref: 'HttpError' },
 		},
@@ -308,7 +316,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 			pointId: z.string().min(1).trim(),
 		}),
 		response: {
-			204: { description: 'The point was wiped successfully.', type: 'null' },
+			204: z.null().describe('The point was wiped successfully.'),
 			404: { $ref: 'HttpError' },
 			500: { $ref: 'HttpError' },
 		},
@@ -357,7 +365,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		tags: [SwaggerTags.Memory],
 		summary: 'Wipe conversation history',
 		response: {
-			204: { description: 'The conversation history was wiped successfully.', type: 'null' },
+			204: z.null().describe('The conversation history was wiped successfully.'),
 		},
 	} }, (req, rep) => {
 		req.stray.clearHistory()

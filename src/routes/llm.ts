@@ -114,10 +114,10 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			text: z.string().default('Hello world'),
 		}).passthrough(),
 		querystring: z.object({
-			save: z.boolean().default(true),
+			save: z.coerce.boolean().default(true),
 		}),
 		response: {
-			200: { type: 'object', additionalProperties: true },
+			200: z.record(z.any()),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {

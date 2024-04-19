@@ -22,24 +22,24 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	})
 
 	fastify.post<{
-		Body: {
-			chunk: string
+		Body: string
+		Querystring: {
 			async: boolean
 		}
 	}>('/chunk', { schema: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
 		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload text chunk',
-		body: z.object({
-			chunk: z.string().min(10),
-			async: z.boolean().default(false),
+		body: z.string().min(10),
+		querystring: z.object({
+			async: z.coerce.boolean().default(false),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { chunk, async } = req.body
+		const chunk = req.body, { async } = req.query
 		try {
 			if (async) { await rabbitHole.ingestContent(req.stray, chunk) }
 			else rabbitHole.ingestContent(req.stray, chunk).catch(log.error)
@@ -67,21 +67,18 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload file',
 		consumes: ['multipart/form-data'],
-		body: z.object({
-			file: fileSchema,
-		}),
+		body: z.object({ file: fileSchema }),
 		querystring: z.object({
-			async: z.boolean().default(false),
-			chunkSize: z.number().default(512),
-			chunkOverlap: z.number().default(128),
+			async: z.coerce.boolean().default(false),
+			chunkSize: z.coerce.number().default(512),
+			chunkOverlap: z.coerce.number().default(128),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { file } = req.body
-		const { async, chunkOverlap, chunkSize } = req.query
+		const { file } = req.body, { async, chunkOverlap, chunkSize } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
 			if (async) { await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap).catch(log.error) }
@@ -97,8 +94,8 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	})
 
 	fastify.post<{
-		Body: {
-			webUrl: string
+		Body: string
+		Querystring: {
 			async: boolean
 			chunkSize: number
 			chunkOverlap: number
@@ -107,18 +104,18 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
 		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload URL',
-		body: z.object({
-			webUrl: z.string().min(5),
-			async: z.boolean().default(false),
-			chunkSize: z.number().default(512),
-			chunkOverlap: z.number().default(128),
+		body: z.string().min(5),
+		querystring: z.object({
+			async: z.coerce.boolean().default(false),
+			chunkSize: z.coerce.number().default(512),
+			chunkOverlap: z.coerce.number().default(128),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { webUrl, async, chunkSize, chunkOverlap } = req.body
+		const webUrl = req.body, { async, chunkOverlap, chunkSize } = req.query
 		try {
 			if (async) { await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap) }
 			else rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
@@ -144,19 +141,16 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		tags: [SwaggerTags['Rabbit Hole']],
 		summary: 'Upload memory',
 		consumes: ['multipart/form-data'],
-		body: z.object({
-			file: fileSchema,
-		}),
+		body: z.object({ file: fileSchema }),
 		querystring: z.object({
-			async: z.boolean().default(false),
+			async: z.coerce.boolean().default(false),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { file } = req.body
-		const { async } = req.query
+		const { file } = req.body, { async } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
 			if (async) { await rabbitHole.ingestMemory(uploadFile).catch(log.error) }
