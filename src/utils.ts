@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
 
-export const LogLevel = ['debug', 'info', 'normal', 'warning', 'error'] as const
+export const LogLevel = ['error', 'warning', 'normal', 'info', 'debug'] as const
 
 const envSchema = z.object({
 	CORE_HOST: z.string().default('localhost'),
@@ -30,7 +30,7 @@ const envSchema = z.object({
 	logLevel: s.LOG_LEVEL,
 	saveMemorySnapshots: s.SAVE_MEMORY_SNAPSHOTS,
 	watch: s.WATCH,
-	verbose: LogLevel.indexOf(s.LOG_LEVEL) < LogLevel.indexOf(LogLevel[2]),
+	verbose: LogLevel.indexOf(s.LOG_LEVEL) > LogLevel.indexOf(LogLevel[2]),
 }))
 
 export const parsedEnv = envSchema.parse(process.env)

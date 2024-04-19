@@ -187,7 +187,7 @@ export class StrayCat {
 		}
 
 		log.info('Agent response:')
-		log.info(catMsg)
+		log.normal(JSON.stringify(catMsg, undefined, 4))
 
 		let doc = new Document({
 			pageContent: response.text,
