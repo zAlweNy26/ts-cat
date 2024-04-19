@@ -7,6 +7,7 @@ import { execSync } from 'node:child_process'
 import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
+import { titleCase } from 'scule'
 import { generateRandomString, getFilesRecursively, getZodDefaults } from '@utils'
 import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
@@ -59,7 +60,7 @@ export class Plugin<
 	private events: Partial<PluginEvents> = {}
 	private _schema: z.ZodObject<T> = z.object({}) as z.ZodObject<T>
 	private _settings: S = {} as S
-	private _manifest = getZodDefaults(pluginManifestSchema) as PluginManifest
+	private _manifest: PluginManifest
 	private _id: string
 	private _reloading = false
 	private _active = false
@@ -74,6 +75,7 @@ export class Plugin<
 		if (!stats.isDirectory()) log.error(new Error('Plugin path must be a directory'))
 
 		this._id = basename(path)
+		this._manifest = defu(getZodDefaults(pluginManifestSchema), { name: titleCase(this._id) }) as PluginManifest
 	}
 
 	static async new(path: string) {
@@ -173,7 +175,7 @@ export class Plugin<
 		if (existsSync(manifestPath)) {
 			try {
 				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
-				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema)))
+				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
 			}
 			catch (err) {
 				let msg = `Error reading plugin.json for ${this.id}`

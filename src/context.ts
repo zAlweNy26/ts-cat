@@ -32,7 +32,7 @@ export const modelInfo = z.object({
 	name: z.string(),
 	humanReadableName: z.string(),
 	description: z.string(),
-	link: z.string().url(),
+	link: z.string().url().optional(),
 	schema: z.record(z.any()),
 	value: z.record(z.any()),
 }).openapi({
@@ -108,20 +108,20 @@ export const pluginInfo = z.object({
 	active: z.boolean(),
 	upgradable: z.boolean(),
 	manifest: pluginManifestSchema,
-	forms: z.object({
+	forms: z.array(z.object({
 		name: z.string(),
 		description: z.string(),
 		active: z.boolean(),
-	}),
-	tools: z.object({
+	})),
+	tools: z.array(z.object({
 		name: z.string(),
 		description: z.string(),
 		active: z.boolean(),
-	}),
-	hooks: z.object({
+	})),
+	hooks: z.array(z.object({
 		name: z.string(),
 		priority: z.number(),
-	}),
+	})),
 }).openapi({
 	ref: 'PluginInfo',
 	description: 'Information about a plugin',
@@ -139,19 +139,25 @@ export const pluginInfo = z.object({
 			thumb: 'https://thumb.url',
 			tags: ['tag1', 'tag2'],
 		},
-		forms: {
-			name: 'Form Name',
-			description: 'Form description',
-			active: true,
-		},
-		tools: {
-			name: 'Tool Name',
-			description: 'Tool description',
-			active: true,
-		},
-		hooks: {
-			name: 'Hook Name',
-			priority: 1,
-		},
+		forms: [
+			{
+				name: 'Form Name',
+				description: 'Form description',
+				active: true,
+			},
+		],
+		tools: [
+			{
+				name: 'Tool Name',
+				description: 'Tool description',
+				active: true,
+			},
+		],
+		hooks: [
+			{
+				name: 'Hook Name',
+				priority: 1,
+			},
+		],
 	},
 })
