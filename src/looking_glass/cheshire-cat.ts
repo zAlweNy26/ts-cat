@@ -89,7 +89,7 @@ export class CheshireCat {
 
 	/**
 	 * Get the Large Language Model (LLM) settings at bootstrap time.
-	 * @returns the found LLM settings from db or the default LLM settings
+	 * @returns The found LLM settings from db or the default LLM settings
 	 */
 	loadLanguageModel() {
 		const selected = getDb().selectedLLM, settings = getLLMSettings()
@@ -107,7 +107,7 @@ export class CheshireCat {
 
 	/**
 	 * Get the Embedder settings at bootstrap time.
-	 * @returns the found Embedder settings from db or the default LLM settings
+	 * @returns The found Embedder settings from db or the default LLM settings
 	 */
 	loadLanguageEmbedder() {
 		const selected = getDb().selectedEmbedder, embSettings = getEmbedderSettings(), llmSettings = getLLMSettings()
@@ -125,12 +125,15 @@ export class CheshireCat {
 	}
 
 	/**
-	 * Load long term memory and working memory.
+	 * Loads the long term memory from the database.
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
 		this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
-		if (this._embedderSize === 0) { throw log.error('Embedder size is 0') }
+		if (this._embedderSize === 0) {
+			log.error('Embedder size is 0')
+			throw new Error('Embedder size is 0. Unable to proceed.')
+		}
 		const vectorMemoryConfig = {
 			embedderName: getDb().selectedEmbedder,
 			embedderSize: this.embedderSize,

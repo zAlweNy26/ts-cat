@@ -41,18 +41,35 @@ const db = JSONFileSyncPreset<DatabaseConfig>('./data/metadata.json', {
 
 db.read()
 
+/**
+ * Retrieves a deep copy of the database.
+ */
 export const getDb = () => structuredClone(db.data)
 
+/**
+ * Updates the database configuration and reads the updated configuration.
+ * @param fn A function that takes the current database configuration as a parameter and updates it.
+ */
 export function updateDb(fn: (db: DatabaseConfig) => void) {
 	db.update(fn)
 	db.read()
 }
 
+/**
+ * Retrieves the LLM settings based on the LLM name.
+ * @param llm The name of the LLM. If not provided, the selected LLM will be used.
+ * @returns The LLM settings if found, otherwise undefined.
+ */
 export function getLLMSettings(llm?: string) {
 	llm ||= db.data.selectedLLM
 	return db.data.llms.find(l => l.name === llm)?.value
 }
 
+/**
+ * Retrieves the embedder settings based on the embedder name.
+ * @param emb The name of the embedder. If not provided, the selected embedder will be used.
+ * @returns The embedder settings if found, otherwise undefined.
+ */
 export function getEmbedderSettings(emb?: string) {
 	emb ||= db.data.selectedEmbedder
 	return db.data.embedders.find(e => e.name === emb)?.value

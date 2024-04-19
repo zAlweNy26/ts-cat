@@ -75,12 +75,18 @@ export class RabbitHole {
 		return RabbitHole.instance
 	}
 
+	/**
+	 * Get the file parsers
+	 */
 	get fileParsers() {
-		return this.fileHandlers
+		return { ...this.fileHandlers }
 	}
 
+	/**
+	 * Get the web parsers
+	 */
 	get webParsers() {
-		return this.webHandlers
+		return [...this.webHandlers]
 	}
 
 	/**

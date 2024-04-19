@@ -5,7 +5,7 @@ import type { DocumentInput } from '@langchain/core/documents'
 import { Document } from '@langchain/core/documents'
 import type { ChainValues } from 'langchain/schema'
 import { destr } from 'destr'
-import { madHatter } from '@mh'
+import { type PluginManifest, madHatter } from '@mh'
 import type { EmbeddedVector, FilterMatch } from '@memory'
 import type { Message } from '@utils'
 import { log } from '@logger'
@@ -108,6 +108,11 @@ export class StrayCat {
 		return cheshireCat.currentEmbedder
 	}
 
+	/**
+	 * Retrieves information about the plugin where is being executed.
+	 * @returns An object containing the plugin's active status, manifest, and settings.
+	 * Returns undefined if the plugin is not found.
+	 */
 	getPluginInfo() {
 		const paths = callsites().map(site => site.getFileName())
 		const folder = paths.find(path => path?.includes('src/plugins/'))
@@ -118,9 +123,17 @@ export class StrayCat {
 		const plugin = madHatter.getPlugin(id)
 		if (!plugin) { return undefined }
 		const { active, manifest, settings } = plugin
-		return { active, manifest, settings }
+		return {
+			active,
+			manifest: manifest as PluginManifest,
+			settings,
+		}
 	}
 
+	/**
+	 * This property is used to establish a new WebSocket connection.
+	 * @param value The WebSocket instance.
+	 */
 	set ws(value: WebSocket | undefined) {
 		this._ws = value
 		this._ws?.on('open', () => {
@@ -152,9 +165,9 @@ export class StrayCat {
 
 	/**
 	 * Processes the user message and returns the response.
-	 * @param msg the user message
-	 * @param save whether to save the message or not in the chat history. Default is true.
-	 * @returns the response message
+	 * @param msg The message to send
+	 * @param save Whether to save the message or not in the chat history (default: true).
+	 * @returns The response message
 	 */
 	async run(msg: Message, save = true) {
 		log.info(`Received message from user "${this.userId}":`)
@@ -229,13 +242,21 @@ export class StrayCat {
 	 * @returns the messages present in the chat history
 	 */
 	getHistory(k?: number) {
-		return k ? this.chatHistory.slice(-k) : this.chatHistory
+		return k ? this.chatHistory.slice(-k) : [...this.chatHistory]
 	}
 
+	/**
+	 * Clears the chat history.
+	 */
 	clearHistory() {
 		this.chatHistory = []
 	}
 
+	/**
+	 * Recalls relevant memories based on the given query.
+	 * If no query is provided, it uses the last user's message text as the query.
+	 * @param query The query string to search for relevant memories.
+	 */
 	async recallRelevantMemories(query?: string) {
 		if (!query) { query = this.userMessage.text }
 
@@ -279,6 +300,11 @@ export class StrayCat {
 		madHatter.executeHook('afterRecallMemories', this)
 	}
 
+	/**
+	 * Executes the LLM with the given prompt and returns the response.
+	 * @param prompt The prompt to be passed to the LLM.
+	 * @param stream Optional parameter to enable streaming mode.
+	 */
 	llm(prompt: string, stream = false): Promise<string> {
 		const callbacks: BaseCallbackHandler[] = []
 		if (stream) { callbacks.push(new NewTokenHandler(this)) }
