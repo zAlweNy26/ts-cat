@@ -3,12 +3,17 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { StrayCat } from '@lg/stray-cat.ts'
 import { rabbitHole } from '@rh'
 import { afterAll, beforeAll, test, vi } from 'vitest'
+import app from '@/main.ts'
 
 export const mockTest = test.extend({
 	/* cheshireCat,
 	madHatter,
 	rabbitHole,
 	strayCat: new StrayCat('Alice'), */
+})
+
+export const appTest = test.extend({
+	app,
 })
 
 beforeAll(() => {
