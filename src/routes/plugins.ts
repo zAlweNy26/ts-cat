@@ -7,7 +7,6 @@ import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { MultipartFile } from '@fastify/multipart'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
-import { updateDb } from '@db'
 import { z } from 'zod'
 import { SwaggerTags, customSetting, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
 
@@ -221,7 +220,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		if (!tool && !form) return rep.notFound('Procedure not found')
 		if (tool) tool.active = !tool.active
 		if (form) form.active = !form.active
-		updateDb((db) => {
+		fastify.db.update((db) => {
 			if (tool) {
 				if (tool.active) db.activeTools.push(procedureName)
 				else db.activeTools = db.activeTools.filter(t => t !== procedureName)

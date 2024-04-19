@@ -1,5 +1,4 @@
 import type { FastifyPluginCallback } from 'fastify'
-import { dbConfig, defaultDbKeys, getDb, updateDb } from '@db'
 import { z } from 'zod'
 import { SwaggerTags, customSetting } from '@/context.ts'
 
@@ -9,10 +8,10 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 		tags: [SwaggerTags.Settings],
 		summary: 'Get settings',
 		response: {
-			200: defaultDbKeys,
+			200: fastify.db.keys,
 		},
 	} }, () => {
-		return getDb()
+		return fastify.db.data
 	})
 
 	fastify.get<{
@@ -29,7 +28,7 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
-		const db = getDb()
+		const db = fastify.db.data
 		const key = Object.keys(db).find(k => k === req.params.settingId)
 		if (!key) return rep.notFound('The passed Setting ID is not present in the database.')
 		return {
@@ -54,14 +53,15 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
-		const key = Object.keys(getDb()).find(k => k === req.params.settingId)
+		const db = fastify.db.data
+		const key = Object.keys(db).find(k => k === req.params.settingId)
 		if (!key) return rep.notFound('The passed Setting ID is not present in the database.')
-		const parsed = dbConfig.safeParse({
-			...getDb(),
+		const parsed = fastify.db.parse({
+			...db,
 			[key]: req.body,
 		})
 		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
-		updateDb(db => db[key] = req.body)
+		fastify.db.update(db => db[key] = req.body)
 		return {
 			[key]: req.body,
 		}
@@ -82,11 +82,12 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 			404: { $ref: 'HttpError' },
 		},
 	} }, (req, rep) => {
-		const key = Object.keys(getDb()).find(k => k === req.params.settingId)
+		const db = fastify.db.data
+		const key = Object.keys(db).find(k => k === req.params.settingId)
 		if (!key) return rep.notFound('The passed Setting ID is not present in the database.')
-		if (Object.keys(defaultDbKeys).includes(key)) return rep.badRequest('Cannot delete default settings.')
-		const value = getDb()[key]
-		updateDb(db => db[key] = undefined)
+		if (Object.keys(fastify.db.keys).includes(key)) return rep.badRequest('Cannot delete default settings.')
+		const value = db[key]
+		fastify.db.update(db => db[key] = undefined)
 		return {
 			[key]: value,
 		}
@@ -105,8 +106,9 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 		},
 	} }, (req, rep) => {
 		const { name, value } = req.body
-		if (Object.keys(getDb()).includes(name)) return rep.badRequest('Setting already exists.')
-		updateDb(db => db[name] = value)
+		const db = fastify.db.data
+		if (Object.keys(db).includes(name)) return rep.badRequest('Setting already exists.')
+		fastify.db.update(db => db[name] = value)
 		return {
 			[name]: value,
 		}

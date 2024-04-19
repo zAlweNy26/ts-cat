@@ -4,7 +4,7 @@ import type { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { getEmbedder, getLLM } from '@factory'
 import { type Form, type Tool, isForm, isTool, madHatter } from '@mh'
 import { type PointData, type VectorMemory, getVectorMemory } from '@memory'
-import { getDb, getEmbedderSettings, getLLMSettings } from '@db'
+import { db } from '@db'
 import { log } from '@logger'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat } from './stray-cat.ts'
@@ -92,7 +92,7 @@ export class CheshireCat {
 	 * @returns The found LLM settings from db or the default LLM settings
 	 */
 	loadLanguageModel() {
-		const selected = getDb().selectedLLM, settings = getLLMSettings()
+		const selected = db.data.selectedLLM, settings = db.getLLMSettings()
 		try {
 			const llm = getLLM(selected)
 			if (!llm) throw new Error('LLM not found')
@@ -110,7 +110,7 @@ export class CheshireCat {
 	 * @returns The found Embedder settings from db or the default LLM settings
 	 */
 	loadLanguageEmbedder() {
-		const selected = getDb().selectedEmbedder, embSettings = getEmbedderSettings(), llmSettings = getLLMSettings()
+		const selected = db.data.selectedEmbedder, embSettings = db.getEmbedderSettings(), llmSettings = db.getLLMSettings()
 		try {
 			if (!llmSettings) throw new Error('LLM settings not found')
 			const embedder = getEmbedder(selected)
@@ -135,7 +135,7 @@ export class CheshireCat {
 			throw new Error('Embedder size is 0. Unable to proceed.')
 		}
 		const vectorMemoryConfig = {
-			embedderName: getDb().selectedEmbedder,
+			embedderName: db.data.selectedEmbedder,
 			embedderSize: this.embedderSize,
 		}
 		this.memory = await getVectorMemory(vectorMemoryConfig)

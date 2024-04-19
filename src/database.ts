@@ -1,7 +1,7 @@
 import { JSONFileSyncPreset } from 'lowdb/node'
 import { z } from 'zod'
 
-export const defaultDbKeys = z.object({
+const defaultDbKeys = z.object({
 	instantTool: z.boolean(),
 	selectedLLM: z.string(),
 	selectedEmbedder: z.string(),
@@ -18,59 +18,106 @@ export const defaultDbKeys = z.object({
 	activeForms: z.array(z.string()),
 }).passthrough()
 
-export const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
+const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
 	return llms.some(l => l.name === selectedLLM) && embedders.some(e => e.name === selectedEmbedder)
 })
 
-export type DatabaseConfig = z.infer<typeof dbConfig>
+type DatabaseConfig = z.infer<typeof dbConfig>
 
-const db = JSONFileSyncPreset<DatabaseConfig>('./data/metadata.json', {
-	instantTool: true,
-	selectedLLM: 'DefaultLLM',
-	selectedEmbedder: 'FakeEmbedder',
-	llms: [
-		{ name: 'DefaultLLM', value: {} },
-	],
-	embedders: [
-		{ name: 'FakeEmbedder', value: {} },
-	],
-	activeTools: [],
-	activeForms: [],
-	activePlugins: ['core_plugin'],
-})
+export class Database {
+	private static instance: Database
+	private _db: ReturnType<typeof JSONFileSyncPreset<DatabaseConfig>>
 
-db.read()
+	private constructor(path: string) {
+		this._db = JSONFileSyncPreset<DatabaseConfig>(path, {
+			instantTool: true,
+			selectedLLM: 'DefaultLLM',
+			selectedEmbedder: 'FakeEmbedder',
+			llms: [
+				{ name: 'DefaultLLM', value: {} },
+			],
+			embedders: [
+				{ name: 'FakeEmbedder', value: {} },
+			],
+			activeTools: [],
+			activeForms: [],
+			activePlugins: ['core_plugin'],
+		})
+		this._db.read()
+	}
 
-/**
- * Retrieves a deep copy of the database.
- */
-export const getDb = () => structuredClone(db.data)
+	/**
+	 * Initializes the database with the specified path.
+	 * @param path The path to the database.
+	 * @returns The initialized database instance.
+	 */
+	static init(path: string) {
+		if (!Database.instance) Database.instance = new Database(path)
+		return Database.instance
+	}
 
-/**
- * Updates the database configuration and reads the updated configuration.
- * @param fn A function that takes the current database configuration as a parameter and updates it.
- */
-export function updateDb(fn: (db: DatabaseConfig) => void) {
-	db.update(fn)
-	db.read()
+	/**
+	 * Gets the schema of the default keys of the database.
+	 */
+	get keys() {
+		return defaultDbKeys
+	}
+
+	/**
+	 * Gets the database object.
+	 * @returns A deep clone of the database data.
+	 */
+	get data() {
+		return structuredClone(this._db.data)
+	}
+
+	/**
+	 * Parses the given data.
+	 * @param data The data to be parsed.
+	 * @returns The safely parsed data.
+	 */
+	parse(data: DatabaseConfig) {
+		return dbConfig.safeParse(data)
+	}
+
+	/**
+	 * Updates the database configuration and reads the updated configuration.
+	 * @param fn A function that takes the current database configuration as a parameter and updates it.
+	 */
+	update(fn: (db: DatabaseConfig) => void) {
+		this._db.update(fn)
+		this._db.read()
+	}
+
+	/**
+	 * Deletes a key-value pair from the database.
+	 * @param key The key of the pair to delete.
+	 */
+	delete(key: string) {
+		this.update((db) => {
+			delete db[key]
+		})
+	}
+
+	/**
+	 * Retrieves the LLM settings based on the LLM name.
+	 * @param llm The name of the LLM. If not provided, the selected LLM will be used.
+	 * @returns The LLM settings if found, otherwise undefined.
+	 */
+	getLLMSettings(llm?: string) {
+		llm ||= this._db.data.selectedLLM
+		return this._db.data.llms.find(l => l.name === llm)?.value
+	}
+
+	/**
+	 * Retrieves the embedder settings based on the embedder name.
+	 * @param emb The name of the embedder. If not provided, the selected embedder will be used.
+	 * @returns The embedder settings if found, otherwise undefined.
+	 */
+	getEmbedderSettings(emb?: string) {
+		emb ||= this._db.data.selectedEmbedder
+		return this._db.data.embedders.find(e => e.name === emb)?.value
+	}
 }
 
-/**
- * Retrieves the LLM settings based on the LLM name.
- * @param llm The name of the LLM. If not provided, the selected LLM will be used.
- * @returns The LLM settings if found, otherwise undefined.
- */
-export function getLLMSettings(llm?: string) {
-	llm ||= db.data.selectedLLM
-	return db.data.llms.find(l => l.name === llm)?.value
-}
-
-/**
- * Retrieves the embedder settings based on the embedder name.
- * @param emb The name of the embedder. If not provided, the selected embedder will be used.
- * @returns The embedder settings if found, otherwise undefined.
- */
-export function getEmbedderSettings(emb?: string) {
-	emb ||= db.data.selectedEmbedder
-	return db.data.embedders.find(e => e.name === emb)?.value
-}
+export const db = Database.init('./data/metadata.json')

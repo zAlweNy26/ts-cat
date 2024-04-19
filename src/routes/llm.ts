@@ -4,7 +4,6 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
 import type { Message } from '@utils'
 import { madHatter } from '@mh/mad-hatter.ts'
-import { getDb, getLLMSettings, updateDb } from '@db'
 import { log } from '@logger'
 import { z } from 'zod'
 import { SwaggerTags, customSetting, modelInfo } from '@/context.ts'
@@ -21,14 +20,15 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			}),
 		},
 	} }, () => {
+		const db = fastify.db.data
 		const allowedLlms = getAllowedLLMs()
 		const options = allowedLlms.map(({ config, ...args }) => ({
 			...args,
 			schema: zodToJsonSchema(config),
-			value: getDb().llms.filter(l => l.name === args.name)[0]?.value ?? {},
+			value: db.llms.filter(l => l.name === args.name)[0]?.value ?? {},
 		}))
 		return {
-			selected: getDb().selectedLLM,
+			selected: db.selectedLLM,
 			options,
 		}
 	})
@@ -50,7 +50,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 		const id = req.params.llmId
 		const llm = getLLM(id)
 		if (!llm) return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.')
-		const value = getLLMSettings(id) ?? {}
+		const value = fastify.db.getLLMSettings(id) ?? {}
 		return {
 			...llm,
 			schema: zodToJsonSchema(llm.config),
@@ -89,7 +89,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			log.error('Failed to load memory', error)
 			return rep.badRequest('Failed to load memory for the selected embedder')
 		}
-		updateDb((db) => {
+		fastify.db.update((db) => {
 			db.selectedLLM = id
 			const llmIndex = db.llms.findIndex(l => l.name === id)
 			if (llmIndex === -1) db.llms.push({ name: id, value: parsed.data })

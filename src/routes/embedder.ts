@@ -2,7 +2,6 @@ import type { FastifyPluginCallback } from 'fastify'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { getAllowedEmbedders, getEmbedder } from '@factory/embedder.ts'
-import { getDb, getEmbedderSettings, updateDb } from '@db'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
@@ -20,14 +19,15 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 			}),
 		},
 	} }, () => {
+		const db = fastify.db.data
 		const allowedEmbedders = getAllowedEmbedders()
 		const options = allowedEmbedders.map(({ config, ...args }) => ({
 			...args,
 			schema: zodToJsonSchema(config),
-			value: getDb().embedders.filter(l => l.name === args.name)[0]?.value ?? {},
+			value: db.embedders.filter(l => l.name === args.name)[0]?.value ?? {},
 		}))
 		return {
-			selected: getDb().selectedEmbedder,
+			selected: db.selectedEmbedder,
 			options,
 		}
 	})
@@ -49,7 +49,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 		const id = req.params.embedderId
 		const emb = getEmbedder(id)
 		if (!emb) return rep.notFound('The passed Embedder ID doesn\'t exist in the list of available Embedders.')
-		const value = getEmbedderSettings(id) ?? {}
+		const value = fastify.db.getEmbedderSettings(id) ?? {}
 		return {
 			...emb,
 			schema: zodToJsonSchema(emb.config),
@@ -88,7 +88,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 			log.error('Failed to load memory', error)
 			return rep.badRequest('Failed to load memory for the selected embedder')
 		}
-		updateDb((db) => {
+		fastify.db.update((db) => {
 			db.selectedEmbedder = id
 			const embIndex = db.embedders.findIndex(l => l.name === id)
 			if (embIndex === -1) db.embedders.push({ name: id, value: parsed.data })

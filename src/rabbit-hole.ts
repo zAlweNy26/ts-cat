@@ -18,7 +18,7 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import type { PointData } from '@memory/vector-memory-collection.ts'
 import { log } from '@logger'
-import { getDb } from './database.ts'
+import { db } from './database.ts'
 import { sleep } from './utils.ts'
 
 export interface MemoryJson {
@@ -108,7 +108,7 @@ export class RabbitHole {
 		}
 		else content = json
 
-		if (!content.embedder || content.embedder !== getDb().selectedEmbedder) {
+		if (!content.embedder || content.embedder !== db.data.selectedEmbedder) {
 			log.error('The embedder used to export the memories is different from the one currently used.')
 			return
 		}

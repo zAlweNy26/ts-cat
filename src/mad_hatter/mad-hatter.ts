@@ -4,7 +4,7 @@ import { basename, join, sep } from 'node:path'
 import { execSync } from 'node:child_process'
 import chokidar from 'chokidar'
 import { catPaths } from '@utils'
-import { getDb, updateDb } from '@db'
+import { db } from '@db'
 import { log } from '@logger'
 import type { HookNames, HookTypes, Hooks } from './hook.ts'
 import { Plugin } from './plugin.ts'
@@ -32,7 +32,7 @@ export class MadHatter {
 		if (!MadHatter.instance) {
 			log.silent('Initializing the Mad Hatter...')
 			MadHatter.instance = new MadHatter()
-			MadHatter.instance.activePlugins = getDb().activePlugins
+			MadHatter.instance.activePlugins = db.data.activePlugins
 			await MadHatter.instance.installPlugin(`${basePath}/mad_hatter/core_plugin`)
 			await MadHatter.instance.findPlugins()
 		}
@@ -140,7 +140,7 @@ export class MadHatter {
 			this.activePlugins = this.activePlugins.filter(p => p !== id)
 			this.plugins.delete(id)
 			this.syncHooksAndProcedures()
-			updateDb(db => db.activePlugins = this.activePlugins)
+			db.update(db => db.activePlugins = this.activePlugins)
 		}
 	}
 
@@ -174,7 +174,7 @@ export class MadHatter {
 				plugin.activate()
 				this.activePlugins.push(plugin.id)
 			}
-			updateDb(db => db.activePlugins = this.activePlugins)
+			db.update(db => db.activePlugins = this.activePlugins)
 			if (sync) this.syncHooksAndProcedures()
 			return plugin.active
 		}

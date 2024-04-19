@@ -6,7 +6,7 @@ import type { AgentStep, ChainValues } from 'langchain/schema'
 import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
-import { getDb } from '@db'
+import { db } from '@db'
 import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT, ToolPromptTemplate } from './prompts.ts'
 import type { MemoryDocument, MemoryMessage, StrayCat } from './stray-cat.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
@@ -142,7 +142,7 @@ export class AgentManager {
 
 		const calledTool = madHatter.tools.filter(t => t.active)
 			.find(({ name }) => input.input.startsWith(interpolateFString(trigger, { name })))
-		const instantTool = getDb().instantTool
+		const instantTool = db.data.instantTool
 
 		if (calledTool && instantTool) {
 			const toolInput = input.input.replace(interpolateFString(trigger, { name: calledTool.name }), '').trim()
