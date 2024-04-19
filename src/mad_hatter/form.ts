@@ -282,7 +282,7 @@ JSON:
 	}
 
 	private async checkExitIntent() {
-		const history = this.stringifyChatHistory()
+		const userMsg = this.cat.lastUserMessage.text
 		let stopExamples = `Examples where { exit: true }:
 - Exit form
 - Stop form
@@ -298,9 +298,7 @@ JSON must be in this format:
 
 ${stopExamples}
 
-This is the conversation:
-
-${history}
+User said: "${userMsg}"
 
 JSON:
 {

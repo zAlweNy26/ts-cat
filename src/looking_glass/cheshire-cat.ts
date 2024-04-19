@@ -159,7 +159,7 @@ export class CheshireCat {
 				type: isTool(proc) ? 'tool' : 'form',
 				trigger: 'description',
 			}
-			for (const example of [...isTool(proc) ? proc.examples : proc.startExamples]) {
+			for (const example of proc.startExamples) {
 				hashes[`${proc.name}.startExample.${example.toLowerCase().replace(/\s/g, '_')}`] = {
 					name: proc.name,
 					content: example,

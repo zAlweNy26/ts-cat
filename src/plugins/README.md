@@ -41,6 +41,9 @@ CatHook.add('agentPromptPrefix', (prefix, cat) => {
 CatTool.add('myToolName', 'myToolDescription', async (input, cat) => {
     const info = cat.getPluginInfo()
     // ...
+}, {
+    direct: true,
+    startExamples: ['startExample1', 'startExample2'],
 })
 
 // For example, in a form

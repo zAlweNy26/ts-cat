@@ -6,13 +6,13 @@ CatTool.add('GetTime', 'Useful to get the current time when asked. Input is alwa
 	return new Date().toLocaleString()
 }, {
 	direct: true,
-	examples: ['What time is it', 'Get the time'],
+	startExamples: ['What time is it', 'Get the time'],
 })
 
 CatTool.add('GetName', 'Useful to get the current user name when asked. Input is the user name.', async (input) => {
 	return `Your name is ${input}`
 }, {
-	examples: ['My name is Daniele', 'I\'m John'],
+	startExamples: ['My name is Daniele', 'I\'m John'],
 })
 
 CatForm.add('PizzaForm', {

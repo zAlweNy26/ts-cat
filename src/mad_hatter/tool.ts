@@ -7,7 +7,7 @@ import type { StrayCat } from '@lg'
 
 interface ToolOptions {
 	direct?: boolean
-	examples?: string[]
+	startExamples?: string[]
 }
 
 type ToolFun = (input: string | null, cat: StrayCat) => Promise<string>
@@ -35,11 +35,11 @@ export const CatTool = Object.freeze({
 
 export class Tool extends DynamicStructuredTool {
 	private cat: StrayCat | undefined
-	private _examples: string[]
+	public startExamples: string[]
 	active = true
 
 	constructor(name: string, description: string, fn: ToolFun, options?: ToolOptions) {
-		const { direct = false, examples = [] } = { ...options }
+		const { direct = false, startExamples = [] } = { ...options }
 
 		super({
 			name: kebabCase(name),
@@ -54,7 +54,7 @@ export class Tool extends DynamicStructuredTool {
 			returnDirect: direct,
 		})
 
-		this._examples = examples
+		this.startExamples = startExamples
 	}
 
 	call(arg: any, configArg?: RunnableConfig | Callbacks | undefined, tags?: string[] | undefined): Promise<string> {
@@ -62,10 +62,6 @@ export class Tool extends DynamicStructuredTool {
 			text: arg,
 		}
 		return super.call(formatArg, configArg, tags)
-	}
-
-	get examples() {
-		return this._examples
 	}
 
 	toString() {
