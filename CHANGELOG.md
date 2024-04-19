@@ -1,5 +1,27 @@
 # Changelog
 
+## v1.2.5
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.4...v1.2.5)
+
+### 🚀 Enhancements
+
+- Nodemon now watches also .env file ([4fd3bc5](https://github.com/zAlweNy26/ts-cat/commit/4fd3bc5))
+- Use json in tool prompt ([3ab5159](https://github.com/zAlweNy26/ts-cat/commit/3ab5159))
+
+### 🩹 Fixes
+
+- Fix missing routes validations ([ba8ee05](https://github.com/zAlweNy26/ts-cat/commit/ba8ee05))
+- Fix log level order ([550e48a](https://github.com/zAlweNy26/ts-cat/commit/550e48a))
+
+### 🏡 Chore
+
+- Rename CatTool options ([cfaa9a3](https://github.com/zAlweNy26/ts-cat/commit/cfaa9a3))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.4
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.3...v1.2.4)
