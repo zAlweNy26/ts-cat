@@ -45,7 +45,7 @@ export class Tool extends DynamicStructuredTool {
 			name: kebabCase(name),
 			description,
 			func: ({ text }) => {
-				if (!this.cat) { throw new Error('Cat not assigned to tool') }
+				if (!this.cat) throw new Error('Cat not assigned to tool')
 				return fn(text, this.cat)
 			},
 			schema: z.object({

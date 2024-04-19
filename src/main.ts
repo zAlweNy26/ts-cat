@@ -167,14 +167,13 @@ fastify.addHook('preParsing', async (req, rep) => {
 	const publicRoutes = ['/docs', '/assets', '/ws']
 
 	// Check if the request has a valid API key
-	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(r => req.url.startsWith(r))) {
+	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(r => req.url.startsWith(r)))
 		return rep.unauthorized('Invalid API key')
-	}
 
 	// Add a StrayCat instance to the request object
 	const userId = (Array.isArray(req.headers.userId) ? req.headers.userId[0] : req.headers.userId) || 'user'
 	const stray = cheshireCat.getStray(userId)
-	if (!stray) { req.stray = cheshireCat.addStray(userId) }
+	if (!stray) req.stray = cheshireCat.addStray(userId)
 	else req.stray = stray
 })
 

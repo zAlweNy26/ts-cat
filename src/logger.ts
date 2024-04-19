@@ -28,9 +28,9 @@ export const log = Object.freeze({
 	 * @param rows The array of objects to be logged as a table.
 	 */
 	table: <T extends Record<string, any>>(rows: T[]) => {
-		if (rows.length === 0) { return }
+		if (rows.length === 0) return
 		const firstRow = rows[0]
-		if (!firstRow) { return }
+		if (!firstRow) return
 		const table = new Table({
 			columns: Object.keys(firstRow).map(key => ({ name: key, alignment: 'left', color: 'green' })),
 			rows,

@@ -162,10 +162,10 @@ export function generateRandomString(length: number) {
  */
 export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_input'] | undefined {
 	if (schema instanceof z.ZodDiscriminatedUnion) {
-		if (!discriminant) { throw new Error('Discriminant value is required for discriminated unions') }
-		for (const [key, val] of schema._def.optionsMap.entries()) {
-			if (key === discriminant) { return getZodDefaults(val) }
-		}
+		if (!discriminant) throw new Error('Discriminant value is required for discriminated unions')
+		for (const [key, val] of schema._def.optionsMap.entries())
+			if (key === discriminant) return getZodDefaults(val)
+
 		return getZodDefaults(schema._def.options[0])
 	}
 	else if (schema instanceof z.ZodObject) {
@@ -173,7 +173,7 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
 		const result: any = {}
 		for (const key in shape) {
 			const value = getZodDefaults(shape[key])
-			if (value !== undefined) { result[key] = value }
+			if (value !== undefined) result[key] = value
 		}
 		return result
 	}
@@ -186,14 +186,14 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
 	else if (schema instanceof z.ZodUnion) {
 		for (const val of schema.options) {
 			const value = getZodDefaults(val)
-			if (value !== undefined) { return value }
+			if (value !== undefined) return value
 		}
 		return undefined
 	}
-	else if (schema instanceof z.ZodEnum) { return schema.options[0] }
-	else if (schema instanceof z.ZodNativeEnum) { return Object.values(schema.enum)[0] }
-	else if (schema instanceof z.ZodLiteral) { return schema.value }
-	else if (schema instanceof z.ZodEffects) { return getZodDefaults(schema.innerType()) }
-	else if (schema instanceof z.ZodDefault) { return schema._def.defaultValue() }
+	else if (schema instanceof z.ZodEnum) return schema.options[0]
+	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
+	else if (schema instanceof z.ZodLiteral) return schema.value
+	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
+	else if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else return undefined
 }

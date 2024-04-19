@@ -35,14 +35,14 @@ export class VectorMemoryCollection {
 		try {
 			const collections = (await vectorDb.getCollections()).collections
 			const hasCollection = collections.some(c => c.name === name)
-			if (hasCollection) { log.debug(`Collection ${name} already exists. Skipping creation...`) }
+			if (hasCollection) log.debug(`Collection ${name} already exists. Skipping creation...`)
 			else await collection.createCollection()
 			const collectionVectors = (await vectorDb.getCollection(name)).config.params.vectors
 			const collectionSize = typeof collectionVectors?.size === 'number' ? collectionVectors.size : collectionVectors?.size?.size
 			if (collectionSize !== collection.embedderSize) {
 				log.debug(`Collection ${name} has the wrong size. Updating...`)
 				const { saveMemorySnapshots } = parsedEnv
-				if (saveMemorySnapshots) { await collection.saveDump() }
+				if (saveMemorySnapshots) await collection.saveDump()
 				await vectorDb.deleteCollection(name)
 				log.warn(`Collection ${name} deleted. Recreating...`)
 				await collection.createCollection()
@@ -101,7 +101,7 @@ export class VectorMemoryCollection {
 		}
 		log.warn(`Saving "${this.name}" collection dump...`)
 		const stats = lstatSync(folder)
-		if (stats.isDirectory()) { log.info('Directory dormouse exists') }
+		if (stats.isDirectory()) log.info('Directory dormouse exists')
 		else {
 			log.warn('Creating dormouse directory...')
 			mkdirSync(folder)
@@ -130,7 +130,7 @@ export class VectorMemoryCollection {
 	 * @returns The constructed filter object or undefined if the filter is empty.
 	 */
 	private filterFromDict(filter: Record<string, FilterMatch>): Filter | undefined {
-		if (Object.keys(filter).length === 0) { return undefined }
+		if (Object.keys(filter).length === 0) return undefined
 		return {
 			must: Object.entries(filter).reduce((acc, [key, match]) =>
 				acc.concat({ key, match }), [] as FilterCondition[]),
@@ -176,7 +176,7 @@ export class VectorMemoryCollection {
 	 */
 	deletePointsByMetadata(metadata: Record<string, FilterMatch>) {
 		const filter = this.filterFromDict(metadata)
-		if (!filter) { return undefined }
+		if (!filter) return undefined
 		return vectorDb.delete(this.name, { filter })
 	}
 

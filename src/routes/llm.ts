@@ -49,7 +49,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const id = req.params.llmId
 		const llm = getLLM(id)
-		if (!llm) { return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.') }
+		if (!llm) return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.')
 		const value = getLLMSettings(id) ?? {}
 		return {
 			...llm,
@@ -76,9 +76,9 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const id = req.params.llmId
 		const llm = getLLM(id)
-		if (!llm) { return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.') }
+		if (!llm) return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.')
 		const parsed = llm.config.passthrough().safeParse(req.body)
-		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join()) }
+		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
 		cheshireCat.loadLanguageModel()
 		cheshireCat.loadLanguageEmbedder()
 		try {
@@ -92,7 +92,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 		updateDb((db) => {
 			db.selectedLLM = id
 			const llmIndex = db.llms.findIndex(l => l.name === id)
-			if (llmIndex === -1) { db.llms.push({ name: id, value: parsed.data }) }
+			if (llmIndex === -1) db.llms.push({ name: id, value: parsed.data })
 			else db.llms[llmIndex]!.value = parsed.data
 		})
 		return {
@@ -123,7 +123,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const { save } = req.query
 		const res = await req.stray.run(req.body, save)
-		if (!res) { rep.imateapot('I\'m sorry, I can\'t do that.') }
+		if (!res) rep.imateapot('I\'m sorry, I can\'t do that.')
 		return res
 	})
 }

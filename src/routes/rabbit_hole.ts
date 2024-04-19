@@ -41,7 +41,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const chunk = req.body, { async } = req.query
 		try {
-			if (async) { await rabbitHole.ingestContent(req.stray, chunk) }
+			if (async) await rabbitHole.ingestContent(req.stray, chunk)
 			else rabbitHole.ingestContent(req.stray, chunk).catch(log.error)
 		}
 		catch (error) {
@@ -81,7 +81,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		const { file } = req.body, { async, chunkOverlap, chunkSize } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
-			if (async) { await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap).catch(log.error) }
+			if (async) await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap).catch(log.error)
 			else rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap)
 		}
 		catch (error) {
@@ -117,7 +117,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const webUrl = req.body, { async, chunkOverlap, chunkSize } = req.query
 		try {
-			if (async) { await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap) }
+			if (async) await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap)
 			else rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
 		}
 		catch (error) {
@@ -153,7 +153,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		const { file } = req.body, { async } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
-			if (async) { await rabbitHole.ingestMemory(uploadFile).catch(log.error) }
+			if (async) await rabbitHole.ingestMemory(uploadFile).catch(log.error)
 			else rabbitHole.ingestMemory(uploadFile)
 		}
 		catch (error) {

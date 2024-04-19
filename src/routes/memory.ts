@@ -77,7 +77,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		for (const collection of Object.values(cheshireCat.currentMemory.collections)) {
 			recalled[collection.name] = []
 			let userFilter: Record<string, FilterMatch> | undefined
-			if (collection.name === 'episodic') { userFilter = { source: { any: [userId] } } }
+			if (collection.name === 'episodic') userFilter = { source: { any: [userId] } }
 			try {
 				const docs = await collection.recallMemoriesFromEmbedding(queryEmbedding, userFilter, k)
 				recalled[collection.name] = docs
@@ -157,7 +157,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 	} }, async (_req, rep) => {
 		try {
 			const collections = Object.keys(cheshireCat.currentMemory.collections)
-			for (const collection of collections) { await cheshireCat.currentMemory.db.deleteCollection(collection) }
+			for (const collection of collections) await cheshireCat.currentMemory.db.deleteCollection(collection)
 
 			await cheshireCat.loadMemory()
 			await madHatter.findPlugins()
@@ -187,7 +187,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		const id = req.params.collectionId
 		try {
 			const collections = Object.keys(cheshireCat.currentMemory.collections)
-			if (!collections.includes(id)) { return rep.notFound('Collection not found.') }
+			if (!collections.includes(id)) return rep.notFound('Collection not found.')
 			await cheshireCat.currentMemory.db.deleteCollection(id)
 			await cheshireCat.loadMemory()
 			await madHatter.findPlugins()
@@ -249,7 +249,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		const limit = req.query.k
 		try {
 			const collections = Object.keys(cheshireCat.currentMemory.collections)
-			if (!collections.includes(id)) { return rep.notFound('Collection not found.') }
+			if (!collections.includes(id)) return rep.notFound('Collection not found.')
 			const points = await cheshireCat.currentMemory.collections[id]!.getAllPoints(limit, req.body)
 			return {
 				documents: points.map(p => ({ ...p.payload, id: p.id })),
@@ -292,7 +292,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		const metadata = req.body.metadata
 		try {
 			const collections = Object.keys(cheshireCat.currentMemory.collections)
-			if (!collections.includes(id)) { return rep.notFound('Collection not found.') }
+			if (!collections.includes(id)) return rep.notFound('Collection not found.')
 			await cheshireCat.currentMemory.collections[id]?.deletePointsByMetadata(metadata)
 			return rep.code(204)
 		}
@@ -324,9 +324,9 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		const { collectionId, pointId } = req.params
 		try {
 			const collections = Object.keys(cheshireCat.currentMemory.collections)
-			if (!collections.includes(collectionId)) { return rep.notFound('Collection not found.') }
+			if (!collections.includes(collectionId)) return rep.notFound('Collection not found.')
 			const points = await cheshireCat.currentMemory.db.retrieve(collectionId, { ids: [pointId] })
-			if (points.length === 0) { return rep.notFound('Point not found.') }
+			if (points.length === 0) return rep.notFound('Point not found.')
 			await cheshireCat.currentMemory.collections[collectionId]?.deletePoints([pointId])
 			return rep.code(204)
 		}

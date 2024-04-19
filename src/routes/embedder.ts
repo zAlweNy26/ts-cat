@@ -48,7 +48,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const id = req.params.embedderId
 		const emb = getEmbedder(id)
-		if (!emb) { return rep.notFound('The passed Embedder ID doesn\'t exist in the list of available Embedders.') }
+		if (!emb) return rep.notFound('The passed Embedder ID doesn\'t exist in the list of available Embedders.')
 		const value = getEmbedderSettings(id) ?? {}
 		return {
 			...emb,
@@ -75,9 +75,9 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const id = req.params.embedderId
 		const emb = getEmbedder(id)
-		if (!emb) { return rep.notFound('The passed Embedder ID doesn\'t exist in the list of available Embedders.') }
+		if (!emb) return rep.notFound('The passed Embedder ID doesn\'t exist in the list of available Embedders.')
 		const parsed = emb.config.passthrough().safeParse(req.body)
-		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join()) }
+		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
 		cheshireCat.loadLanguageModel()
 		cheshireCat.loadLanguageEmbedder()
 		try {
@@ -91,7 +91,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 		updateDb((db) => {
 			db.selectedEmbedder = id
 			const embIndex = db.embedders.findIndex(l => l.name === id)
-			if (embIndex === -1) { db.embedders.push({ name: id, value: parsed.data }) }
+			if (embIndex === -1) db.embedders.push({ name: id, value: parsed.data })
 			else db.embedders[embIndex]!.value = parsed.data
 		})
 		return {

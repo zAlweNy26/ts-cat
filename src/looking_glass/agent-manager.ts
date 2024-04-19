@@ -53,7 +53,7 @@ export class AgentManager {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p)) {
 					allowedTools.push(p.assignCat(stray))
-					if (p.returnDirect) { returnDirectTools.push(p.name) }
+					if (p.returnDirect) returnDirectTools.push(p.name)
 				}
 				allowedProcedures[p.name] = p
 			}
@@ -89,7 +89,7 @@ export class AgentManager {
 		const intermediateSteps: IntermediateStep[] = []
 		for (const step of (result.intermediateSteps ?? []) as AgentStep[]) {
 			const { action, observation } = step
-			if (returnDirectTools.includes(action.tool)) { result.returnDirect = true }
+			if (returnDirectTools.includes(action.tool)) result.returnDirect = true
 			intermediateSteps.push({ tool: action.tool, toolInput: action.toolInput, observation })
 		}
 		result.intermediateSteps = intermediateSteps
@@ -112,7 +112,7 @@ export class AgentManager {
 				form.reset()
 				stray.activeForm = undefined
 			}
-			else { return await form.next() }
+			else return await form.next()
 		}
 		else {
 			log.warn('No active form found')
@@ -138,7 +138,7 @@ export class AgentManager {
 	async executeTool(input: AgentInput, stray: StrayCat): Promise<ChainValues | undefined> {
 		const trigger = madHatter.executeHook('instantToolTrigger', '@{name}', stray)
 
-		if (!trigger) { return undefined }
+		if (!trigger) return undefined
 
 		const calledTool = madHatter.tools.filter(t => t.active)
 			.find(({ name }) => input.input.startsWith(interpolateFString(trigger, { name })))
@@ -167,18 +167,18 @@ export class AgentManager {
 
 		const instantTool = await this.executeTool(agentInput, stray)
 
-		if (instantTool) { return instantTool }
+		if (instantTool) return instantTool
 
 		const fastReply = madHatter.executeHook('agentFastReply', undefined, stray)
 
-		if (fastReply) { return fastReply }
+		if (fastReply) return fastReply
 
 		const promptPrefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const promptSuffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
 		const formResult = await this.executeFormAgent(stray)
 
-		if (formResult) { return formResult }
+		if (formResult) return formResult
 
 		const intermediateSteps: IntermediateStep[] = []
 		const proceduralMemories = stray.workingMemory.procedural
@@ -188,8 +188,8 @@ export class AgentManager {
 			try {
 				const proceduresResult = await this.executeProceduresChain(agentInput, stray)
 				const afterProcedures = madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
-				if (afterProcedures.returnDirect) { return afterProcedures }
-				if (afterProcedures.output) { agentInput.tools_output = `## Tools output: \n${afterProcedures.output}` }
+				if (afterProcedures.returnDirect) return afterProcedures
+				if (afterProcedures.output) agentInput.tools_output = `## Tools output: \n${afterProcedures.output}`
 				intermediateSteps.push(...(afterProcedures.intermediateSteps ?? []))
 			}
 			catch (error) {
@@ -198,7 +198,7 @@ export class AgentManager {
 			}
 		}
 
-		if (agentInput.tools_output === undefined) { agentInput.tools_output = '' }
+		if (agentInput.tools_output === undefined) agentInput.tools_output = ''
 
 		const result = await this.executeMemoryChain(agentInput, promptPrefix, promptSuffix, stray)
 		result.intermediateSteps = intermediateSteps
@@ -209,7 +209,7 @@ export class AgentManager {
 
 	getEpisodicMemoriesPrompt(docs: MemoryDocument[]) {
 		let memoryTexts = docs.map(d => d.pageContent.replace(/\n/gm, '. '))
-		if (memoryTexts.length === 0) { return '' }
+		if (memoryTexts.length === 0) return ''
 		const memoryTimestamps = docs.map((d) => {
 			const timestamp = d.metadata?.when as number
 			return ` (${formatDistanceToNow(timestamp, { addSuffix: true, includeSeconds: true })})`
@@ -220,7 +220,7 @@ export class AgentManager {
 
 	getDeclarativeMemoriesPrompt(docs: MemoryDocument[]) {
 		let memoryTexts = docs.map(d => d.pageContent.replace(/\n/gm, '. '))
-		if (memoryTexts.length === 0) { return '' }
+		if (memoryTexts.length === 0) return ''
 		const memorySources = docs.map(d => ` (extracted from ${d.metadata?.source})`)
 		memoryTexts = memoryTexts.map((text, i) => text + memorySources[i])
 		return `## Context of documents containing relevant information: ${memoryTexts.join('\n - ')}`

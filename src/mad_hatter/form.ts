@@ -134,7 +134,7 @@ export class Form<
 		this.startExamples = startExamples
 		this.stopExamples = stopExamples
 		this.submit = onSubmit
-		if (onAction) { this.message = onAction }
+		if (onAction) this.message = onAction
 	}
 
 	get state() {
@@ -154,7 +154,7 @@ export class Form<
 	}
 
 	async next(): Promise<AgentFastReply> {
-		if (await this.checkExitIntent()) { this._state = FormState.CLOSED }
+		if (await this.checkExitIntent()) this._state = FormState.CLOSED
 
 		if (this.state === FormState.WAIT_CONFIRM) {
 			const confirm = await this.askUserConfirm()
@@ -162,13 +162,13 @@ export class Form<
 				this._state = FormState.CLOSED
 				return await this.submit(this.model, this.cat)
 			}
-			else { this._state = FormState.INCOMPLETE }
+			else this._state = FormState.INCOMPLETE
 		}
 
-		if (this.state === FormState.INCOMPLETE) { this.model = await this.update() }
+		if (this.state === FormState.INCOMPLETE) this.model = await this.update()
 
 		if (this.state === FormState.COMPLETE) {
-			if (this.askConfirm) { this._state = FormState.WAIT_CONFIRM }
+			if (this.askConfirm) this._state = FormState.WAIT_CONFIRM
 			else {
 				this._state = FormState.CLOSED
 				return await this.submit(this.model, this.cat)
@@ -187,15 +187,15 @@ export class Form<
 	private async message(current: FormActionOptions<S>): Promise<AgentFastReply> {
 		const { invalidFields, missingFields, model, state, cat } = current
 
-		if (state === FormState.CLOSED) { return await this.submit(model, cat) }
+		if (state === FormState.CLOSED) return await this.submit(model, cat)
 
 		let infoOutput = `Info until now:\n${JSON.stringify(model, null, 4)}`
 
-		if (missingFields.length > 0) { infoOutput += `\nMissing fields: \n - ${missingFields.join('\n - ')}` }
+		if (missingFields.length > 0) infoOutput += `\nMissing fields: \n - ${missingFields.join('\n - ')}`
 
-		if (invalidFields.length > 0) { infoOutput += `\nInvalid fields: \n - ${invalidFields.join('\n - ')}` }
+		if (invalidFields.length > 0) infoOutput += `\nInvalid fields: \n - ${invalidFields.join('\n - ')}`
 
-		if (state === FormState.WAIT_CONFIRM) { infoOutput += '\n --> Confirm? Yes or no?' }
+		if (state === FormState.WAIT_CONFIRM) infoOutput += '\n --> Confirm? Yes or no?'
 
 		return { output: infoOutput }
 	}
@@ -333,16 +333,16 @@ JSON:
 			this._state = FormState.INCOMPLETE
 			this.invalidFields = result.error.errors.map(e => e.message)
 			this.missingFields = result.error.errors.map(e => e.path.join('.'))
-			for (const key of this.missingFields) { _Unset(model, key) }
+			for (const key of this.missingFields) _Unset(model, key)
 			return model
 		}
 	}
 
 	private sanitize(model: S) {
 		const nullFields = [null, undefined, '', 'null', 'undefined', 'NaN', 'lower-case', 'missing', 'unknown']
-		for (const key in this.model) {
-			if (nullFields.includes(this.model[key])) { _Unset(model, key) }
-		}
+		for (const key in this.model)
+			if (nullFields.includes(this.model[key])) _Unset(model, key)
+
 		return model
 	}
 }

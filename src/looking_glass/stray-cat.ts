@@ -75,7 +75,7 @@ export class StrayCat {
 
 	constructor(public userId: string, ws?: WebSocket) {
 		this._ws = ws
-		if (this._ws) { this._ws.on('message', this.onMessage) }
+		if (this._ws) this._ws.on('message', this.onMessage)
 	}
 
 	private async onMessage(message: RawData) {
@@ -85,7 +85,7 @@ export class StrayCat {
 			msg = { text: message.toString() }
 		}
 		const res = await this.run(msg)
-		if (res) { this.send({ type: 'chat', ...res }) }
+		if (res) this.send({ type: 'chat', ...res })
 	}
 
 	get lastUserMessage() {
@@ -116,12 +116,12 @@ export class StrayCat {
 	getPluginInfo() {
 		const paths = callsites().map(site => site.getFileName())
 		const folder = paths.find(path => path?.includes('src/plugins/'))
-		if (!folder) { return undefined }
+		if (!folder) return undefined
 		const match = folder.match(/src\/plugins\/(.+?)\/tmp/)
-		if (!match || !match[1]) { return undefined }
+		if (!match || !match[1]) return undefined
 		const id = match[1]
 		const plugin = madHatter.getPlugin(id)
-		if (!plugin) { return undefined }
+		if (!plugin) return undefined
 		const { active, manifest, settings } = plugin
 		return {
 			active,
@@ -140,7 +140,7 @@ export class StrayCat {
 			log.info(`User ${this.userId} is now connected to the WebSocket.`)
 			while (this.wsQueue.length) {
 				const message = this.wsQueue.shift()
-				if (message) { this.send(message) }
+				if (message) this.send(message)
 			}
 		})
 		this._ws?.on('message', this.onMessage)
@@ -211,7 +211,7 @@ export class StrayCat {
 		}) as Document<Record<string, any>>
 		doc = madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
 		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
-		if (docEmbedding.length === 0) { throw new Error('Could not embed the document.') }
+		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
 		await cheshireCat.currentMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
 
 		let finalOutput: MemoryMessage = {
@@ -258,7 +258,7 @@ export class StrayCat {
 	 * @param query The query string to search for relevant memories.
 	 */
 	async recallRelevantMemories(query?: string) {
-		if (!query) { query = this.userMessage.text }
+		if (!query) query = this.userMessage.text
 
 		query = madHatter.executeHook('recallQuery', query, this)
 		log.info(`Recall query: ${query}`)
@@ -307,7 +307,7 @@ export class StrayCat {
 	 */
 	llm(prompt: string, stream = false): Promise<string> {
 		const callbacks: BaseCallbackHandler[] = []
-		if (stream) { callbacks.push(new NewTokenHandler(this)) }
+		if (stream) callbacks.push(new NewTokenHandler(this))
 		return this.currentLLM.invoke(prompt, { callbacks })
 	}
 }

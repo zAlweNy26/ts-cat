@@ -95,8 +95,8 @@ export class CheshireCat {
 		const selected = getDb().selectedLLM, settings = getLLMSettings()
 		try {
 			const llm = getLLM(selected)
-			if (!llm) { throw new Error('LLM not found') }
-			if (!settings) { throw new Error('LLM settings not found') }
+			if (!llm) throw new Error('LLM not found')
+			if (!settings) throw new Error('LLM settings not found')
 			return llm.getModel(settings)
 		}
 		catch (error) {
@@ -112,10 +112,10 @@ export class CheshireCat {
 	loadLanguageEmbedder() {
 		const selected = getDb().selectedEmbedder, embSettings = getEmbedderSettings(), llmSettings = getLLMSettings()
 		try {
-			if (!llmSettings) { throw new Error('LLM settings not found') }
+			if (!llmSettings) throw new Error('LLM settings not found')
 			const embedder = getEmbedder(selected)
-			if (!embedder) { throw new Error('Embedder not found') }
-			if (!embSettings && embedder.name !== 'FakeEmbedder') { throw new Error('Embedder settings not found') }
+			if (!embedder) throw new Error('Embedder not found')
+			if (!embSettings && embedder.name !== 'FakeEmbedder') throw new Error('Embedder settings not found')
 			return embedder.getModel(embSettings ?? {})
 		}
 		catch (error) {
