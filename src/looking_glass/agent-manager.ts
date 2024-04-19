@@ -61,7 +61,7 @@ export class AgentManager {
 
 		const prompt = new ToolPromptTemplate(allowedProcedures, {
 			template: madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray),
-			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'agent_scratchpad'],
+			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'agent_scratchpad', 'examples'],
 		})
 
 		const agentChain = new LLMChain({
@@ -73,7 +73,7 @@ export class AgentManager {
 		const agent = new LLMSingleActionAgent({
 			llmChain: agentChain,
 			outputParser: new ProceduresOutputParser(),
-			stop: ['\nObservation:'],
+			stop: ['}'],
 		})
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
