@@ -1,3 +1,4 @@
+import { Piscina } from 'piscina'
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyPluginCallback } from 'fastify'
 import { log } from '@logger'
@@ -7,6 +8,10 @@ import { zodBoolean } from '@utils'
 import { SwaggerTags, errorSchema, fileSchema } from '@/context.ts'
 
 export const fileIngestion: FastifyPluginCallback = async (fastify) => {
+	const worker = new Piscina({
+		filename: new URL('../worker.ts', import.meta.url).href,
+	})
+
 	fastify.get('/allowed-mimetypes', { schema: {
 		description: 'Retrieve the allowed mimetypes that can be ingested by the Rabbit Hole.',
 		tags: [SwaggerTags['Rabbit Hole']],
@@ -45,7 +50,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		const chunk = req.body, { sync, source } = req.query
 		try {
 			if (sync) await rabbitHole.ingestContent(req.stray, chunk, source)
-			else rabbitHole.ingestContent(req.stray, chunk).catch(log.error)
+			else await worker.run({ content: chunk, kind: 'text', stray: req.stray, source })
 		}
 		catch (error) {
 			log.error('Error while ingesting chunk:', error)
@@ -85,7 +90,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
 			if (sync) await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap)
-			else rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap).catch(log.error)
+			else await worker.run({ content: uploadFile, kind: 'file', stray: req.stray, chunkSize, chunkOverlap })
 		}
 		catch (error) {
 			log.error('Error while ingesting file:', error)
@@ -121,7 +126,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		const webUrl = req.body, { sync, chunkOverlap, chunkSize } = req.query
 		try {
 			if (sync) await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap)
-			else rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
+			else await worker.run({ content: webUrl, kind: 'url', stray: req.stray, chunkSize, chunkOverlap })
 		}
 		catch (error) {
 			log.error('Error while ingesting web url:', error)
@@ -157,7 +162,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
 			if (sync) await rabbitHole.ingestMemory(uploadFile)
-			else rabbitHole.ingestMemory(uploadFile).catch(log.error)
+			else await worker.run({ content: uploadFile, kind: 'memory', stray: req.stray })
 		}
 		catch (error) {
 			log.error('Error while ingesting memory file:', error)
