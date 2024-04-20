@@ -3,21 +3,51 @@ import { join } from 'node:path'
 import { readFileSync, readdirSync } from 'node:fs'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
+import { extendZodWithOpenApi } from 'zod-openapi'
+
+extendZodWithOpenApi(z)
 
 export const LogLevel = ['error', 'warning', 'normal', 'info', 'debug'] as const
+
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
+
+type Literal = z.infer<typeof literalSchema>
+
+type Json = Literal | { [key: string]: Json } | Json[]
+
+type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
+
+/**
+ * A Zod schema for JSON objects.
+ */
+export const zodJson: z.ZodType<Json> = z.lazy(() =>
+	z.union([literalSchema, z.array(zodJson), z.record(zodJson)]),
+)
+
+/**
+ * A Zod schema for primitive values.
+ */
+export const zodPrimitive: z.ZodType<Primitive> = z.lazy(() =>
+	z.union([z.string(), z.number(), z.boolean(), z.bigint(), z.symbol(), z.record(zodPrimitive)]),
+)
+
+/**
+ * A Zod schema for fixing coercion of boolean value.
+ */
+export const zodBoolean = z.string().transform(v => v === 'true').default('false').openapi({ type: 'boolean' })
 
 const envSchema = z.object({
 	CORE_HOST: z.string().default('localhost'),
 	CORE_PORT: z.coerce.number().default(1865),
-	CORE_USE_SECURE_PROTOCOLS: z.coerce.boolean().default(false),
+	CORE_USE_SECURE_PROTOCOLS: zodBoolean,
 	QDRANT_HOST: z.string().default('localhost'),
 	QDRANT_PORT: z.coerce.number().default(6333),
 	QDRANT_API_KEY: z.string().optional(),
 	API_KEY: z.string().optional(),
 	CORS_ALLOWED_ORIGINS: z.string().transform(v => v.split(',')).default('*'),
 	LOG_LEVEL: z.preprocess(v => String(v).toLowerCase(), z.enum(LogLevel).default('normal')).default(LogLevel[2]),
-	SAVE_MEMORY_SNAPSHOTS: z.coerce.boolean().default(false),
-	WATCH: z.coerce.boolean().default(false),
+	SAVE_MEMORY_SNAPSHOTS: zodBoolean,
+	WATCH: zodBoolean,
 }).transform(s => ({
 	host: s.CORE_HOST,
 	port: s.CORE_PORT,
@@ -112,28 +142,6 @@ export async function compareStrings(input: string, prediction: string, criteria
  * @param ms The number of milliseconds to wait.
  */
 export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
-
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
-
-type Literal = z.infer<typeof literalSchema>
-
-type Json = Literal | { [key: string]: Json } | Json[]
-
-type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
-
-/**
- * A Zod schema for JSON objects.
- */
-export const zodJson: z.ZodType<Json> = z.lazy(() =>
-	z.union([literalSchema, z.array(zodJson), z.record(zodJson)]),
-)
-
-/**
- * A Zod schema for primitive values.
- */
-export const zodPrimitive: z.ZodType<Primitive> = z.lazy(() =>
-	z.union([z.string(), z.number(), z.boolean(), z.bigint(), z.symbol(), z.record(zodPrimitive)]),
-)
 
 export interface Message {
 	text: string

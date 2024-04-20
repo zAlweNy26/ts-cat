@@ -8,6 +8,7 @@ import type { MultipartFile } from '@fastify/multipart'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
+import { zodBoolean } from '@utils'
 import { SwaggerTags, customSetting, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
 
 export const plugins: FastifyPluginCallback = async (fastify) => {
@@ -89,7 +90,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			file: fileSchema,
 		}),
 		querystring: z.object({
-			async: z.coerce.boolean().default(false),
+			async: zodBoolean,
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
@@ -150,7 +151,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			url: z.string().url(),
 		}),
 		querystring: z.object({
-			async: z.coerce.boolean().default(false),
+			async: zodBoolean,
 		}),
 		response: {
 			200: z.object({ info: z.string() }),

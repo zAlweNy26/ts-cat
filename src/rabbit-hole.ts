@@ -174,7 +174,7 @@ export class RabbitHole {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
 			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href))
-			if (!webHandler) throw new Error(`No matching regex found for "${path}". Skipping ingestion...`)
+			if (!webHandler) throw new Error(`No matching regex found for "${path}". Skipping URL ingestion...`)
 			const loader = new webHandler[1](url.href)
 			stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 			const content = (await loader.load()).map(d => d.pageContent)
@@ -183,7 +183,8 @@ export class RabbitHole {
 			await this.storeDocuments(stray, docs, url.href)
 		}
 		catch (error) {
-			log.info('The string is not a valid URL, trying with a file-system path...')
+			if (error instanceof TypeError) log.info('The string is not a valid URL, trying with a file-system path...')
+			else if (error instanceof Error) log.error(error.message)
 			if (!existsSync(path)) throw new Error('The path does not exist. Skipping ingestion...')
 			const data = readFileSync(resolve(path))
 			const file = new File([data], basename(path), { type: extname(path) })

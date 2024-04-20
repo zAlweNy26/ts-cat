@@ -1,9 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { z } from 'zod'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { extendZodWithOpenApi } from 'zod-openapi'
-
-extendZodWithOpenApi(z)
 
 export enum SwaggerTags {
 	'Status' = 'Status',
@@ -14,6 +11,25 @@ export enum SwaggerTags {
 	'Rabbit Hole' = 'RabbitHole',
 	'Memory' = 'Memory',
 }
+
+export const errorSchema = z.intersection(z.object({
+	status: z.number().optional(),
+	statusCode: z.number(),
+	expose: z.boolean(),
+	code: z.string().optional(),
+	error: z.string(),
+	message: z.string(),
+	headers: z.record(z.string()).optional(),
+}), z.record(z.any())).openapi({
+	ref: 'HttpError',
+	description: 'HTTP error response',
+	example: {
+		statusCode: 400,
+		error: 'Bad Request',
+		message: 'Error message',
+		expose: false,
+	},
+})
 
 export const fileSchema = z.string().refine(s => Buffer.isBuffer(Buffer.from(s))).openapi({ format: 'binary' })
 

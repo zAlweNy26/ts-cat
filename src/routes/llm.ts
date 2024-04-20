@@ -2,7 +2,7 @@ import type { FastifyPluginCallback } from 'fastify'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
-import type { Message } from '@utils'
+import { type Message, zodBoolean } from '@utils'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
@@ -114,7 +114,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			text: z.string().default('Hello world'),
 		}).passthrough(),
 		querystring: z.object({
-			save: z.coerce.boolean().default(true),
+			save: zodBoolean,
 		}),
 		response: {
 			200: z.record(z.any()),
