@@ -63,9 +63,9 @@ CatHook.add('beforeStoreDocuments', docs => docs)
 
 CatHook.add('beforeInsertInMemory', doc => doc)
 
-CatHook.add('beforeSplitTexts', texts => texts)
+CatHook.add('beforeSplitDocs', docs => docs)
 
-CatHook.add('afterSplitTexts', docs => docs)
+CatHook.add('afterSplitDocs', docs => docs)
 
 // Plugin hooks
 

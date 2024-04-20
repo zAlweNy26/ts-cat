@@ -5,6 +5,8 @@ const defaultDbKeys = z.object({
 	instantTool: z.boolean(),
 	selectedLLM: z.string(),
 	selectedEmbedder: z.string(),
+	chunkSize: z.number(),
+	chunkOverlap: z.number(),
 	llms: z.array(z.object({
 		name: z.string(),
 		value: z.record(z.any()),
@@ -33,6 +35,8 @@ export class Database {
 			instantTool: true,
 			selectedLLM: 'DefaultLLM',
 			selectedEmbedder: 'FakeEmbedder',
+			chunkSize: 256,
+			chunkOverlap: 64,
 			llms: [
 				{ name: 'DefaultLLM', value: {} },
 			],

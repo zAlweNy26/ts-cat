@@ -39,8 +39,8 @@ export interface HookTypes {
 	textSplitter: (splitter: TextSplitter) => TextSplitter
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => Document
-	beforeSplitTexts: (texts: string[], stray: StrayCat) => string[]
-	afterSplitTexts: (docs: Document[], stray: StrayCat) => Document[]
+	beforeSplitDocs: (texts: Document[], stray: StrayCat) => Document[]
+	afterSplitDocs: (docs: Document[], stray: StrayCat) => Document[]
 }
 
 interface HookOptions {
