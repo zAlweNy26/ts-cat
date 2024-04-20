@@ -26,6 +26,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		Body: string
 		Querystring: {
 			sync: boolean
+			source: string
 		}
 	}>('/chunk', { schema: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -34,15 +35,16 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		body: z.string().min(10),
 		querystring: z.object({
 			sync: zodBoolean,
+			source: z.string().default('unknown'),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const chunk = req.body, { sync } = req.query
+		const chunk = req.body, { sync, source } = req.query
 		try {
-			if (sync) await rabbitHole.ingestContent(req.stray, chunk)
+			if (sync) await rabbitHole.ingestContent(req.stray, chunk, source)
 			else rabbitHole.ingestContent(req.stray, chunk).catch(log.error)
 		}
 		catch (error) {

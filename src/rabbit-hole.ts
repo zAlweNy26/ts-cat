@@ -130,11 +130,12 @@ export class RabbitHole {
 	 * Ingests textual content into the memory.
 	 * @param stray The StrayCat instance.
 	 * @param content The textual content to ingest.
+	 * @param source The source of the content (default: 'unknown').
 	 */
-	async ingestContent(stray: StrayCat, content: string | string[]) {
+	async ingestContent(stray: StrayCat, content: string | string[], source = 'unknown') {
 		log.info('Ingesting textual content...')
 		const docs = await this.splitTexts(stray, Array.isArray(content) ? content : [content], content.length, 0)
-		await this.storeDocuments(stray, docs, 'textual content')
+		await this.storeDocuments(stray, docs, source)
 	}
 
 	/**
