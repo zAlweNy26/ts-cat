@@ -11,7 +11,7 @@ nodemon({
 	ext: 'ts,json',
 	watch: ['src/**', '.env'],
 	exec: 'tsx --no-warnings=ExperimentalWarning --enable-source-maps --trace-warnings',
-	script: 'src/main.ts',
+	script: 'src/server.ts',
 	ignore: watch ? ['**/settings.json', '**/tmp_*.ts', 'src/plugins/**', 'src/assets/**'] : ['**/**'],
 	env: {
 		NODE_ENV: watch ? 'development' : 'production',

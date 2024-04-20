@@ -10,7 +10,6 @@ import sensible from '@fastify/sensible'
 import cors from '@fastify/cors'
 import statics from '@fastify/static'
 import underPressure from '@fastify/under-pressure'
-import { checkPort } from 'get-port-please'
 import requestLogger from '@mgcrea/fastify-request-logger'
 import {
 	fastifyZodOpenApiPlugin,
@@ -23,10 +22,9 @@ import type { StrayCat } from '@lg/stray-cat.ts'
 import { type CheshireCat, cheshireCat } from '@lg/cheshire-cat.ts'
 import qs from 'qs'
 import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
-import isDocker from 'is-docker'
 import pkg from '../package.json' assert { type: 'json' }
 import { type Database, db } from './database.ts'
-import { catPaths, logWelcome, parsedEnv } from './utils.ts'
+import { catPaths, parsedEnv } from './utils.ts'
 import { SwaggerTags } from './context.ts'
 
 declare module 'fastify' {
@@ -186,22 +184,5 @@ fastify.addHook('preParsing', async (req, rep) => {
 	if (!stray) req.stray = cheshireCat.addStray(userId)
 	else req.stray = stray
 })
-
-const inDocker = isDocker()
-
-try {
-	const port = inDocker ? 80 : parsedEnv.port
-	const host = inDocker ? '0.0.0.0' : parsedEnv.host
-	await checkPort(port, host)
-	await fastify.listen({ host, port })
-	await fastify.ready()
-	fastify.swagger()
-	logWelcome()
-}
-catch (err) {
-	fastify.log.error(err)
-	await fastify.close()
-	process.exit(1)
-}
 
 export default fastify

@@ -6,6 +6,9 @@ export default defineConfig({
 	test: {
 		name: 'src',
 		environment: 'node',
-		setupFiles: ['./test/env-mock.ts'],
+		setupFiles: [
+			'./test/class-mocks.ts',
+			'./test/env-mock.ts',
+		],
 	},
 })
