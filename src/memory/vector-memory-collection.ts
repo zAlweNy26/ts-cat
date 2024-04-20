@@ -28,21 +28,21 @@ export class VectorMemoryCollection {
 	 * @param name The name of the collection.
 	 * @param embedderName The name of the embedder.
 	 * @param embedderSize The size of the embedder.
-	 * @returns The created VectorMemoryCollection.
+	 * @returns The created {@link VectorMemoryCollection}.
 	 */
 	static async create(name: string, embedderName: string, embedderSize: number) {
 		const collection = new VectorMemoryCollection(name, embedderName, embedderSize)
 		try {
 			const collections = (await vectorDb.getCollections()).collections
 			const hasCollection = collections.some(c => c.name === name)
-			if (hasCollection) { log.debug(`Collection ${name} already exists. Skipping creation...`) }
+			if (hasCollection) log.debug(`Collection ${name} already exists. Skipping creation...`)
 			else await collection.createCollection()
 			const collectionVectors = (await vectorDb.getCollection(name)).config.params.vectors
 			const collectionSize = typeof collectionVectors?.size === 'number' ? collectionVectors.size : collectionVectors?.size?.size
 			if (collectionSize !== collection.embedderSize) {
 				log.debug(`Collection ${name} has the wrong size. Updating...`)
 				const { saveMemorySnapshots } = parsedEnv
-				if (saveMemorySnapshots) { await collection.saveDump() }
+				if (saveMemorySnapshots) await collection.saveDump()
 				await vectorDb.deleteCollection(name)
 				log.warn(`Collection ${name} deleted. Recreating...`)
 				await collection.createCollection()
@@ -57,7 +57,6 @@ export class VectorMemoryCollection {
 
 	/**
 	 * Creates a new collection with the specified configuration.
-	 * @returns A promise that resolves when the collection is created.
 	 */
 	async createCollection() {
 		log.info(`Creating "${this.name}" collection...`)
@@ -90,6 +89,10 @@ export class VectorMemoryCollection {
 		})
 	}
 
+	/**
+	 * Saves the collection dump to a specified folder.
+	 * @param folder The folder path where the dump will be saved. Defaults to 'dormouse/'.
+	 */
 	async saveDump(folder = 'dormouse/') {
 		const { qdrantHost, qdrantPort, qdrantApiKey } = parsedEnv
 		if (!qdrantApiKey) {
@@ -98,7 +101,7 @@ export class VectorMemoryCollection {
 		}
 		log.warn(`Saving "${this.name}" collection dump...`)
 		const stats = lstatSync(folder)
-		if (stats.isDirectory()) { log.info('Directory dormouse exists') }
+		if (stats.isDirectory()) log.info('Directory dormouse exists')
 		else {
 			log.warn('Creating dormouse directory...')
 			mkdirSync(folder)
@@ -121,8 +124,13 @@ export class VectorMemoryCollection {
 		log.info(`Dump ${newName} saved successfully`)
 	}
 
+	/**
+	 * Filters the dictionary based on the provided filter object.
+	 * @param filter The filter object containing key-value pairs to match against.
+	 * @returns The constructed filter object or undefined if the filter is empty.
+	 */
 	private filterFromDict(filter: Record<string, FilterMatch>): Filter | undefined {
-		if (Object.keys(filter).length === 0) { return undefined }
+		if (Object.keys(filter).length === 0) return undefined
 		return {
 			must: Object.entries(filter).reduce((acc, [key, match]) =>
 				acc.concat({ key, match }), [] as FilterCondition[]),
@@ -138,7 +146,7 @@ export class VectorMemoryCollection {
 	 * @param args Optional arguments to pass.
 	 * @returns The id of the added point.
 	 */
-	addPoint(content: string, vector: number[], metadata?: Record<string, any>, id?: ReturnType<typeof randomUUID>, ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
+	addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = randomUUID(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
 		return vectorDb.upsert(this.name, {
 			points: [{
 				id: id ?? randomUUID(),
@@ -152,29 +160,30 @@ export class VectorMemoryCollection {
 		})
 	}
 
+	/**
+	 * Adds an array of points to the vector memory collection.
+	 * @param points An array of {@link PointData} representing the points to be added.
+	 * @returns The result of the upsert operation.
+	 */
 	addPoints(points: PointData[]) {
-		return vectorDb.upsert(this.name, {
-			points,
-		})
+		return vectorDb.upsert(this.name, { points })
 	}
 
 	/**
 	 * Delete points by their metadata.
-	 * @param metadata the metadata of the points to delete.
-	 * @returns the result of the deletion.
+	 * @param metadata The metadata of the points to delete.
+	 * @returns The result of the deletion.
 	 */
 	deletePointsByMetadata(metadata: Record<string, FilterMatch>) {
 		const filter = this.filterFromDict(metadata)
-		if (!filter) { return undefined }
-		return vectorDb.delete(this.name, {
-			filter,
-		})
+		if (!filter) return undefined
+		return vectorDb.delete(this.name, { filter })
 	}
 
 	/**
-	 * Delete points by their ids.
-	 * @param ids the ids of the points to delete.
-	 * @returns the result of the deletion.
+	 * Delete points by their IDs.
+	 * @param ids The IDs of the points to delete.
+	 * @returns The result of the deletion.
 	 */
 	deletePoints(ids: string[]) {
 		return vectorDb.delete(this.name, {
@@ -182,7 +191,15 @@ export class VectorMemoryCollection {
 		})
 	}
 
-	async recallMemoriesFromEmbedding(embedding: EmbeddedVector, filter?: Record<string, FilterMatch>, k = 5, threshold?: number) {
+	/**
+	 * Retrieves memories from the vector database based on an embedded vector.
+	 * @param embedding The embedding vector to search for.
+	 * @param filter Optional filter to apply to the search.
+	 * @param k The maximum number of memories to retrieve (default: 10).
+	 * @param threshold The score threshold for retrieved memories.
+	 * @returns An array of {@link MemoryDocument} representing the retrieved memories.
+	 */
+	async recallMemoriesFromEmbedding(embedding: EmbeddedVector, filter?: Record<string, FilterMatch>, k = 10, threshold?: number) {
 		const memories = await vectorDb.search(this.name, {
 			vector: embedding,
 			filter: filter ? this.filterFromDict(filter) : undefined,
@@ -213,6 +230,12 @@ export class VectorMemoryCollection {
 		return documents
 	}
 
+	/**
+	 * Retrieves all points from the vector memory collection.
+	 * @param limit The maximum number of points to retrieve (default: 10000).
+	 * @param filter An optional filter to apply to the points.
+	 * @returns An array of {@link PointData}.
+	 */
 	async getAllPoints(limit = 10000, filter?: Record<string, FilterMatch>) {
 		const list = await vectorDb.scroll(this.name, {
 			filter: filter ? this.filterFromDict(filter) : undefined,
@@ -220,6 +243,7 @@ export class VectorMemoryCollection {
 			with_payload: true,
 			limit,
 		})
+
 		return list.points as PointData[]
 	}
 }

@@ -9,7 +9,7 @@ import { ChatMistralAI } from '@langchain/mistralai'
 import type { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { zodJson } from '@utils'
 import { madHatter } from '@mh'
-import { updateDb } from '@db'
+import { db } from '@db'
 import { CustomLLM, CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
 
 export interface LLMSettings<T extends z.AnyZodObject = z.AnyZodObject> {
@@ -312,7 +312,7 @@ export function getAllowedLLMs() {
 		anthropicLLMConfig,
 	]
 	const models = madHatter.executeHook('allowedLLMs', allowedLLMsModels)
-	updateDb((db) => {
+	db.update((db) => {
 		db.llms = models.map(m => ({
 			name: m.name,
 			value: db.llms.find(l => l.name === m.name)?.value || {},

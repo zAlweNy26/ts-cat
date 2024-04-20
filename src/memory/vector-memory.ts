@@ -30,21 +30,25 @@ export class VectorMemory {
 	private vectorDb: QdrantClient
 	collections!: VectorMemoryCollections
 
-	private constructor(private params: VectorMemoryConfig) {
+	private constructor() {
 		this.vectorDb = vectorDb
 	}
 
+	/**
+	 * Get the Vector Memory instance
+	 * @returns The Vector Memory class as a singleton
+	 */
 	static async getInstance(params: VectorMemoryConfig) {
 		if (!VectorMemory.instance) {
 			log.silent('Initializing the Vector Memory...')
-			VectorMemory.instance = new VectorMemory(params)
+			VectorMemory.instance = new VectorMemory()
 		}
-		await VectorMemory.instance.initCollections()
+		await VectorMemory.instance.initCollections(params)
 		return VectorMemory.instance
 	}
 
-	private async initCollections() {
-		const { embedderName, embedderSize } = this.params
+	private async initCollections(params: VectorMemoryConfig) {
+		const { embedderName, embedderSize } = params
 		this.collections = {
 			declarative: await VectorMemoryCollection.create('declarative', embedderName, embedderSize),
 			episodic: await VectorMemoryCollection.create('episodic', embedderName, embedderSize),
@@ -53,6 +57,9 @@ export class VectorMemory {
 		}
 	}
 
+	/**
+	 * Gets the vector database.
+	 */
 	get db() {
 		return this.vectorDb
 	}

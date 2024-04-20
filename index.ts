@@ -39,7 +39,7 @@ function deleteTempFiles(path: string, check: (str: string) => boolean) {
 	readdirSync(path).forEach((file) => {
 		const filePath = join(path, file)
 		const isDirectory = statSync(filePath).isDirectory()
-		if (isDirectory) { deleteTempFiles(filePath, check) }
-		else if (check(file)) { unlinkSync(filePath) }
+		if (isDirectory) deleteTempFiles(filePath, check)
+		else if (check(file)) unlinkSync(filePath)
 	})
 }

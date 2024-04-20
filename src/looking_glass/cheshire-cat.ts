@@ -4,7 +4,7 @@ import type { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { getEmbedder, getLLM } from '@factory'
 import { type Form, type Tool, isForm, isTool, madHatter } from '@mh'
 import { type PointData, type VectorMemory, getVectorMemory } from '@memory'
-import { getDb, getEmbedderSettings, getLLMSettings } from '@db'
+import { db } from '@db'
 import { log } from '@logger'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat } from './stray-cat.ts'
@@ -89,14 +89,14 @@ export class CheshireCat {
 
 	/**
 	 * Get the Large Language Model (LLM) settings at bootstrap time.
-	 * @returns the found LLM settings from db or the default LLM settings
+	 * @returns The found LLM settings from db or the default LLM settings
 	 */
 	loadLanguageModel() {
-		const selected = getDb().selectedLLM, settings = getLLMSettings()
+		const selected = db.data.selectedLLM, settings = db.getLLMSettings()
 		try {
 			const llm = getLLM(selected)
-			if (!llm) { throw new Error('LLM not found') }
-			if (!settings) { throw new Error('LLM settings not found') }
+			if (!llm) throw new Error('LLM not found')
+			if (!settings) throw new Error('LLM settings not found')
 			return llm.getModel(settings)
 		}
 		catch (error) {
@@ -107,15 +107,15 @@ export class CheshireCat {
 
 	/**
 	 * Get the Embedder settings at bootstrap time.
-	 * @returns the found Embedder settings from db or the default LLM settings
+	 * @returns The found Embedder settings from db or the default LLM settings
 	 */
 	loadLanguageEmbedder() {
-		const selected = getDb().selectedEmbedder, embSettings = getEmbedderSettings(), llmSettings = getLLMSettings()
+		const selected = db.data.selectedEmbedder, embSettings = db.getEmbedderSettings(), llmSettings = db.getLLMSettings()
 		try {
-			if (!llmSettings) { throw new Error('LLM settings not found') }
+			if (!llmSettings) throw new Error('LLM settings not found')
 			const embedder = getEmbedder(selected)
-			if (!embedder) { throw new Error('Embedder not found') }
-			if (!embSettings && embedder.name !== 'FakeEmbedder') { throw new Error('Embedder settings not found') }
+			if (!embedder) throw new Error('Embedder not found')
+			if (!embSettings && embedder.name !== 'FakeEmbedder') throw new Error('Embedder settings not found')
 			return embedder.getModel(embSettings ?? {})
 		}
 		catch (error) {
@@ -125,14 +125,17 @@ export class CheshireCat {
 	}
 
 	/**
-	 * Load long term memory and working memory.
+	 * Loads the long term memory from the database.
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
 		this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
-		if (this._embedderSize === 0) { throw log.error('Embedder size is 0') }
+		if (this._embedderSize === 0) {
+			log.error('Embedder size is 0')
+			throw new Error('Embedder size is 0. Unable to proceed.')
+		}
 		const vectorMemoryConfig = {
-			embedderName: getDb().selectedEmbedder,
+			embedderName: db.data.selectedEmbedder,
 			embedderSize: this.embedderSize,
 		}
 		this.memory = await getVectorMemory(vectorMemoryConfig)

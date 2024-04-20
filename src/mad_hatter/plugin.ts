@@ -7,6 +7,7 @@ import { execSync } from 'node:child_process'
 import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
+import { titleCase } from 'scule'
 import { generateRandomString, getFilesRecursively, getZodDefaults } from '@utils'
 import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
@@ -59,7 +60,7 @@ export class Plugin<
 	private events: Partial<PluginEvents> = {}
 	private _schema: z.ZodObject<T> = z.object({}) as z.ZodObject<T>
 	private _settings: S = {} as S
-	private _manifest = getZodDefaults(pluginManifestSchema) as PluginManifest
+	private _manifest: PluginManifest
 	private _id: string
 	private _reloading = false
 	private _active = false
@@ -68,12 +69,13 @@ export class Plugin<
 	private _forms: Form[] = []
 
 	private constructor(public path: string) {
-		if (!existsSync(path)) { log.error(new Error('Plugin path does not exist')) }
+		if (!existsSync(path)) log.error(new Error('Plugin path does not exist'))
 
 		const stats = statSync(path)
-		if (!stats.isDirectory()) { log.error(new Error('Plugin path must be a directory')) }
+		if (!stats.isDirectory()) log.error(new Error('Plugin path must be a directory'))
 
 		this._id = basename(path)
+		this._manifest = defu(getZodDefaults(pluginManifestSchema), { name: titleCase(this._id) }) as PluginManifest
 	}
 
 	static async new(path: string) {
@@ -84,9 +86,9 @@ export class Plugin<
 
 	async reload() {
 		const tsFiles = getFilesRecursively(this.path).filter(file => extname(file.name) === '.ts')
-		if (tsFiles.length === 0) { log.error(new Error('Plugin must contain at least one .ts file')) }
+		if (tsFiles.length === 0) log.error(new Error('Plugin must contain at least one .ts file'))
 
-		if (this._reloading) { return }
+		if (this._reloading) return
 
 		this._reloading = true
 		await this.installRequirements()
@@ -173,11 +175,11 @@ export class Plugin<
 		if (existsSync(manifestPath)) {
 			try {
 				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
-				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema)))
+				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
 			}
 			catch (err) {
 				let msg = `Error reading plugin.json for ${this.id}`
-				if (err instanceof z.ZodError) { msg += `\n${err.errors.map(e => `${e.path.join('.')} : ${e.message}`).join('\n')}` }
+				if (err instanceof z.ZodError) msg += `\n${err.errors.map(e => `${e.path.join('.')} : ${e.message}`).join('\n')}`
 				log.error(msg)
 			}
 		}
@@ -193,11 +195,11 @@ export class Plugin<
 			}
 			catch (err) {
 				let msg = `Error reading settings.json for ${this.id}`
-				if (err instanceof z.ZodError) { msg += `\n${err.errors.map(e => `${e.path.join('.')} : ${e.message}`).join('\n')}` }
+				if (err instanceof z.ZodError) msg += `\n${err.errors.map(e => `${e.path.join('.')} : ${e.message}`).join('\n')}`
 				log.error(msg)
 			}
 		}
-		else if (Object.keys(this.schema.shape).length > 0) { this.settings = getZodDefaults(this.schema) as S }
+		else if (Object.keys(this.schema.shape).length > 0) this.settings = getZodDefaults(this.schema) as S
 	}
 
 	private async installRequirements() {
@@ -232,11 +234,11 @@ export class Plugin<
 				await writeFile(tmpFile, replaced)
 				const exported = await import(pathToFileURL(tmpFile).href)
 				Object.values(exported).forEach((v) => {
-					if (v instanceof z.ZodObject) { this._schema = v }
-					else if (isForm(v)) { this._forms.push(v) }
-					else if (isTool(v)) { this._tools.push(v) }
-					else if (isHook(v)) { this._hooks.push({ ...v, from: this.id }) }
-					else if (isPluginEvent(v)) { this.events[v.name] = v.fn as any }
+					if (v instanceof z.ZodObject) this._schema = v
+					else if (isForm(v)) this._forms.push(v)
+					else if (isTool(v)) this._tools.push(v)
+					else if (isHook(v)) this._hooks.push({ ...v, from: this.id })
+					else if (isPluginEvent(v)) this.events[v.name] = v.fn as any
 				})
 			}
 			catch (error) {

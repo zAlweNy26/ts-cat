@@ -4,7 +4,6 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
 import type { Message } from '@utils'
 import { madHatter } from '@mh/mad-hatter.ts'
-import { getDb, getLLMSettings, updateDb } from '@db'
 import { log } from '@logger'
 import { z } from 'zod'
 import { SwaggerTags, customSetting, modelInfo } from '@/context.ts'
@@ -21,14 +20,15 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			}),
 		},
 	} }, () => {
+		const db = fastify.db.data
 		const allowedLlms = getAllowedLLMs()
 		const options = allowedLlms.map(({ config, ...args }) => ({
 			...args,
 			schema: zodToJsonSchema(config),
-			value: getDb().llms.filter(l => l.name === args.name)[0]?.value ?? {},
+			value: db.llms.filter(l => l.name === args.name)[0]?.value ?? {},
 		}))
 		return {
-			selected: getDb().selectedLLM,
+			selected: db.selectedLLM,
 			options,
 		}
 	})
@@ -49,8 +49,8 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const id = req.params.llmId
 		const llm = getLLM(id)
-		if (!llm) { return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.') }
-		const value = getLLMSettings(id) ?? {}
+		if (!llm) return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.')
+		const value = fastify.db.getLLMSettings(id) ?? {}
 		return {
 			...llm,
 			schema: zodToJsonSchema(llm.config),
@@ -76,9 +76,9 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const id = req.params.llmId
 		const llm = getLLM(id)
-		if (!llm) { return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.') }
+		if (!llm) return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.')
 		const parsed = llm.config.passthrough().safeParse(req.body)
-		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join()) }
+		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
 		cheshireCat.loadLanguageModel()
 		cheshireCat.loadLanguageEmbedder()
 		try {
@@ -89,10 +89,10 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			log.error('Failed to load memory', error)
 			return rep.badRequest('Failed to load memory for the selected embedder')
 		}
-		updateDb((db) => {
+		fastify.db.update((db) => {
 			db.selectedLLM = id
 			const llmIndex = db.llms.findIndex(l => l.name === id)
-			if (llmIndex === -1) { db.llms.push({ name: id, value: parsed.data }) }
+			if (llmIndex === -1) db.llms.push({ name: id, value: parsed.data })
 			else db.llms[llmIndex]!.value = parsed.data
 		})
 		return {
@@ -123,7 +123,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 	} }, async (req, rep) => {
 		const { save } = req.query
 		const res = await req.stray.run(req.body, save)
-		if (!res) { rep.imateapot('I\'m sorry, I can\'t do that.') }
+		if (!res) rep.imateapot('I\'m sorry, I can\'t do that.')
 		return res
 	})
 }

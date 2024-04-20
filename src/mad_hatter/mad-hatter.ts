@@ -4,7 +4,7 @@ import { basename, join, sep } from 'node:path'
 import { execSync } from 'node:child_process'
 import chokidar from 'chokidar'
 import { catPaths } from '@utils'
-import { getDb, updateDb } from '@db'
+import { db } from '@db'
 import { log } from '@logger'
 import type { HookNames, HookTypes, Hooks } from './hook.ts'
 import { Plugin } from './plugin.ts'
@@ -32,7 +32,7 @@ export class MadHatter {
 		if (!MadHatter.instance) {
 			log.silent('Initializing the Mad Hatter...')
 			MadHatter.instance = new MadHatter()
-			MadHatter.instance.activePlugins = getDb().activePlugins
+			MadHatter.instance.activePlugins = db.data.activePlugins
 			await MadHatter.instance.installPlugin(`${basePath}/mad_hatter/core_plugin`)
 			await MadHatter.instance.findPlugins()
 		}
@@ -47,7 +47,7 @@ export class MadHatter {
 	 */
 	executeHook<T extends HookNames = HookNames>(name: T, ...args: Parameters<HookTypes[T]>) {
 		const hook = this.hooks[name]
-		if (!hook || hook.length === 0) { throw new Error(`Hook "${name}" not found in any plugin`) }
+		if (!hook || hook.length === 0) throw new Error(`Hook "${name}" not found in any plugin`)
 		const timeStart = performance.now()
 		// First argument is the pipeable one
 		let teaCup = args[0]
@@ -92,8 +92,8 @@ export class MadHatter {
 				({ 'Hook Name': key, 'Plugins': value.map(p => p.from).join(' | ') }),
 			))
 		}
-		if (this.tools.length > 0) { log.success('Added tools:', this.tools.map(t => `"${t.name}"`).join(', ')) }
-		if (this.forms.length > 0) { log.success('Added forms:', this.forms.map(f => `"${f.name}"`).join(', ')) }
+		if (this.tools.length > 0) log.success('Added tools:', this.tools.map(t => `"${t.name}"`).join(', '))
+		if (this.forms.length > 0) log.success('Added forms:', this.forms.map(f => `"${f.name}"`).join(', '))
 	}
 
 	/**
@@ -109,7 +109,7 @@ export class MadHatter {
 			this.plugins.set(plugin.id, plugin)
 			plugin.triggerEvent('installed')
 		}
-		if (this.activePlugins.includes(plugin.id)) { plugin.activate() }
+		if (this.activePlugins.includes(plugin.id)) plugin.activate()
 		return plugin
 	}
 
@@ -140,7 +140,7 @@ export class MadHatter {
 			this.activePlugins = this.activePlugins.filter(p => p !== id)
 			this.plugins.delete(id)
 			this.syncHooksAndProcedures()
-			updateDb(db => db.activePlugins = this.activePlugins)
+			db.update(db => db.activePlugins = this.activePlugins)
 		}
 	}
 
@@ -174,8 +174,8 @@ export class MadHatter {
 				plugin.activate()
 				this.activePlugins.push(plugin.id)
 			}
-			updateDb(db => db.activePlugins = this.activePlugins)
-			if (sync) { this.syncHooksAndProcedures() }
+			db.update(db => db.activePlugins = this.activePlugins)
+			if (sync) this.syncHooksAndProcedures()
 			return plugin.active
 		}
 		return false
@@ -196,7 +196,7 @@ export class MadHatter {
 				this.forms.push(...plugin.forms)
 				plugin.hooks.forEach((hook) => {
 					const { name } = hook
-					if (!this.hooks[name]) { this.hooks[name] = [] }
+					if (!this.hooks[name]) this.hooks[name] = []
 					this.hooks[name]!.push(hook)
 				})
 			}
@@ -221,8 +221,8 @@ chokidar.watch('src/plugins', {
 	const hasDir = index >= 0 && index + id.length < path.length
 	if (id) {
 		const plugin = madHatter.getPlugin(id)
-		if (!plugin && event === 'addDir') { await madHatter.installPlugin(path) }
-		else if (plugin && event === 'unlinkDir' && !hasDir) { await madHatter.removePlugin(id) }
-		else if (plugin && event !== 'addDir') { await madHatter.reloadPlugin(id) }
+		if (!plugin && event === 'addDir') await madHatter.installPlugin(path)
+		else if (plugin && event === 'unlinkDir' && !hasDir) await madHatter.removePlugin(id)
+		else if (plugin && event !== 'addDir') await madHatter.reloadPlugin(id)
 	}
 })

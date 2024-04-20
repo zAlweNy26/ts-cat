@@ -8,7 +8,7 @@ import { OpenAIEmbeddings } from '@langchain/openai'
 import { CohereEmbeddings } from '@langchain/cohere'
 import { ExecutionProvider as FastEmbedExecutionProviders, EmbeddingModel as FastEmbedModels } from 'fastembed'
 import { madHatter } from '@mh'
-import { updateDb } from '@db'
+import { db } from '@db'
 import { CustomOpenAIEmbeddings, FastEmbedEmbeddings } from './custom_embedder.ts'
 
 export interface EmbedderSettings<T extends z.AnyZodObject = z.AnyZodObject> {
@@ -178,7 +178,7 @@ export function getAllowedEmbedders() {
 		googleEmbedderSettings,
 	]
 	const models = madHatter.executeHook('allowedEmbedders', allowedEmbeddersModels)
-	updateDb((db) => {
+	db.update((db) => {
 		db.embedders = models.map(m => ({
 			name: m.name,
 			value: db.embedders.find(l => l.name === m.name)?.value || {},

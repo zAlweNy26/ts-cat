@@ -7,7 +7,6 @@ import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { MultipartFile } from '@fastify/multipart'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
-import { updateDb } from '@db'
 import { z } from 'zod'
 import { SwaggerTags, customSetting, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
 
@@ -47,7 +46,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const { pluginId } = req.params
 		const p = madHatter.getPlugin(pluginId)
-		if (!p) { return rep.notFound('Plugin not found') }
+		if (!p) return rep.notFound('Plugin not found')
 		return p.info
 	})
 
@@ -68,8 +67,8 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const { pluginId } = req.params
 		const p = madHatter.getPlugin(pluginId)
-		if (!p) { return rep.notFound('Plugin not found') }
-		if (p.id === 'core_plugin') { return rep.badRequest('Cannot delete core plugin') }
+		if (!p) return rep.notFound('Plugin not found')
+		if (p.id === 'core_plugin') return rep.badRequest('Cannot delete core plugin')
 		madHatter.removePlugin(pluginId)
 		return rep.code(204)
 	})
@@ -100,7 +99,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const { file } = req.body
 		const allowedTypes = ['application/zip', 'application/x-zip-compressed', 'application/x-tar', 'application/x-gzip', 'application/x-bzip2']
-		if (!allowedTypes.includes(file.mimetype)) { return rep.badRequest('Invalid file type. It must be one of the following: zip, tar, gzip, bzip2') }
+		if (!allowedTypes.includes(file.mimetype)) return rep.badRequest('Invalid file type. It must be one of the following: zip, tar, gzip, bzip2')
 		log.info(`Uploading plugin ${file.filename}`)
 
 		const extractDir = join(tmpdir(), 'ccat-plugin-extract')
@@ -184,8 +183,8 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const { pluginId } = req.params
 		const p = madHatter.getPlugin(pluginId)
-		if (!p) { return rep.notFound('Plugin not found') }
-		if (p.id === 'core_plugin') { return rep.badRequest('Cannot toggle core plugin') }
+		if (!p) return rep.notFound('Plugin not found')
+		if (p.id === 'core_plugin') return rep.badRequest('Cannot toggle core plugin')
 		const active = madHatter.togglePlugin(pluginId)
 		return {
 			active,
@@ -215,19 +214,19 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const { pluginId, procedureName } = req.params
 		const p = madHatter.getPlugin(pluginId)
-		if (!p) { return rep.notFound('Plugin not found') }
+		if (!p) return rep.notFound('Plugin not found')
 		const tool = p.tools.find(t => t.name === procedureName)
 		const form = p.forms.find(f => f.name === procedureName)
-		if (!tool && !form) { return rep.notFound('Procedure not found') }
-		if (tool) { tool.active = !tool.active }
-		if (form) { form.active = !form.active }
-		updateDb((db) => {
+		if (!tool && !form) return rep.notFound('Procedure not found')
+		if (tool) tool.active = !tool.active
+		if (form) form.active = !form.active
+		fastify.db.update((db) => {
 			if (tool) {
-				if (tool.active) { db.activeTools.push(procedureName) }
+				if (tool.active) db.activeTools.push(procedureName)
 				else db.activeTools = db.activeTools.filter(t => t !== procedureName)
 			}
 			else if (form) {
-				if (form.active) { db.activeForms.push(procedureName) }
+				if (form.active) db.activeForms.push(procedureName)
 				else db.activeForms = db.activeForms.filter(f => f !== procedureName)
 			}
 		})
@@ -275,7 +274,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const { pluginId } = req.params
 		const p = madHatter.getPlugin(pluginId)
-		if (!p) { return rep.notFound('Plugin not found') }
+		if (!p) return rep.notFound('Plugin not found')
 		return {
 			name: p.id,
 			schema: zodToJsonSchema(p.schema),
@@ -303,9 +302,9 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 	} }, (req, rep) => {
 		const id = req.params.pluginId
 		const p = madHatter.getPlugin(id)
-		if (!p) { return rep.notFound('Plugin not found') }
+		if (!p) return rep.notFound('Plugin not found')
 		const parsed = p.schema.passthrough().safeParse(req.body)
-		if (!parsed.success) { return rep.badRequest(parsed.error.errors.join()) }
+		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
 		p.settings = parsed.data
 		return {
 			name: id,

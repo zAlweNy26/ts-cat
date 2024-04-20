@@ -14,34 +14,83 @@ const logger = createConsola({
 	fancy: true,
 })
 
+/**
+ * The logger module provides various logging functions.
+ */
 export const log = Object.freeze({
+	/**
+	 * Logs a message in a box format.
+	 * @param message The message to be logged.
+	 */
 	box: logger.box,
+	/**
+	 * Logs an array of objects in a table format.
+	 * @param rows The array of objects to be logged as a table.
+	 */
 	table: <T extends Record<string, any>>(rows: T[]) => {
-		if (rows.length === 0) { return }
+		if (rows.length === 0) return
 		const firstRow = rows[0]
-		if (!firstRow) { return }
+		if (!firstRow) return
 		const table = new Table({
 			columns: Object.keys(firstRow).map(key => ({ name: key, alignment: 'left', color: 'green' })),
 			rows,
 		})
 		table.printTable()
 	},
-	// 0
+	/**
+	 * Logs an error message.
+	 * @param message The error message to be logged.
+	 */
 	error: logger.error,
+	/**
+	 * Logs a fatal error message.
+	 * @param message The fatal error message to be logged.
+	 */
 	fatal: logger.fatal,
+	/**
+	 * Logs a silent message.
+	 * @param message The silent message to be logged.
+	 */
 	silent: logger.silent,
-	// 1
+	/**
+	 * Logs a warning message.
+	 * @param message The warning message to be logged.
+	 */
 	warn: logger.warn,
-	// 2
+	/**
+	 * Logs a normal message.
+	 * @param message The message to be logged.
+	 */
 	normal: logger.log,
+	/**
+	 * Logs a message with a specified tag and color.
+	 * @param color The color of the tag.
+	 * @param tag The tag to be displayed.
+	 * @param message The message to be logged.
+	 * @param args Additional arguments to be logged.
+	 */
 	tag: (color: ColorName, tag: string, message: string, ...args: unknown[]) => {
 		const tagColor = getColor(color)(` ${tag} `)
-		return logger.log(getColor('bold')(`${tagColor} ${message}`), ...args)
+		logger.log(getColor('bold')(`${tagColor} ${message}`), ...args)
 	},
-	// 3
+	/**
+	 * Logs an info message.
+	 * @param message The info message to be logged.
+	 */
 	info: logger.info,
+	/**
+	 * Logs a success message.
+	 * @param message The success message to be logged.
+	 */
 	success: logger.success,
+	/**
+	 * Logs a failure message.
+	 * @param message The failure message to be logged.
+	 */
 	fail: logger.fail,
-	// 4
+	/**
+	 * Logs a debug message.
+	 * @param message The debug message to be logged.
+	 */
 	debug: logger.debug,
 })

@@ -33,6 +33,9 @@ const envSchema = z.object({
 	verbose: LogLevel.indexOf(s.LOG_LEVEL) > LogLevel.indexOf(LogLevel[2]),
 }))
 
+/**
+ * The parsed environment variables.
+ */
 export const parsedEnv = envSchema.parse(process.env)
 
 function getBaseUrl() {
@@ -41,14 +44,35 @@ function getBaseUrl() {
 	return new URL(address)
 }
 
+/**
+ * It contains various paths and URLs used in the application.
+ */
 export const catPaths = {
+	/**
+	 * The base path of the application.
+	 */
 	basePath: 'src',
+	/**
+	 * The base URL of the application.
+	 */
 	baseUrl: getBaseUrl().href,
+	/**
+	 * The path to the plugins directory.
+	 */
 	pluginsPath: join('src', 'plugins'),
+	/**
+	 * The path to the assets directory.
+	 */
 	assetsPath: join('src', 'assets'),
+	/**
+	 * The URL to the assets directory.
+	 */
 	assetsUrl: `${getBaseUrl().href}assets`,
 }
 
+/**
+ * Logs a welcome message and prints important URLs.
+ */
 export function logWelcome() {
 	const cat = readFileSync('src/welcome.txt', 'utf8')
 	console.log(cat)
@@ -116,6 +140,10 @@ export interface Message {
 	[key: string]: any
 }
 
+/**
+ * Generates a random string of the specified length.
+ * @param length The length of the random string to generate.
+ */
 export function generateRandomString(length: number) {
 	let result = ''
 	for (let i = 0; i < length; i++) {
@@ -127,12 +155,17 @@ export function generateRandomString(length: number) {
 	return result
 }
 
-export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminantValue?: string): T['_input'] | undefined {
+/**
+ * Retrieves the default values for a given Zod schema.
+ * @param schema The Zod schema for which to retrieve the default values.
+ * @param discriminant The discriminant value for discriminated unions.
+ */
+export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_input'] | undefined {
 	if (schema instanceof z.ZodDiscriminatedUnion) {
-		if (!discriminantValue) { throw new Error('Discriminant value is required for discriminated unions') }
-		for (const [key, val] of schema._def.optionsMap.entries()) {
-			if (key === discriminantValue) { return getZodDefaults(val) }
-		}
+		if (!discriminant) throw new Error('Discriminant value is required for discriminated unions')
+		for (const [key, val] of schema._def.optionsMap.entries())
+			if (key === discriminant) return getZodDefaults(val)
+
 		return getZodDefaults(schema._def.options[0])
 	}
 	else if (schema instanceof z.ZodObject) {
@@ -140,7 +173,7 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminantVa
 		const result: any = {}
 		for (const key in shape) {
 			const value = getZodDefaults(shape[key])
-			if (value !== undefined) { result[key] = value }
+			if (value !== undefined) result[key] = value
 		}
 		return result
 	}
@@ -153,14 +186,14 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminantVa
 	else if (schema instanceof z.ZodUnion) {
 		for (const val of schema.options) {
 			const value = getZodDefaults(val)
-			if (value !== undefined) { return value }
+			if (value !== undefined) return value
 		}
 		return undefined
 	}
-	else if (schema instanceof z.ZodEnum) { return schema.options[0] }
-	else if (schema instanceof z.ZodNativeEnum) { return Object.values(schema.enum)[0] }
-	else if (schema instanceof z.ZodLiteral) { return schema.value }
-	else if (schema instanceof z.ZodEffects) { return getZodDefaults(schema.innerType()) }
-	else if (schema instanceof z.ZodDefault) { return schema._def.defaultValue() }
+	else if (schema instanceof z.ZodEnum) return schema.options[0]
+	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
+	else if (schema instanceof z.ZodLiteral) return schema.value
+	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
+	else if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else return undefined
 }

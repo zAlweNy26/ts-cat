@@ -20,16 +20,21 @@ import {
 	validatorCompiler,
 } from 'fastify-zod-openapi'
 import type { StrayCat } from '@lg/stray-cat.ts'
-import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { type CheshireCat, cheshireCat } from '@lg/cheshire-cat.ts'
 import qs from 'qs'
 import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
 import isDocker from 'is-docker'
 import pkg from '../package.json' assert { type: 'json' }
+import { type Database, db } from './database.ts'
 import { catPaths, logWelcome, parsedEnv } from './utils.ts'
 import { SwaggerTags } from './context.ts'
 
 declare module 'fastify' {
-	export interface FastifyRequest {
+	interface FastifyInstance {
+		cat: CheshireCat
+		db: Database
+	}
+	interface FastifyRequest {
 		stray: StrayCat
 	}
 }
@@ -62,6 +67,11 @@ const fastify = Fastify({
 
 fastify.setValidatorCompiler(validatorCompiler)
 fastify.setSerializerCompiler(serializerCompiler)
+
+// Decorate instance
+fastify.decorate('cat', cheshireCat)
+fastify.decorate('db', db)
+fastify.decorateRequest('stray', null)
 
 // Register plugins
 await fastify.register(requestLogger)
@@ -167,14 +177,13 @@ fastify.addHook('preParsing', async (req, rep) => {
 	const publicRoutes = ['/docs', '/assets', '/ws']
 
 	// Check if the request has a valid API key
-	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(r => req.url.startsWith(r))) {
+	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(r => req.url.startsWith(r)))
 		return rep.unauthorized('Invalid API key')
-	}
 
 	// Add a StrayCat instance to the request object
 	const userId = (Array.isArray(req.headers.userId) ? req.headers.userId[0] : req.headers.userId) || 'user'
 	const stray = cheshireCat.getStray(userId)
-	if (!stray) { req.stray = cheshireCat.addStray(userId) }
+	if (!stray) req.stray = cheshireCat.addStray(userId)
 	else req.stray = stray
 })
 

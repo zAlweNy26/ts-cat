@@ -18,7 +18,7 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import type { PointData } from '@memory/vector-memory-collection.ts'
 import { log } from '@logger'
-import { getDb } from './database.ts'
+import { db } from './database.ts'
 import { sleep } from './utils.ts'
 
 export interface MemoryJson {
@@ -75,12 +75,18 @@ export class RabbitHole {
 		return RabbitHole.instance
 	}
 
+	/**
+	 * Get the file parsers
+	 */
 	get fileParsers() {
-		return this.fileHandlers
+		return { ...this.fileHandlers }
 	}
 
+	/**
+	 * Get the web parsers
+	 */
 	get webParsers() {
-		return this.webHandlers
+		return [...this.webHandlers]
 	}
 
 	/**
@@ -102,7 +108,7 @@ export class RabbitHole {
 		}
 		else content = json
 
-		if (!content.embedder || content.embedder !== getDb().selectedEmbedder) {
+		if (!content.embedder || content.embedder !== db.data.selectedEmbedder) {
 			log.error('The embedder used to export the memories is different from the one currently used.')
 			return
 		}
@@ -141,9 +147,9 @@ export class RabbitHole {
 	 */
 	async ingestFile(stray: StrayCat, file: File, chunkSize = 512, chunkOverlap = 128) {
 		const mime = file.type as keyof typeof this.fileHandlers
-		if (!Object.keys(this.fileHandlers).includes(mime)) {
+		if (!Object.keys(this.fileHandlers).includes(mime))
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
-		}
+
 		log.info('Ingesting file...')
 		const loader = new this.fileHandlers[mime]!(file)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
@@ -168,7 +174,7 @@ export class RabbitHole {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
 			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href))
-			if (!webHandler) { throw new Error(`No matching regex found for "${path}". Skipping ingestion...`) }
+			if (!webHandler) throw new Error(`No matching regex found for "${path}". Skipping ingestion...`)
 			const loader = new webHandler[1](url.href)
 			stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 			const content = (await loader.load()).map(d => d.pageContent)
@@ -178,7 +184,7 @@ export class RabbitHole {
 		}
 		catch (error) {
 			log.info('The string is not a valid URL, trying with a file-system path...')
-			if (!existsSync(path)) { throw new Error('The path does not exist. Skipping ingestion...') }
+			if (!existsSync(path)) throw new Error('The path does not exist. Skipping ingestion...')
 			const data = readFileSync(resolve(path))
 			const file = new File([data], basename(path), { type: extname(path) })
 			await this.ingestFile(stray, file, chunkSize, chunkOverlap)
