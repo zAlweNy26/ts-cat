@@ -141,11 +141,11 @@ export class RabbitHole {
 	 * Ingests a file and processes its content.
 	 * @param stray The StrayCat instance.
 	 * @param file The file to ingest.
-	 * @param chunkSize The size of each chunk for splitting the content (default: 512).
-	 * @param chunkOverlap The overlap between chunks (default: 128).
+	 * @param chunkSize The size of each chunk for splitting the content (default: 256).
+	 * @param chunkOverlap The overlap between chunks (default: 64).
 	 * @throws An error if the file type is not supported.
 	 */
-	async ingestFile(stray: StrayCat, file: File, chunkSize = 512, chunkOverlap = 128) {
+	async ingestFile(stray: StrayCat, file: File, chunkSize = 256, chunkOverlap = 64) {
 		const mime = file.type as keyof typeof this.fileHandlers
 		if (!Object.keys(this.fileHandlers).includes(mime))
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
@@ -165,11 +165,11 @@ export class RabbitHole {
 	 * If the input is a file system path, it reads the file and processes the content.
 	 * @param stray The StrayCat instance.
 	 * @param path The path or URL to ingest.
-	 * @param chunkSize The size of each chunk for splitting the content (default: 512).
-	 * @param chunkOverlap The overlap between chunks (default: 128).
+	 * @param chunkSize The size of each chunk for splitting the content (default: 256).
+	 * @param chunkOverlap The overlap between chunks (default: 64).
 	 * @throws If the URL doesn't match any web handler or the path doesn't exist.
 	 */
-	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize = 512, chunkOverlap = 128) {
+	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize = 256, chunkOverlap = 64) {
 		try {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
@@ -236,11 +236,11 @@ export class RabbitHole {
 	 * The method also executes the beforeSplitTexts and afterSplitTexts hooks.
 	 * @param stray The StrayCat instance.
 	 * @param texts The array of texts to be split.
-	 * @param chunkSize The size of each chunk for splitting the content (default: 512).
-	 * @param chunkOverlap The overlap between chunks (default: 128).
+	 * @param chunkSize The size of each chunk for splitting the content (default: 256).
+	 * @param chunkOverlap The overlap between chunks (default: 64).
 	 * @returns An array of documents.
 	 */
-	async splitTexts(stray: StrayCat, texts: string[], chunkSize = 512, chunkOverlap = 128) {
+	async splitTexts(stray: StrayCat, texts: string[], chunkSize = 256, chunkOverlap = 64) {
 		texts = madHatter.executeHook('beforeSplitTexts', texts, stray)
 		this.splitter.chunkOverlap = chunkOverlap
 		this.splitter.chunkSize = chunkSize

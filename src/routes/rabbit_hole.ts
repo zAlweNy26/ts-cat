@@ -25,7 +25,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	fastify.post<{
 		Body: string
 		Querystring: {
-			async: boolean
+			sync: boolean
 		}
 	}>('/chunk', { schema: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -33,16 +33,16 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		summary: 'Upload text chunk',
 		body: z.string().min(10),
 		querystring: z.object({
-			async: zodBoolean,
+			sync: zodBoolean,
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const chunk = req.body, { async } = req.query
+		const chunk = req.body, { sync } = req.query
 		try {
-			if (async) await rabbitHole.ingestContent(req.stray, chunk)
+			if (sync) await rabbitHole.ingestContent(req.stray, chunk)
 			else rabbitHole.ingestContent(req.stray, chunk).catch(log.error)
 		}
 		catch (error) {
@@ -50,7 +50,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			return rep.badRequest('Error while ingesting the passed chunk.')
 		}
 		return {
-			info: async ? 'Chunk is being ingested asynchronously...' : 'Chunk has been ingested successfully.',
+			info: sync ? 'Chunk has been ingested successfully.' : 'Chunk is being ingested asynchronously...',
 		}
 	})
 
@@ -59,7 +59,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			file: MultipartFile
 		}
 		Querystring: {
-			async: boolean
+			sync: boolean
 			chunkSize: number
 			chunkOverlap: number
 		}
@@ -70,19 +70,19 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		consumes: ['multipart/form-data'],
 		body: z.object({ file: fileSchema }),
 		querystring: z.object({
-			async: zodBoolean,
-			chunkSize: z.coerce.number().default(512),
-			chunkOverlap: z.coerce.number().default(128),
+			sync: zodBoolean,
+			chunkSize: z.coerce.number().default(256),
+			chunkOverlap: z.coerce.number().default(64),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { file } = req.body, { async, chunkOverlap, chunkSize } = req.query
+		const { file } = req.body, { sync, chunkOverlap, chunkSize } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
-			if (async) await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap)
+			if (sync) await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap)
 			else rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap).catch(log.error)
 		}
 		catch (error) {
@@ -90,14 +90,14 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			return rep.badRequest('Error while ingesting the passed file.')
 		}
 		return {
-			info: async ? 'File is being ingested asynchronously...' : 'File has been ingested successfully.',
+			info: sync ? 'File has been ingested successfully.' : 'File is being ingested asynchronously...',
 		}
 	})
 
 	fastify.post<{
 		Body: string
 		Querystring: {
-			async: boolean
+			sync: boolean
 			chunkSize: number
 			chunkOverlap: number
 		}
@@ -107,18 +107,18 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		summary: 'Upload URL',
 		body: z.string().min(5).default('https://example.com').openapi({ description: 'URL of the website or the path of the file to ingest.' }),
 		querystring: z.object({
-			async: zodBoolean,
-			chunkSize: z.coerce.number().default(512),
-			chunkOverlap: z.coerce.number().default(128),
+			sync: zodBoolean,
+			chunkSize: z.coerce.number().default(256),
+			chunkOverlap: z.coerce.number().default(64),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: errorSchema,
 		},
 	} }, async (req, rep) => {
-		const webUrl = req.body, { async, chunkOverlap, chunkSize } = req.query
+		const webUrl = req.body, { sync, chunkOverlap, chunkSize } = req.query
 		try {
-			if (async) await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap)
+			if (sync) await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap)
 			else rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
 		}
 		catch (error) {
@@ -126,7 +126,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			return rep.badRequest('Error while ingesting the passed url.')
 		}
 		return {
-			info: async ? 'Web page is being ingested asynchronously...' : 'Web page has been ingested successfully.',
+			info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
 		}
 	})
 
@@ -135,7 +135,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			file: MultipartFile
 		}
 		Querystring: {
-			async: boolean
+			sync: boolean
 		}
 	}>('/memory', { schema: {
 		description: 'Upload a memory json file to the cat memory.',
@@ -144,17 +144,17 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		consumes: ['multipart/form-data'],
 		body: z.object({ file: fileSchema }),
 		querystring: z.object({
-			async: zodBoolean,
+			sync: zodBoolean,
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
 			400: { $ref: 'HttpError' },
 		},
 	} }, async (req, rep) => {
-		const { file } = req.body, { async } = req.query
+		const { file } = req.body, { sync } = req.query
 		try {
 			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
-			if (async) await rabbitHole.ingestMemory(uploadFile)
+			if (sync) await rabbitHole.ingestMemory(uploadFile)
 			else rabbitHole.ingestMemory(uploadFile).catch(log.error)
 		}
 		catch (error) {
@@ -162,7 +162,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			return rep.badRequest('Error while ingesting the passed memory file.')
 		}
 		return {
-			info: async ? 'Memory file is being ingested asynchronously...' : 'Memory file has been ingested successfully.',
+			info: sync ? 'Memory file has been ingested successfully.' : 'Memory file is being ingested asynchronously...',
 		}
 	})
 }
