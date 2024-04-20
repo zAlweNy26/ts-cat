@@ -18,7 +18,7 @@ const defaultDbKeys = z.object({
 	activeForms: z.array(z.string()),
 }).passthrough()
 
-const dbConfig = z.intersection(defaultDbKeys, z.record(z.any())).refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
+const dbConfig = defaultDbKeys.refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
 	return llms.some(l => l.name === selectedLLM) && embedders.some(e => e.name === selectedEmbedder)
 })
 

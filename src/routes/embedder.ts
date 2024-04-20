@@ -5,7 +5,7 @@ import { getAllowedEmbedders, getEmbedder } from '@factory/embedder.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
-import { SwaggerTags, customSetting, modelInfo } from '@/context.ts'
+import { SwaggerTags, customSetting, errorSchema, modelInfo } from '@/context.ts'
 
 export const embedder: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/settings', { schema: {
@@ -43,7 +43,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: modelInfo,
-			404: { $ref: 'HttpError' },
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const id = req.params.embedderId
@@ -70,7 +70,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: customSetting,
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const id = req.params.embedderId

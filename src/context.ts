@@ -12,22 +12,21 @@ export enum SwaggerTags {
 	'Memory' = 'Memory',
 }
 
-export const errorSchema = z.intersection(z.object({
+export const errorSchema = z.object({
 	status: z.number().optional(),
 	statusCode: z.number(),
-	expose: z.boolean(),
+	expose: z.boolean().optional(),
 	code: z.string().optional(),
 	error: z.string(),
 	message: z.string(),
 	headers: z.record(z.string()).optional(),
-}), z.record(z.any())).openapi({
+}).passthrough().openapi({
 	ref: 'HttpError',
 	description: 'HTTP error response',
 	example: {
 		statusCode: 400,
 		error: 'Bad Request',
 		message: 'Error message',
-		expose: false,
 	},
 })
 

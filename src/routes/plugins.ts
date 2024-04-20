@@ -9,7 +9,7 @@ import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
 import { zodBoolean } from '@utils'
-import { SwaggerTags, customSetting, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
+import { SwaggerTags, customSetting, errorSchema, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
 
 export const plugins: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/', { schema: {
@@ -42,7 +42,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: pluginInfo,
-			404: { $ref: 'HttpError' },
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { pluginId } = req.params
@@ -62,8 +62,8 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			204: z.null().describe('Plugin deleted successfully.'),
-			404: { $ref: 'HttpError' },
-			400: { $ref: 'HttpError' },
+			404: errorSchema,
+			400: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { pluginId } = req.params
@@ -94,8 +94,8 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
-			400: { $ref: 'HttpError' },
-			500: { $ref: 'HttpError' },
+			400: errorSchema,
+			500: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { file } = req.body
@@ -155,7 +155,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, (req) => {
 		const { url } = req.body
@@ -178,8 +178,8 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			200: z.object({
 				active: z.boolean(),
 			}),
-			404: { $ref: 'HttpError' },
-			400: { $ref: 'HttpError' },
+			404: errorSchema,
+			400: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { pluginId } = req.params
@@ -209,8 +209,8 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 			200: z.object({
 				active: z.boolean(),
 			}),
-			404: { $ref: 'HttpError' },
-			400: { $ref: 'HttpError' },
+			404: errorSchema,
+			400: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { pluginId, procedureName } = req.params
@@ -270,7 +270,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: pluginSettings,
-			404: { $ref: 'HttpError' },
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { pluginId } = req.params
@@ -298,7 +298,7 @@ export const plugins: FastifyPluginCallback = async (fastify) => {
 		body: z.record(z.any()),
 		response: {
 			200: customSetting,
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, (req, rep) => {
 		const id = req.params.pluginId

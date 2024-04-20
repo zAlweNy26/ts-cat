@@ -1,10 +1,10 @@
+import type { FastifyPluginCallback } from 'fastify'
 import { z } from 'zod'
-import type { FastifyPluginAsyncZodOpenApi } from 'fastify-zod-openapi'
 import { parsedEnv } from '@utils'
 import pkg from '../../package.json' assert { type: 'json' }
 import { SwaggerTags } from '@/context.ts'
 
-export const status: FastifyPluginAsyncZodOpenApi = async (fastify) => {
+export const status: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/', { schema: {
 		tags: [SwaggerTags.Status],
 		summary: 'Get server status',

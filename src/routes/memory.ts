@@ -5,7 +5,7 @@ import type { FilterMatch } from '@memory/vector-memory-collection.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
-import { SwaggerTags } from '@/context.ts'
+import { SwaggerTags, errorSchema } from '@/context.ts'
 
 export const memory: FastifyPluginCallback = async (fastify) => {
 	fastify.get<{
@@ -64,7 +64,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 					},
 				},
 			}),
-			500: { $ref: 'HttpError' },
+			500: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const { text, k = 10 } = req.query
@@ -128,7 +128,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 					],
 				},
 			}),
-			500: { $ref: 'HttpError' },
+			500: errorSchema,
 		},
 	} }, async () => {
 		const collections = Object.keys(cheshireCat.currentMemory.collections)
@@ -151,7 +151,7 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		summary: 'Wipe collections',
 		response: {
 			204: z.null().describe('All collections were wiped successfully.'),
-			500: { $ref: 'HttpError' },
+			500: errorSchema,
 		},
 	} }, async (_req, rep) => {
 		try {
@@ -179,8 +179,8 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			204: z.null().describe('The collection was wiped successfully.'),
-			404: { $ref: 'HttpError' },
-			500: { $ref: 'HttpError' },
+			404: errorSchema,
+			500: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const id = req.params.collectionId
@@ -240,8 +240,8 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 					}),
 				})),
 			}),
-			404: { $ref: 'HttpError' },
-			500: { $ref: 'HttpError' },
+			404: errorSchema,
+			500: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const id = req.params.collectionId
@@ -283,8 +283,8 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			204: z.null().describe('The collection\'s points was wiped successfully.'),
-			404: { $ref: 'HttpError' },
-			500: { $ref: 'HttpError' },
+			404: errorSchema,
+			500: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const id = req.params.collectionId
@@ -316,8 +316,8 @@ export const memory: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			204: z.null().describe('The point was wiped successfully.'),
-			404: { $ref: 'HttpError' },
-			500: { $ref: 'HttpError' },
+			404: errorSchema,
+			500: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const { collectionId, pointId } = req.params

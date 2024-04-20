@@ -6,7 +6,7 @@ import { type Message, zodBoolean } from '@utils'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
-import { SwaggerTags, customSetting, modelInfo } from '@/context.ts'
+import { SwaggerTags, customSetting, errorSchema, modelInfo } from '@/context.ts'
 
 export const llm: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/settings', { schema: {
@@ -44,7 +44,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: modelInfo,
-			404: { $ref: 'HttpError' },
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const id = req.params.llmId
@@ -71,7 +71,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: customSetting,
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const id = req.params.llmId
@@ -118,7 +118,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.record(z.any()),
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const { save } = req.query

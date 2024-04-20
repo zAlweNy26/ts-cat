@@ -39,7 +39,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const chunk = req.body, { sync, source } = req.query
@@ -78,7 +78,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const { file } = req.body, { sync, chunkOverlap, chunkSize } = req.query
@@ -150,7 +150,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, async (req, rep) => {
 		const { file } = req.body, { sync } = req.query

@@ -1,6 +1,6 @@
 import type { FastifyPluginCallback } from 'fastify'
 import { z } from 'zod'
-import { SwaggerTags, customSetting } from '@/context.ts'
+import { SwaggerTags, customSetting, errorSchema } from '@/context.ts'
 
 export const settings: FastifyPluginCallback = async (fastify) => {
 	fastify.get('/', { schema: {
@@ -25,7 +25,7 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.record(z.any()),
-			404: { $ref: 'HttpError' },
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const db = fastify.db.data
@@ -49,8 +49,8 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 		}),
 		response: {
 			200: z.record(z.any()),
-			400: { $ref: 'HttpError' },
-			404: { $ref: 'HttpError' },
+			400: errorSchema,
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const db = fastify.db.data
@@ -78,8 +78,8 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 		summary: 'Delete setting',
 		response: {
 			200: z.record(z.any()),
-			400: { $ref: 'HttpError' },
-			404: { $ref: 'HttpError' },
+			400: errorSchema,
+			404: errorSchema,
 		},
 	} }, (req, rep) => {
 		const db = fastify.db.data
@@ -102,7 +102,7 @@ export const settings: FastifyPluginCallback = async (fastify) => {
 		body: customSetting,
 		response: {
 			200: z.record(z.any()),
-			400: { $ref: 'HttpError' },
+			400: errorSchema,
 		},
 	} }, (req, rep) => {
 		const { name, value } = req.body
