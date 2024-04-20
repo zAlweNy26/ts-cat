@@ -23,7 +23,7 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 		}
 
 		const action = parsedOutput.action
-		const actionInput = (parsedOutput.actionInput as string)?.trim().replace(/"/g, '') ?? null
+		const actionInput = String(parsedOutput.actionInput)?.trim().replace(/"/g, '') ?? null
 
 		if (action === 'final-answer') {
 			return {

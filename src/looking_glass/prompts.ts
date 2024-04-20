@@ -19,7 +19,7 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 		const procedures = Object.values(this.procedures)
 
 		if (procedures.map(p => p.startExamples).some(examples => examples.length > 0)) {
-			values.examples = 'Here some examples:\n'
+			values.examples = '## Here some examples:\n'
 			values.examples += procedures.reduce((acc, p) => {
 				const question = `${acc}\nQuestion: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
 				const example = JSON.stringify({
@@ -31,7 +31,7 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 		}
 
 		values.agent_scratchpad = steps.reduce((acc, step) =>
-			`${acc}\n${JSON.stringify({ observations: step.observation }, undefined, 4)}\n`, '')
+			`${acc}\n${JSON.stringify({ observation: step.observation }, undefined, 4)}\n`, '')
 
 		values.tools = procedures.map(p => `\t- ${p.name}: ${p.description}`).join('\n')
 
@@ -49,13 +49,13 @@ You can only reply using these tools:
 
 If you want to do an action, use the following format:
 {{
-	"action": "action-name", // The name of the action to take, should be one of [{tool_names}]
+	"action": "action-name", // The name of the action to take, should be one of [{tool_names}, final-answer, none-of-the-others]
 	"actionInput": "input of the action", // The input to the action, shoud be a string
 }}
 
 {examples}
 
-Begin!
+## Begin!
 
 Question: {input}
 {agent_scratchpad}`
