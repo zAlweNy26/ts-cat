@@ -12,13 +12,13 @@ import { madHatter } from '@mh'
 import { db } from '@db'
 import { CustomLLM, CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
 
-export interface LLMSettings<T extends z.AnyZodObject = z.AnyZodObject> {
+export interface LLMSettings {
 	name: string
 	humanReadableName: string
 	description: string
-	config: T
 	link?: string
-	getModel: (params: z.input<T>) => BaseLanguageModel
+	config: z.ZodEffects<z.AnyZodObject> | z.AnyZodObject
+	getModel: (params: z.input<LLMSettings['config']>) => BaseLanguageModel
 }
 
 const defaultLLMConfig: Readonly<LLMSettings> = Object.freeze({
@@ -26,7 +26,7 @@ const defaultLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	humanReadableName: 'Default Language Model',
 	description: 'A dumb LLM just telling that the Cat is not configured. There will be a nice LLM here once consumer hardware allows it.',
 	config: z.object({}),
-	getModel: (params: z.input<typeof defaultLLMConfig.config>) => new DefaultLLM(params),
+	getModel: () => new DefaultLLM(),
 })
 
 const customLLMConfig: Readonly<LLMSettings> = Object.freeze({
@@ -35,15 +35,19 @@ const customLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	description: 'Configuration for custom language model',
 	config: z.object({
 		authKey: z.string().optional(),
+		url: z.string().url(),
 		options: zodJson,
 	}),
-	getModel: (params: z.input<typeof customLLMConfig.config>) => new CustomLLM(params),
+	getModel(params: z.input<typeof customLLMConfig.config>) {
+		const args = this.config.parse(params)
+		return new CustomLLM(args)
+	},
 })
 
 const customOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	name: 'CustomOpenAILLM',
 	humanReadableName: 'OpenAI-compatible API',
-	description: 'Configuration for self-hosted OpenAI-compatible API server, e.g. llama-cpp-python server, text-generation-webui, OpenRouter, TinyLLM',
+	description: 'Configuration for self-hosted OpenAI-compatible API server, e.g. llama-cpp-python server, text-generation-webui, OpenRouter, TinyLLM, etc...',
 	config: z.object({
 		url: z.string().url(),
 		temperature: z.number().gte(0).lte(1).default(0.1),
@@ -79,7 +83,7 @@ const chatOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof chatOpenAILLMConfig.config>) {
 		const { apiKey, model, temperature, streaming } = this.config.parse(params)
-		return new ChatOpenAI({ openAIApiKey: apiKey, modelName: model, temperature, streaming })
+		return new ChatOpenAI({ apiKey, model, temperature, streaming })
 	},
 })
 
@@ -96,7 +100,7 @@ const openAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof openAILLMConfig.config>) {
 		const { apiKey, model, temperature, streaming } = this.config.parse(params)
-		return new OpenAI({ openAIApiKey: apiKey, modelName: model, temperature, streaming })
+		return new OpenAI({ apiKey, model, temperature, streaming })
 	},
 })
 
@@ -117,7 +121,7 @@ const azureChatOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	getModel(params: z.input<typeof azureChatOpenAILLMConfig.config>) {
 		const { apiKey, model, streaming, base, deployment, version, maxTokens } = this.config.parse(params)
 		return new AzureChatOpenAI({
-			modelName: model,
+			model,
 			streaming,
 			azureOpenAIBasePath: base,
 			azureOpenAIApiKey: apiKey,
@@ -145,7 +149,7 @@ const azureOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	getModel(params: z.input<typeof azureOpenAILLMConfig.config>) {
 		const { apiKey, model, streaming, base, deployment, version, maxTokens } = this.config.parse(params)
 		return new AzureOpenAI({
-			modelName: model,
+			model,
 			streaming,
 			azureOpenAIBasePath: base,
 			azureOpenAIApiKey: apiKey,
@@ -179,7 +183,7 @@ const mistralAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	link: 'https://www.together.ai',
 	config: z.object({
 		apiKey: z.string(),
-		model: z.string().default('mistral-small'),
+		model: z.string().default('mistral-small-latest'),
 		maxTokens: z.number().int().gte(1).default(4096),
 		topP: z.number().gte(0).lte(1).default(0.95),
 		temperature: z.number().gte(0).lte(1).default(0.7),
@@ -187,7 +191,7 @@ const mistralAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof mistralAILLMConfig.config>) {
 		const { apiKey, model, maxTokens, topP, streaming, temperature } = this.config.parse(params)
-		return new ChatMistralAI({ apiKey, modelName: model, maxTokens, topP, streaming, temperature })
+		return new ChatMistralAI({ apiKey, model, maxTokens, topP, streaming, temperature })
 	},
 })
 
@@ -205,13 +209,7 @@ const anthropicLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof anthropicLLMConfig.config>) {
 		const { apiKey, model, maxTokens, streaming, temperature } = this.config.parse(params)
-		return new ChatAnthropic({
-			anthropicApiKey: apiKey,
-			modelName: model,
-			maxTokens,
-			streaming,
-			temperature,
-		})
+		return new ChatAnthropic({ apiKey, model, maxTokens, streaming, temperature })
 	},
 })
 
@@ -232,10 +230,10 @@ const hfTextGenInferenceLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	getModel(params: z.input<typeof hfTextGenInferenceLLMConfig.config>) {
 		const { apiKey, serverUrl, maxTokens, repeatPenalty, temperature, topK, topP } = this.config.parse(params)
 		return new HuggingFaceInference({
-			apiKey,
 			endpointUrl: serverUrl,
-			maxTokens,
 			frequencyPenalty: repeatPenalty,
+			apiKey,
+			maxTokens,
 			temperature,
 			topK,
 			topP,
@@ -258,14 +256,7 @@ const ollamaLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof ollamaLLMConfig.config>) {
 		const { baseUrl, model, numCtx, repeatLastN, repeatPenalty, temperature } = this.config.parse(params)
-		return new Ollama({
-			baseUrl,
-			model,
-			numCtx,
-			repeatLastN,
-			repeatPenalty,
-			temperature,
-		})
+		return new Ollama({ baseUrl, model, numCtx, repeatLastN, repeatPenalty, temperature })
 	},
 })
 
@@ -284,14 +275,7 @@ const geminiChatLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof geminiChatLLMConfig.config>) {
 		const { apiKey, maxOutputTokens, model, temperature, topK, topP } = this.config.parse(params)
-		return new ChatGoogleGenerativeAI({
-			apiKey,
-			maxOutputTokens,
-			modelName: model,
-			temperature,
-			topK,
-			topP,
-		})
+		return new ChatGoogleGenerativeAI({ apiKey, maxOutputTokens, model, temperature, topK, topP })
 	},
 })
 

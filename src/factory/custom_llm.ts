@@ -1,22 +1,35 @@
 import path from 'node:path'
-import { LLM } from '@langchain/core/language_models/llms'
+import { type BaseLLMParams, LLM } from '@langchain/core/language_models/llms'
 import { OpenAI } from '@langchain/openai'
 import { ofetch } from 'ofetch'
+import type { z } from 'zod'
+import type { zodJson } from '@utils'
 
 export class DefaultLLM extends LLM {
+	constructor(params?: BaseLLMParams) {
+		super(params ?? {})
+	}
+
 	_llmType(): string {
-		return 'default'
+		return 'unset'
 	}
 
 	_call(): Promise<string> {
-		return Promise.resolve('AI: You did not configure a Language Model.\nDo it in the settings!')
+		return Promise.resolve('You did not configure a Language Model. Do it in the settings!')
 	}
 }
 
 export class CustomLLM extends LLM {
-	authKey = ''
-	url = ''
-	options: Record<string, unknown> = {}
+	authKey: string | undefined
+	url: string
+	options: z.infer<typeof zodJson> | undefined
+
+	constructor(params: Partial<BaseLLMParams> & { authKey?: string, url: string, options?: z.infer<typeof zodJson> }) {
+		super(params)
+		this.authKey = params.authKey
+		this.url = params.url
+		this.options = params.options
+	}
 
 	_llmType(): string {
 		return 'custom'

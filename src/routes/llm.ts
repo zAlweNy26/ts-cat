@@ -77,7 +77,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 		const id = req.params.llmId
 		const llm = getLLM(id)
 		if (!llm) return rep.notFound('The passed LLM ID doesn\'t exist in the list of available LLMs.')
-		const parsed = llm.config.passthrough().safeParse(req.body)
+		const parsed = llm.config.safeParse(req.body)
 		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
 		cheshireCat.loadLanguageModel()
 		cheshireCat.loadLanguageEmbedder()

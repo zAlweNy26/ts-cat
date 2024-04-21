@@ -76,7 +76,7 @@ export const embedder: FastifyPluginCallback = async (fastify) => {
 		const id = req.params.embedderId
 		const emb = getEmbedder(id)
 		if (!emb) return rep.notFound('The passed Embedder ID doesn\'t exist in the list of available Embedders.')
-		const parsed = emb.config.passthrough().safeParse(req.body)
+		const parsed = emb.config.safeParse(req.body)
 		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
 		cheshireCat.loadLanguageModel()
 		cheshireCat.loadLanguageEmbedder()
