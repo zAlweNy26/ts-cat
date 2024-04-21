@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.2.6
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.5...v1.2.6)
+
+### 🚀 Enhancements
+
+- Refactor database instance ([6d141bf](https://github.com/zAlweNy26/ts-cat/commit/6d141bf))
+- Add source query param to chunk upload ([4e8cbef](https://github.com/zAlweNy26/ts-cat/commit/4e8cbef))
+- Add new database keys and fix defaults ([7809128](https://github.com/zAlweNy26/ts-cat/commit/7809128))
+
+### 🩹 Fixes
+
+- Fix routes schemas ([4957199](https://github.com/zAlweNy26/ts-cat/commit/4957199))
+- Fix boolean coercion ([dbddd89](https://github.com/zAlweNy26/ts-cat/commit/dbddd89))
+- Fix error schema in endpoints ([6134b93](https://github.com/zAlweNy26/ts-cat/commit/6134b93))
+- Improve json tool parser ([2ba8660](https://github.com/zAlweNy26/ts-cat/commit/2ba8660))
+- **RabbitHole:** Fix documents splitting, rename hooks ([87e3afe](https://github.com/zAlweNy26/ts-cat/commit/87e3afe))
+
+### 📖 Documentation
+
+- Add missing jsdocs ([513abf5](https://github.com/zAlweNy26/ts-cat/commit/513abf5))
+
+### 🏡 Chore
+
+- Update eslint rules ([431108b](https://github.com/zAlweNy26/ts-cat/commit/431108b))
+- Halve chunk size and overlap ([7ab22e1](https://github.com/zAlweNy26/ts-cat/commit/7ab22e1))
+
+### ❤️ Contributors
+
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.5
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.4...v1.2.5)
