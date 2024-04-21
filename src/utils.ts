@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
 import { extendZodWithOpenApi } from 'zod-openapi'
+import { safeDestr } from 'destr'
 
 extendZodWithOpenApi(z)
 
@@ -204,4 +205,17 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
 	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
 	else if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else return undefined
+}
+
+/**
+ * Parses a JSON string using the specified Zod schema.
+ * It also cleans a few common issues with generated JSON strings.
+ * @param text The JSON string to parse.
+ * @param schema The Zod schema to use for parsing.
+ * @throws If the JSON string is invalid or does not match the schema.
+ */
+export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T) {
+	const cleaned = text.trim().replace('\_', '_').replace('\-', '-')
+	const json = cleaned.includes('```') ? text.split(/```(?:json)?/)[1]! : text
+	return await schema.parseAsync(safeDestr(json)) as z.infer<T>
 }

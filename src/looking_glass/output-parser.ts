@@ -20,7 +20,7 @@ const agentOutputSchema = z.object({
 type AgentOutput = z.infer<typeof agentOutputSchema>
 
 export class ProceduresOutputParser extends AgentActionOutputParser {
-	lc_namespace = ['looking_glass', 'output-parser']
+	lc_namespace = ['looking_glass', 'procedures-output-parser']
 
 	async parse(output: string): Promise<AgentFinish | AgentAction> {
 		output += '}'

@@ -172,16 +172,17 @@ export class StrayCat {
 	async run(msg: Message, save = true) {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
+
 		const response = this.userMessage = madHatter.executeHook('beforeReadMessage', msg, this)
+
+		// TODO: Find another way to handle this
 		if (response.text.length > cheshireCat.embedderSize) {
 			log.warn(`The input is too long. Storing it as document...`)
-			rabbitHole.ingestContent(this, response.text)
+			await rabbitHole.ingestContent(this, response.text)
 			return
 		}
 
-		try {
-			await this.recallRelevantMemories()
-		}
+		try { await this.recallRelevantMemories() }
 		catch (error) {
 			log.error(error)
 			return
