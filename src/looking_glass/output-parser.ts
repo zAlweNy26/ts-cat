@@ -10,7 +10,7 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 
 	async parse(output: string): Promise<AgentFinish | AgentAction> {
 		output += '}'
-		output = output.replace('None', 'null')
+		output = output.replace('None', 'null').replace('undefined', 'null')
 
 		let parsedOutput: Record<string, any> = {}
 

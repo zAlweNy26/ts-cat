@@ -37,11 +37,12 @@ const openAIEmbedderConfig: EmbedderSettings = Object.freeze({
 	link: 'https://platform.openai.com/docs/models/overview',
 	config: z.object({
 		apiKey: z.string(),
-		model: z.enum(openAIEmbeddingModels).default('text-embedding-ada-002'),
+		model: z.enum(openAIEmbeddingModels).default('text-embedding-3-small'),
+		dimensions: z.number().int().positive().default(1536),
 	}),
 	getModel(params: z.input<typeof openAIEmbedderConfig.config>) {
-		const { apiKey, model } = this.config.parse(params)
-		return new OpenAIEmbeddings({ openAIApiKey: apiKey, modelName: model })
+		const { apiKey, model, dimensions } = this.config.parse(params)
+		return new OpenAIEmbeddings({ openAIApiKey: apiKey, modelName: model, dimensions })
 	},
 })
 

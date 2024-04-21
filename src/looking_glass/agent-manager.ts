@@ -89,8 +89,9 @@ export class AgentManager {
 		const intermediateSteps: IntermediateStep[] = []
 		for (const step of (result.intermediateSteps ?? []) as AgentStep[]) {
 			const { action, observation } = step
-			if (returnDirectTools.includes(action.tool)) result.returnDirect = true
-			intermediateSteps.push({ tool: action.tool, toolInput: action.toolInput, observation })
+			const { tool, toolInput } = action
+			if (returnDirectTools.includes(tool)) result.returnDirect = true
+			intermediateSteps.push({ tool, toolInput, observation })
 		}
 		result.intermediateSteps = intermediateSteps
 

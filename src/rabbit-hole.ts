@@ -211,7 +211,7 @@ export class RabbitHole {
 			const percRead = Math.round((index / docs.length) * 100)
 			const readMsg = `Read ${percRead}% of ${source}`
 			stray.send({ type: 'notification', content: readMsg })
-			log.warn(readMsg)
+			log.info(readMsg)
 			doc.metadata.source = source
 			doc.metadata.when = Date.now()
 			doc = madHatter.executeHook('beforeInsertInMemory', doc, stray)
@@ -231,7 +231,7 @@ export class RabbitHole {
 			await sleep(1000)
 		}
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
-		log.warn(`Done uploading ${source}`)
+		log.info(`Done uploading ${source}`)
 	}
 
 	/**
