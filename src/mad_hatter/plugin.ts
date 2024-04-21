@@ -43,7 +43,7 @@ export const CatPlugin = Object.freeze({
 	 * @param schema the settings schema to use
 	 * @returns the settings object
 	 */
-	settings: <T extends Record<string, z.ZodType>>(schema: T) => z.object(schema),
+	settings: <T extends Record<string, z.ZodType>>(schema: T) => z.object(schema).describe('Plugin settings'),
 	/**
 	 * Add an event to the plugin
 	 * @param event The name of the event to listen to. It can be `installed`, `enabled`, `disabled` or `removed`.
@@ -224,17 +224,17 @@ export class Plugin<
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
 			const content = await readFile(normalizedPath, 'utf-8')
-			const tmpFile = join(dirname(normalizedPath), `tmp_${generateRandomString(10)}.ts`)
-			const replaced = content.replace(/^(const|let)?(\s.*=.*)?Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
-				const id = generateRandomString(10)
-				const isVar = match.startsWith('const') || match.startsWith('let')
-				return `export ${isVar ? match : `const ${id} = ${match}`}`
+			const tmpFile = join(dirname(normalizedPath), `tmp_${generateRandomString(8)}.ts`)
+			const replaced = content.replace(/^(const)?(\s.*=.*)?Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
+				const isVar = match.startsWith('const')
+				if (isVar) return `export ${match}`
+				else return `export const ${generateRandomString(8)} = ${match}`
 			})
 			try {
 				await writeFile(tmpFile, replaced)
 				const exported = await import(pathToFileURL(tmpFile).href)
 				Object.values(exported).forEach((v) => {
-					if (v instanceof z.ZodObject) this._schema = v
+					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v
 					else if (isForm(v)) this._forms.push(v)
 					else if (isTool(v)) this._tools.push(v)
 					else if (isHook(v)) this._hooks.push({ ...v, from: this.id })
