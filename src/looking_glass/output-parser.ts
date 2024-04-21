@@ -1,9 +1,23 @@
+import { z } from 'zod'
 import { AgentActionOutputParser } from 'langchain/agents'
 import type { AgentAction, AgentFinish } from 'langchain/schema'
 import { madHatter } from '@mh'
 import { log } from '@logger'
-import { destr } from 'destr'
+import { parseJson } from '@utils'
 import { OutputParserException } from '@langchain/core/output_parsers'
+
+const agentOutputSchema = z.object({
+	action: z.string(),
+	actionInput: z.string().nullish().transform((v) => {
+		if (typeof v === 'string') {
+			const str = v.trim().replace(/"/g, '')
+			return str === 'null' ? null : str
+		}
+		return null
+	}),
+})
+
+type AgentOutput = z.infer<typeof agentOutputSchema>
 
 export class ProceduresOutputParser extends AgentActionOutputParser {
 	lc_namespace = ['looking_glass', 'output-parser']
@@ -12,18 +26,17 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 		output += '}'
 		output = output.replace('None', 'null').replace('undefined', 'null')
 
-		let parsedOutput: Record<string, any> = {}
+		let parsedOutput: AgentOutput
 
 		try {
-			parsedOutput = destr(output)
+			parsedOutput = await parseJson(output, agentOutputSchema)
 		}
 		catch (error) {
 			log.error(error)
 			throw new OutputParserException(`Could not parse LLM output: ${output}`)
 		}
 
-		const action = parsedOutput.action
-		const actionInput = String(parsedOutput.actionInput)?.trim().replace(/"/g, '') ?? null
+		const { action, actionInput } = parsedOutput
 
 		if (action === 'final-answer') {
 			return {
@@ -58,13 +71,14 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 		return {
 			log: output,
 			tool: action,
-			toolInput: actionInput,
+			toolInput: actionInput ?? '',
 		}
 	}
 
 	getFormatInstructions() {
 		return `{
-            "output": "string"
+            "action": "string",
+			"actionInput": "string" // or null if not needed
         }`
 	}
 }

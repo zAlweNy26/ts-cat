@@ -22,7 +22,7 @@ export interface AgentInput {
 
 export interface IntermediateStep {
 	tool: string
-	toolInput: string
+	toolInput: string | null
 	observation: string
 }
 
@@ -91,7 +91,7 @@ export class AgentManager {
 			const { action, observation } = step
 			const { tool, toolInput } = action
 			if (returnDirectTools.includes(tool)) result.returnDirect = true
-			intermediateSteps.push({ tool, toolInput, observation })
+			intermediateSteps.push({ tool, toolInput: typeof toolInput === 'string' ? toolInput : null, observation })
 		}
 		result.intermediateSteps = intermediateSteps
 
