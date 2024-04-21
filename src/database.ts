@@ -1,3 +1,4 @@
+import { defu } from 'defu'
 import { JSONFileSyncPreset } from 'lowdb/node'
 import { z } from 'zod'
 
@@ -31,7 +32,7 @@ export class Database {
 	private _db: ReturnType<typeof JSONFileSyncPreset<DatabaseConfig>>
 
 	private constructor(path: string) {
-		this._db = JSONFileSyncPreset<DatabaseConfig>(path, {
+		const defaults: DatabaseConfig = {
 			instantTool: true,
 			selectedLLM: 'DefaultLLM',
 			selectedEmbedder: 'FakeEmbedder',
@@ -46,8 +47,11 @@ export class Database {
 			activeTools: [],
 			activeForms: [],
 			activePlugins: ['core_plugin'],
-		})
+		}
+		this._db = JSONFileSyncPreset<DatabaseConfig>(path, defaults)
 		this._db.read()
+		this._db.data = defu(this._db.data, defaults)
+		this._db.write()
 	}
 
 	/**

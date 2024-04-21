@@ -25,8 +25,8 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	fastify.post<{
 		Body: string
 		Querystring: {
-			sync: boolean
-			source: string
+			sync?: boolean
+			source?: string
 		}
 	}>('/chunk', { schema: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -61,9 +61,9 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			file: MultipartFile
 		}
 		Querystring: {
-			sync: boolean
-			chunkSize: number
-			chunkOverlap: number
+			sync?: boolean
+			chunkSize?: number
+			chunkOverlap?: number
 		}
 	}>('/file', { schema: {
 		description: 'Upload a file whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -73,8 +73,8 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		body: z.object({ file: fileSchema }),
 		querystring: z.object({
 			sync: zodBoolean,
-			chunkSize: z.coerce.number().default(256),
-			chunkOverlap: z.coerce.number().default(64),
+			chunkSize: z.coerce.number().optional(),
+			chunkOverlap: z.coerce.number().optional(),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
@@ -99,9 +99,9 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 	fastify.post<{
 		Body: string
 		Querystring: {
-			sync: boolean
-			chunkSize: number
-			chunkOverlap: number
+			sync?: boolean
+			chunkSize?: number
+			chunkOverlap?: number
 		}
 	}>('/web', { schema: {
 		description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -110,8 +110,8 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 		body: z.string().min(5).default('https://example.com').openapi({ description: 'URL of the website or the path of the file to ingest.' }),
 		querystring: z.object({
 			sync: zodBoolean,
-			chunkSize: z.coerce.number().default(256),
-			chunkOverlap: z.coerce.number().default(64),
+			chunkSize: z.coerce.number().optional(),
+			chunkOverlap: z.coerce.number().optional(),
 		}),
 		response: {
 			200: z.object({ info: z.string() }),
@@ -137,7 +137,7 @@ export const fileIngestion: FastifyPluginCallback = async (fastify) => {
 			file: MultipartFile
 		}
 		Querystring: {
-			sync: boolean
+			sync?: boolean
 		}
 	}>('/memory', { schema: {
 		description: 'Upload a memory json file to the cat memory.',

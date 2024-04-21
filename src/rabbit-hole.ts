@@ -136,7 +136,7 @@ export class RabbitHole {
 		log.info('Ingesting textual content...')
 		content = Array.isArray(content) ? content : [content]
 		let docs = content.map(c => new Document({ pageContent: c }))
-		docs = await this.splitDocs(stray, docs, content.length, 0)
+		docs = await this.splitDocs(stray, docs)
 		await this.storeDocuments(stray, docs, source)
 	}
 
@@ -245,8 +245,8 @@ export class RabbitHole {
 	 */
 	async splitDocs(stray: StrayCat, docs: Document[], chunkSize?: number, chunkOverlap?: number) {
 		docs = madHatter.executeHook('beforeSplitDocs', docs, stray)
-		this.splitter.chunkSize = chunkSize ?? db.data.chunkSize
-		this.splitter.chunkOverlap = chunkOverlap ?? db.data.chunkOverlap
+		this.splitter.chunkSize = chunkSize ??= db.data.chunkSize
+		this.splitter.chunkOverlap = chunkOverlap ??= db.data.chunkOverlap
 		log.info('Splitting documents with chunk size', chunkSize, 'and overlap', chunkOverlap)
 		docs = (await this.splitter.splitDocuments(docs)).filter(d => d.pageContent.length > 10)
 		docs = madHatter.executeHook('afterSplitDocs', docs, stray)
