@@ -1,12 +1,11 @@
 import 'dotenv/config'
+import 'zod-openapi/extend'
 import { join } from 'node:path'
 import { readFileSync, readdirSync } from 'node:fs'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
-import { extendZodWithOpenApi } from 'zod-openapi'
+import { defu } from 'defu'
 import { safeDestr } from 'destr'
-
-extendZodWithOpenApi(z)
 
 export const LogLevel = ['error', 'warning', 'normal', 'info', 'debug'] as const
 
@@ -170,7 +169,12 @@ export function generateRandomString(length: number) {
  * @param discriminant The discriminant value for discriminated unions.
  */
 export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_input'] | undefined {
-	if (schema instanceof z.ZodDiscriminatedUnion) {
+	if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
+	else if (schema instanceof z.ZodEnum) return schema.options[0]
+	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
+	else if (schema instanceof z.ZodLiteral) return schema.value
+	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
+	else if (schema instanceof z.ZodDiscriminatedUnion) {
 		if (!discriminant) throw new Error('Discriminant value is required for discriminated unions')
 		for (const [key, val] of schema._def.optionsMap.entries())
 			if (key === discriminant) return getZodDefaults(val)
@@ -199,11 +203,6 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
 		}
 		return undefined
 	}
-	else if (schema instanceof z.ZodEnum) return schema.options[0]
-	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
-	else if (schema instanceof z.ZodLiteral) return schema.value
-	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
-	else if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else return undefined
 }
 
@@ -212,10 +211,13 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
  * It also cleans a few common issues with generated JSON strings.
  * @param text The JSON string to parse.
  * @param schema The Zod schema to use for parsing.
+ * @param addDefaults Whether to add default values to the parsed object.
  * @throws If the JSON string is invalid or does not match the schema.
  */
-export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T) {
-	const cleaned = text.trim().replace('\_', '_').replace('\-', '-')
-	const json = cleaned.includes('```') ? text.split(/```(?:json)?/)[1]! : text
-	return await schema.parseAsync(safeDestr(json)) as z.infer<T>
+export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
+	text = text.trim().replace(/^['"]|['"]$/g, '').replace('\_', '_').replace('\-', '-')
+	text = text.replace(/^```(json)?|```$/g, '').trim()
+	text += text.endsWith('}') ? '' : '}'
+	const merged = addDefaults ? defu(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
+	return await schema.parseAsync(merged) as z.infer<T>
 }

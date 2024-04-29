@@ -57,11 +57,11 @@ export class Tool extends DynamicStructuredTool {
 		this.startExamples = startExamples
 	}
 
-	call(arg: any, configArg?: RunnableConfig | Callbacks | undefined, tags?: string[] | undefined): Promise<string> {
-		const formatArg = {
-			text: arg,
+	invoke(input: string | { [x: string]: any }, config?: RunnableConfig | undefined): Promise<string> {
+		const arg = {
+			text: typeof input === 'string' ? input : JSON.stringify(input),
 		}
-		return super.call(formatArg, configArg, tags)
+		return super.invoke(arg, config)
 	}
 
 	toString() {

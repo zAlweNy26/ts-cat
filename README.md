@@ -55,8 +55,10 @@ docker compose build --no-cache
 ## How to run
 
 ```bash
-# (for development)
+# (for development, with watcher)
 pnpm run dev
+# (for development, without watcher)
+pnpm start
 
 # (for production)
 docker compose up
