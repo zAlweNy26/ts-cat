@@ -30,7 +30,7 @@ export const errorSchema = z.object({
 	},
 })
 
-export const fileSchema = z.string().refine(s => Buffer.isBuffer(Buffer.from(s))).openapi({ format: 'binary' })
+export const fileSchema = z.instanceof(Buffer).openapi({ type: 'string', format: 'binary' })
 
 export const pluginManifestSchema = z.object({
 	name: z.string().min(1).trim(),
