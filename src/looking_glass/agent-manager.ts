@@ -22,7 +22,7 @@ export interface AgentInput {
 
 export interface IntermediateStep {
 	tool: string
-	toolInput: string | null
+	input: string | null
 	observation: string
 }
 
@@ -61,7 +61,7 @@ export class AgentManager {
 
 		const prompt = new ToolPromptTemplate(allowedProcedures, {
 			template: madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray),
-			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'agent_scratchpad', 'examples'],
+			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'agent_scratchpad', 'examples', 'chat_history'],
 		})
 
 		const agentChain = new LLMChain({
@@ -91,7 +91,7 @@ export class AgentManager {
 			const { action, observation } = step
 			const { tool, toolInput } = action
 			if (returnDirectTools.includes(tool)) result.returnDirect = true
-			intermediateSteps.push({ tool, toolInput: typeof toolInput === 'string' ? toolInput : null, observation })
+			intermediateSteps.push({ tool, input: typeof toolInput === 'string' ? toolInput : null, observation })
 		}
 		result.intermediateSteps = intermediateSteps
 
@@ -121,7 +121,10 @@ export class AgentManager {
 		}
 	}
 
-	async executeMemoryChain(input: AgentInput, prefix: string, suffix: string, stray: StrayCat) {
+	async executeMemoryChain(input: AgentInput, stray: StrayCat) {
+		const prefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
+		const suffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
+
 		const inputVariables = Object.keys(input).filter(k => (prefix + suffix).includes(k))
 		const prompt = new PromptTemplate({
 			template: prefix + suffix,
@@ -174,9 +177,6 @@ export class AgentManager {
 
 		if (fastReply) return fastReply
 
-		const promptPrefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
-		const promptSuffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
-
 		const formResult = await this.executeFormAgent(stray)
 
 		if (formResult) return formResult
@@ -201,7 +201,7 @@ export class AgentManager {
 
 		if (agentInput.tools_output === undefined) agentInput.tools_output = ''
 
-		const result = await this.executeMemoryChain(agentInput, promptPrefix, promptSuffix, stray)
+		const result = await this.executeMemoryChain(agentInput, stray)
 		result.intermediateSteps = intermediateSteps
 		const afterMemory = madHatter.executeHook('afterMemoryChain', result, stray)
 
