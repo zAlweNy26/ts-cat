@@ -38,7 +38,9 @@ export interface HookTypes {
 	webParsers: (loaders: WebParser[]) => WebParser[]
 	textSplitter: (splitter: TextSplitter) => TextSplitter
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
+	afterStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => Document
+	afterInsertInMemory: (doc: Document, stray: StrayCat) => Document
 	beforeSplitDocs: (texts: Document[], stray: StrayCat) => Document[]
 	afterSplitDocs: (docs: Document[], stray: StrayCat) => Document[]
 }

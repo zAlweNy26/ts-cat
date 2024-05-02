@@ -61,7 +61,11 @@ CatHook.add('textSplitter', splitter => splitter)
 
 CatHook.add('beforeStoreDocuments', docs => docs)
 
+CatHook.add('afterStoreDocuments', docs => docs)
+
 CatHook.add('beforeInsertInMemory', doc => doc)
+
+CatHook.add('afterInsertInMemory', doc => doc)
 
 CatHook.add('beforeSplitDocs', docs => docs)
 

@@ -218,7 +218,7 @@ export class RabbitHole {
 			if (doc.pageContent) {
 				const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([doc.pageContent])
 				if (docEmbedding.length === 0) {
-					log.warn(`Skipped memory insertion of empty document (${index + 1}/${docs.length})`)
+					log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 					continue
 				}
 				await cheshireCat.currentMemory.collections.declarative.addPoint(
@@ -227,9 +227,11 @@ export class RabbitHole {
 					doc.metadata,
 				)
 			}
-			else log.warn(`Skipped memory insertion of empty document (${index + 1}/${docs.length})`)
+			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
+			doc = madHatter.executeHook('afterInsertInMemory', doc, stray)
 			await sleep(1000)
 		}
+		docs = madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
 		log.info(`Done uploading ${source}`)
 	}
