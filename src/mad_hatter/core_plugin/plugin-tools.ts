@@ -12,7 +12,7 @@ CatTool.add('GetTime', 'Useful to get the current time when asked. Input is alwa
 CatTool.add('GetName', 'Useful to get the current user name when asked. Input is the user name.', async (input) => {
 	return `Your name is ${input}`
 }, {
-	startExamples: ['My name is Daniele', 'I\'m John'],
+	startExamples: ['My name is Daniel', 'I\'m John'],
 })
 
 CatForm.add('PizzaForm', {

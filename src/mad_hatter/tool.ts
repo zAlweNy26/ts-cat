@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { kebabCase } from 'scule'
+import _IsEmpty from 'lodash/isEmpty.js'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import type { RunnableConfig } from '@langchain/core/runnables'
-import type { Callbacks } from '@langchain/core/callbacks/manager'
 import type { StrayCat } from '@lg'
 
 interface ToolOptions {
@@ -59,13 +59,9 @@ export class Tool extends DynamicStructuredTool {
 
 	invoke(input: string | { [x: string]: any }, config?: RunnableConfig | undefined): Promise<string> {
 		const arg = {
-			text: typeof input === 'string' ? input : JSON.stringify(input),
+			text: typeof input === 'object' ? (_IsEmpty(input) ? null : JSON.stringify(input)) : `${input}`,
 		}
 		return super.invoke(arg, config)
-	}
-
-	toString() {
-		return `Tool(name=${this.name}, direct=${this.returnDirect}, description=${this.description})`
 	}
 
 	assignCat(cat: StrayCat) {

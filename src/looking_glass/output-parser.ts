@@ -10,7 +10,7 @@ const agentOutputSchema = z.object({
 	action: z.string(),
 	actionInput: z.string().nullish().transform((v) => {
 		if (typeof v === 'string') {
-			const str = v.trim().replace(/"/g, '')
+			const str = v.trim().replace(/^['"]|['"]$/g, '').replace(/(None|undefined)/g, 'null')
 			return str === 'null' ? null : str
 		}
 		return null
@@ -23,33 +23,23 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 	lc_namespace = ['looking_glass', 'procedures-output-parser']
 
 	async parse(output: string): Promise<AgentFinish | AgentAction> {
-		output += '}'
-		output = output.replace('None', 'null').replace('undefined', 'null')
-
 		let parsedOutput: AgentOutput
 
 		try {
 			parsedOutput = await parseJson(output, agentOutputSchema)
 		}
 		catch (error) {
-			log.error(error)
+			log.error(`Could not parse LLM output: ${output}`)
 			throw new OutputParserException(`Could not parse LLM output: ${output}`)
 		}
+
+		const parsedLog = JSON.stringify(parsedOutput, null, 4)
 
 		const { action, actionInput } = parsedOutput
 
 		if (action === 'final-answer') {
 			return {
-				log: output,
-				returnValues: {
-					output: actionInput,
-				},
-			}
-		}
-
-		if (action === 'none-of-the-others') {
-			return {
-				log: output,
+				log: parsedLog,
 				returnValues: {
 					output: null,
 				},
@@ -60,7 +50,7 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 
 		if (form) {
 			return {
-				log: output,
+				log: parsedLog,
 				returnValues: {
 					output: null,
 					form: action,
@@ -69,9 +59,9 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 		}
 
 		return {
-			log: output,
+			log: parsedLog,
 			tool: action,
-			toolInput: actionInput ?? '',
+			toolInput: actionInput ?? {},
 		}
 	}
 

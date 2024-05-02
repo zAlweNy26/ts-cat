@@ -138,9 +138,9 @@ export class MadHatter {
 			}
 			await rm(plugin.path, { recursive: true, force: true })
 			this.activePlugins = this.activePlugins.filter(p => p !== id)
+			db.update(db => db.activePlugins = this.activePlugins)
 			this.plugins.delete(id)
 			this.syncHooksAndProcedures()
-			db.update(db => db.activePlugins = this.activePlugins)
 		}
 	}
 

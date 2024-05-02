@@ -61,7 +61,7 @@ export class AgentManager {
 
 		const prompt = new ToolPromptTemplate(allowedProcedures, {
 			template: madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray),
-			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'agent_scratchpad', 'examples', 'chat_history'],
+			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'scratchpad', 'examples', 'chat_history'],
 		})
 
 		const agentChain = new LLMChain({
@@ -73,7 +73,7 @@ export class AgentManager {
 		const agent = new LLMSingleActionAgent({
 			llmChain: agentChain,
 			outputParser: new ProceduresOutputParser(),
-			stop: ['}'],
+			stop: ['```', '}'],
 		})
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
@@ -91,7 +91,11 @@ export class AgentManager {
 			const { action, observation } = step
 			const { tool, toolInput } = action
 			if (returnDirectTools.includes(tool)) result.returnDirect = true
-			intermediateSteps.push({ tool, input: typeof toolInput === 'string' ? toolInput : null, observation })
+			intermediateSteps.push({
+				tool,
+				input: typeof toolInput === 'string' ? toolInput : null,
+				observation,
+			})
 		}
 		result.intermediateSteps = intermediateSteps
 
@@ -99,7 +103,7 @@ export class AgentManager {
 			const form = allowedProcedures[result.form] as Form
 			form.assignCat(stray)
 			stray.activeForm = result.form
-			result = form.next()
+			result = await form.next()
 			result.returnDirect = true
 		}
 
@@ -151,7 +155,7 @@ export class AgentManager {
 		if (calledTool && instantTool) {
 			const toolInput = input.input.replace(interpolateFString(trigger, { name: calledTool.name }), '').trim()
 			calledTool.assignCat(stray)
-			return { output: await calledTool.call(toolInput) }
+			return { output: await calledTool.invoke(toolInput) }
 		}
 		return undefined
 	}
