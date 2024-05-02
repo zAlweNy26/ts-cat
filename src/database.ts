@@ -32,7 +32,7 @@ export class Database {
 	private _db: ReturnType<typeof JSONFileSyncPreset<DatabaseConfig>>
 
 	private constructor(path: string) {
-		const defaults: DatabaseConfig = {
+		this._db = JSONFileSyncPreset<DatabaseConfig>(path, {
 			instantTool: true,
 			selectedLLM: 'DefaultLLM',
 			selectedEmbedder: 'FakeEmbedder',
@@ -47,10 +47,8 @@ export class Database {
 			activeTools: [],
 			activeForms: [],
 			activePlugins: ['core_plugin'],
-		}
-		this._db = JSONFileSyncPreset<DatabaseConfig>(path, defaults)
+		})
 		this._db.read()
-		this._db.data = defu(this._db.data, defaults)
 		this._db.write()
 	}
 
