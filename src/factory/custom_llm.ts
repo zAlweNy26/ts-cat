@@ -2,8 +2,7 @@ import path from 'node:path'
 import { type BaseLLMParams, LLM } from '@langchain/core/language_models/llms'
 import { OpenAI } from '@langchain/openai'
 import { ofetch } from 'ofetch'
-import type { z } from 'zod'
-import type { zodJson } from '@utils'
+import type { Json } from '@utils'
 
 export class DefaultLLM extends LLM {
 	constructor(params?: BaseLLMParams) {
@@ -22,9 +21,9 @@ export class DefaultLLM extends LLM {
 export class CustomLLM extends LLM {
 	authKey: string | undefined
 	url: string
-	options: z.infer<typeof zodJson> | undefined
+	options: Json | undefined
 
-	constructor(params: Partial<BaseLLMParams> & { authKey?: string, url: string, options?: z.infer<typeof zodJson> }) {
+	constructor(params: Partial<BaseLLMParams> & { authKey?: string, url: string, options?: Json }) {
 		super(params)
 		this.authKey = params.authKey
 		this.url = params.url

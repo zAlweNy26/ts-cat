@@ -8,7 +8,7 @@ import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
 import { titleCase } from 'scule'
-import { generateRandomString, getFilesRecursively, getZodDefaults } from '@utils'
+import { getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
 import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
@@ -224,11 +224,11 @@ export class Plugin<
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
 			const content = await readFile(normalizedPath, 'utf-8')
-			const tmpFile = join(dirname(normalizedPath), `tmp_${generateRandomString(8)}.ts`)
+			const tmpFile = join(dirname(normalizedPath), `tmp_${getRandomString(8)}.ts`)
 			const replaced = content.replace(/^(const)?(\s.*=.*)?Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
 				const isVar = match.startsWith('const')
 				if (isVar) return `export ${match}`
-				else return `export const ${generateRandomString(8)} = ${match}`
+				else return `export const ${getRandomString(8)} = ${match}`
 			})
 			try {
 				await writeFile(tmpFile, replaced)

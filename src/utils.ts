@@ -2,6 +2,7 @@ import 'dotenv/config'
 import 'zod-openapi/extend'
 import { join } from 'node:path'
 import { readFileSync, readdirSync } from 'node:fs'
+import _SampleSize from 'lodash/sampleSize.js'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
 import { defu } from 'defu'
@@ -13,9 +14,9 @@ const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 
 type Literal = z.infer<typeof literalSchema>
 
-type Json = Literal | { [key: string]: Json } | Json[]
+export type Json = Literal | { [key: string]: Json } | Json[]
 
-type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
+export type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
 
 /**
  * A Zod schema for JSON objects.
@@ -68,6 +69,9 @@ const envSchema = z.object({
  */
 export const parsedEnv = envSchema.parse(process.env)
 
+/**
+ * Retrieves the base URL of the application.
+ */
 function getBaseUrl() {
 	const protocol = parsedEnv.secure ? 'https' : 'http'
 	const address = `${protocol}://${parsedEnv.host}${parsedEnv.port ? `:${parsedEnv.port}` : ''}`
@@ -143,6 +147,9 @@ export async function compareStrings(input: string, prediction: string, criteria
  */
 export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
+/**
+ * A message object sent by the user.
+ */
 export interface Message {
 	text: string
 	[key: string]: any
@@ -152,15 +159,25 @@ export interface Message {
  * Generates a random string of the specified length.
  * @param length The length of the random string to generate.
  */
-export function generateRandomString(length: number) {
-	let result = ''
-	for (let i = 0; i < length; i++) {
-		const isUpperCase = Math.random() < 0.5
-		const base = isUpperCase ? 65 : 97
-		const letter = String.fromCharCode(base + Math.floor(Math.random() * 26))
-		result += letter
-	}
-	return result
+export function getRandomString(length: number) {
+	const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	return _SampleSize(letters, length).join('')
+}
+
+/**
+ * Parses a JSON string using the specified Zod schema.
+ * It also cleans a few common issues with generated JSON strings.
+ * @param text The JSON string to parse.
+ * @param schema The Zod schema to use for parsing.
+ * @param addDefaults Whether to add default values to the parsed object.
+ * @throws If the JSON string is invalid or does not match the schema.
+ */
+export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
+	text = text.trim().replace(/^['"]|['"]$/g, '').replace('\_', '_').replace('\-', '-')
+	text = text.replace(/^```(json)?|```$/g, '').trim()
+	text += text.endsWith('}') ? '' : '}'
+	const merged = addDefaults ? defu(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
+	return await schema.parseAsync(merged) as z.infer<T>
 }
 
 /**
@@ -204,20 +221,4 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
 		return undefined
 	}
 	else return undefined
-}
-
-/**
- * Parses a JSON string using the specified Zod schema.
- * It also cleans a few common issues with generated JSON strings.
- * @param text The JSON string to parse.
- * @param schema The Zod schema to use for parsing.
- * @param addDefaults Whether to add default values to the parsed object.
- * @throws If the JSON string is invalid or does not match the schema.
- */
-export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
-	text = text.trim().replace(/^['"]|['"]$/g, '').replace('\_', '_').replace('\-', '-')
-	text = text.replace(/^```(json)?|```$/g, '').trim()
-	text += text.endsWith('}') ? '' : '}'
-	const merged = addDefaults ? defu(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
-	return await schema.parseAsync(merged) as z.infer<T>
 }

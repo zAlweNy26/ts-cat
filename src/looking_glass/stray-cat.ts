@@ -209,7 +209,7 @@ export class StrayCat {
 				who: this.userId,
 				when: Date.now(),
 			},
-		}) as Document<Record<string, any>>
+		}) as Document
 		doc = madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
 		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
 		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
