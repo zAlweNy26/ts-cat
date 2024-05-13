@@ -143,7 +143,7 @@ export class AgentManager {
 		return await memoryChain.invoke(input, { callbacks: [new NewTokenHandler(stray)] })
 	}
 
-	async executeTool(input: AgentInput, stray: StrayCat): Promise<ChainValues | undefined> {
+	async executeTool(input: AgentInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
 		const trigger = madHatter.executeHook('instantToolTrigger', '@{name}', stray)
 
 		if (!trigger) return undefined
@@ -155,7 +155,11 @@ export class AgentManager {
 		if (calledTool && instantTool) {
 			const toolInput = input.input.replace(interpolateFString(trigger, { name: calledTool.name }), '').trim()
 			calledTool.assignCat(stray)
-			return { output: await calledTool.invoke(toolInput) }
+			const output = await calledTool.invoke(toolInput)
+			return { 
+				output,
+				intermediateSteps: [{ tool: calledTool.name, input: toolInput, observation: output }],
+			}
 		}
 		return undefined
 	}

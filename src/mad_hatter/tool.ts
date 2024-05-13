@@ -4,6 +4,7 @@ import _IsEmpty from 'lodash/isEmpty.js'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import type { StrayCat } from '@lg'
+import { parsedEnv } from '@utils'
 
 interface ToolOptions {
 	direct?: boolean
@@ -52,6 +53,7 @@ export class Tool extends DynamicStructuredTool {
 				text: z.string().nullable(),
 			}),
 			returnDirect: direct,
+			verbose: parsedEnv.verbose,
 		})
 
 		this.startExamples = startExamples

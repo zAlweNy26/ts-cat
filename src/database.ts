@@ -1,4 +1,3 @@
-import { defu } from 'defu'
 import { JSONFileSyncPreset } from 'lowdb/node'
 import { z } from 'zod'
 
