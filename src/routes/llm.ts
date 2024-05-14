@@ -114,7 +114,7 @@ export const llm: FastifyPluginCallback = async (fastify) => {
 			text: z.string().default('Hello world'),
 		}).passthrough(),
 		querystring: z.object({
-			save: zodBoolean,
+			save: zodBoolean.default('true'),
 		}),
 		response: {
 			200: z.record(z.any()),

@@ -28,6 +28,7 @@ export interface IntermediateStep {
 
 export interface AgentFastReply {
 	output: string
+	returnDirect?: boolean
 	intermediateSteps?: IntermediateStep[]
 }
 
@@ -61,7 +62,7 @@ export class AgentManager {
 
 		const prompt = new ToolPromptTemplate(allowedProcedures, {
 			template: madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray),
-			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'scratchpad', 'examples', 'chat_history'],
+			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'scratchpad', 'examples'],
 		})
 
 		const agentChain = new LLMChain({
@@ -73,7 +74,7 @@ export class AgentManager {
 		const agent = new LLMSingleActionAgent({
 			llmChain: agentChain,
 			outputParser: new ProceduresOutputParser(),
-			stop: ['```', '}'],
+			stop: ['}'],
 		})
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
@@ -140,7 +141,10 @@ export class AgentManager {
 			verbose: parsedEnv.verbose,
 			outputKey: 'output',
 		})
-		return await memoryChain.invoke(input, { callbacks: [new NewTokenHandler(stray)] })
+		return await memoryChain.invoke({
+			...input,
+			stop: 'Human:',
+		}, { callbacks: [new NewTokenHandler(stray)] })
 	}
 
 	async executeTool(input: AgentInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
@@ -156,7 +160,7 @@ export class AgentManager {
 			const toolInput = input.input.replace(interpolateFString(trigger, { name: calledTool.name }), '').trim()
 			calledTool.assignCat(stray)
 			const output = await calledTool.invoke(toolInput)
-			return { 
+			return {
 				output,
 				intermediateSteps: [{ tool: calledTool.name, input: toolInput, observation: output }],
 			}
@@ -189,8 +193,8 @@ export class AgentManager {
 
 		if (formResult) return formResult
 
-		const intermediateSteps: IntermediateStep[] = []
 		const proceduralMemories = stray.workingMemory.procedural
+		let intermediateSteps: IntermediateStep[] = []
 
 		if (proceduralMemories.length > 0) {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
@@ -198,8 +202,11 @@ export class AgentManager {
 				const proceduresResult = await this.executeProceduresChain(agentInput, stray)
 				const afterProcedures = madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
-				if (afterProcedures.output) agentInput.tools_output = `## Tools output: \n${afterProcedures.output}`
-				intermediateSteps.push(...(afterProcedures.intermediateSteps ?? []))
+				intermediateSteps = afterProcedures.intermediateSteps ?? []
+				if (intermediateSteps.length > 0) {
+					agentInput.tools_output = `## Tools output: \n`
+					agentInput.tools_output += intermediateSteps.reduce((acc, { tool, observation }) => `${acc}\t- ${tool}: ${observation}\n`, '')
+				}
 			}
 			catch (error) {
 				log.error(`Error executing procedures agent:`)

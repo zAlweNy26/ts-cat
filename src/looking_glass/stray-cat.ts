@@ -296,6 +296,7 @@ export class StrayCat {
 				value.k,
 				value.threshold,
 			)
+			log.info(`Recalled ${memories?.length ?? 0} memories for ${key} collection.`)
 			this.workingMemory[key] = memories ?? []
 		}
 		madHatter.executeHook('afterRecallMemories', this)

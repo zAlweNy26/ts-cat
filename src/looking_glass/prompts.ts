@@ -21,8 +21,8 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 		if (steps && steps.length > 0) {
 			values.scratchpad = '## Actions sequence used until now\n'
 			values.scratchpad += steps.reduce((acc, { action, observation }) => {
-				let thought = `\`\`\`json\n${action.log}\n\`\`\`\n`
-				thought += `\`\`\`json\n${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n\`\`\`\n`
+				let thought = `${action.log}\n`
+				thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
 				return acc + thought
 			}, '')
 		}
@@ -37,7 +37,7 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 			values.examples += procedures.reduce((acc, p) => {
 				const question = `Question: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
 				const example = `{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}`
-				return `${acc}\n${question}\n\`\`\`json\n${example}\n\`\`\`\n`
+				return `${acc}\n${question}\n${example}\n`
 			}, '')
 		}
 		else values.examples = ''
@@ -52,36 +52,30 @@ You can use one of these actions:
 	- "final-answer": Use this action to finish or no relevant action is available. Input is always null.
 
 ## To add an action, use only the following format:
-\`\`\`json
 {{
-	"action": "string" // Represents the name of the action to take, should be one of [{tool_names}, "final-answer"]
-	"actionInput": "string|null" // Represents the input to the action
+	"action": // string - represents the name of the action to take, should be one of [{tool_names}, "final-answer"]
+	"actionInput": // string or null - represents the input to the action
 }}
-\`\`\`
 
 {examples}
 
 ## Action output
 After each action there will be an action output in this format:
-\`\`\`json
 {{
-    "actionOutput": "string" // Output of the previous action
+    "actionOutput": // Output of the previous action
 }}
-\`\`\`
 
 ## Final answer / no action available
 When you have a final answer (or no tools are relevant), use the following format:
-\`\`\`json
 {{
     "action": "final-answer",
     "actionInput": null
 }}
-\`\`\`
 
+## Actions sequence used until now
 {scratchpad}
 
 ## Next action:
-\`\`\`json
 `
 
 export const MAIN_PROMPT_PREFIX = `You are the Cheshire Cat AI, an intelligent AI that passes the Turing test.
