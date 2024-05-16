@@ -12,7 +12,7 @@ export default antfu({
 		},
 	},
 	yaml: true,
-	markdown: true,
+	markdown: false, // TODO: Temporary fix until code blocks are correctly read
 	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/'],
 	plugins: {
 		'zod-openapi': zodOpenApi,
@@ -25,6 +25,9 @@ export default antfu({
 		'zod-openapi/prefer-openapi-last': 'warn',
 		'unused-imports/no-unused-vars-ts': 'warn',
 		'style/max-statements-per-line': 'off',
+		'regexp/no-unused-capturing-group': 'warn',
+		'regexp/optimal-quantifier-concatenation': 'warn',
+		'regexp/no-super-linear-backtracking': 'warn',
 		'node/prefer-global/process': 'off',
 		'curly': ['warn', 'multi-or-nest'],
 		'antfu/if-newline': 'off',

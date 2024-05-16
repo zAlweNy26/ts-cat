@@ -37,7 +37,8 @@
 	},
 	"scripts": {
 		"build": "tsup src/** --format cjs,esm --dts",
-		"lint": "eslint . --fix",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
 		"test": "vitest dev --run",
 		"test:ui": "vitest dev --ui",
 		"release": "pnpm run lint && pnpm run test && changelogen --release && git push --follow-tags",

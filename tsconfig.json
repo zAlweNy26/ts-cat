@@ -48,6 +48,7 @@
 	},
 	"include": [
 		"./src/**/*.ts",
+		"./src/**/*.md/*.ts",
 		"./test/**/*.ts",
 		"eslint.config.mjs",
 		"vitest.config.ts",

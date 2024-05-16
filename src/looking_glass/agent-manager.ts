@@ -224,7 +224,7 @@ export class AgentManager {
 	}
 
 	getEpisodicMemoriesPrompt(docs: MemoryDocument[]) {
-		let memoryTexts = docs.map(d => d.pageContent.replace(/\n/gm, '. '))
+		let memoryTexts = docs.map(d => d.pageContent.replace(/\n$/gm, '. '))
 		if (memoryTexts.length === 0) return ''
 		const memoryTimestamps = docs.map((d) => {
 			const timestamp = d.metadata?.when as number
@@ -235,7 +235,7 @@ export class AgentManager {
 	}
 
 	getDeclarativeMemoriesPrompt(docs: MemoryDocument[]) {
-		let memoryTexts = docs.map(d => d.pageContent.replace(/\n/gm, '. '))
+		let memoryTexts = docs.map(d => d.pageContent.replace(/\n$/gm, '. '))
 		if (memoryTexts.length === 0) return ''
 		const memorySources = docs.map(d => ` (extracted from ${d.metadata?.source})`)
 		memoryTexts = memoryTexts.map((text, i) => text + memorySources[i])
