@@ -1,6 +1,6 @@
 import type { Document } from '@langchain/core/documents'
 import type { TextSplitter } from 'langchain/text_splitter'
-import type { ChainValues } from 'langchain/schema'
+import type { ChainValues } from '@langchain/core/utils/types'
 import type { AgentFastReply, AgentInput, CheshireCat, InstantToolTrigger, MemoryMessage, MemoryRecallConfigs, StrayCat } from '@lg'
 import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'

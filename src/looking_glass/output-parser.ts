@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { AgentActionOutputParser } from 'langchain/agents'
-import type { AgentAction, AgentFinish } from 'langchain/schema'
+import { type AgentAction, AgentActionOutputParser, type AgentFinish } from 'langchain/agents'
 import { madHatter } from '@mh'
 import { log } from '@logger'
 import { parseJson } from '@utils'
@@ -10,7 +9,7 @@ const agentOutputSchema = z.object({
 	action: z.string(),
 	actionInput: z.string().nullish().transform((v) => {
 		if (typeof v === 'string') {
-			const str = v.trim().replace(/^['"]|['"]$/g, '').replace(/(None|undefined)/g, 'null')
+			const str = v.trim().replace(/^['"]|['"]$/g, '').replace(/None|undefined/g, 'null')
 			return str === 'null' ? null : str
 		}
 		return null

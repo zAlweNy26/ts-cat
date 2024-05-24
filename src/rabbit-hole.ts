@@ -1,13 +1,13 @@
 import { basename, extname, resolve } from 'node:path'
 import { existsSync, readFileSync } from 'node:fs'
-import { PDFLoader } from 'langchain/document_loaders/fs/pdf'
-import { CSVLoader } from 'langchain/document_loaders/fs/csv'
+import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
+import { CSVLoader } from '@langchain/community/document_loaders/fs/csv'
+import { DocxLoader } from '@langchain/community/document_loaders/fs/docx'
+import { PPTXLoader } from '@langchain/community/document_loaders/fs/pptx'
 import { TextLoader } from 'langchain/document_loaders/fs/text'
-import { DocxLoader } from 'langchain/document_loaders/fs/docx'
 import { JSONLoader } from 'langchain/document_loaders/fs/json'
-import { PPTXLoader } from 'langchain/document_loaders/fs/pptx'
 import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
-import { CheerioWebBaseLoader } from 'langchain/document_loaders/web/cheerio'
+import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio'
 import { getEncoding } from 'js-tiktoken'
 import type { TextSplitter } from 'langchain/text_splitter'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
@@ -39,7 +39,7 @@ export class RabbitHole {
 	private static instance: RabbitHole
 	private splitter: TextSplitter
 	private webHandlers: WebParser[] = [
-		[/^(https?:\/\/)?(www\.)?.*\..*$/g, CheerioWebBaseLoader],
+		[/^.*$/g, CheerioWebBaseLoader],
 	]
 
 	private fileHandlers: FileParsers = {
