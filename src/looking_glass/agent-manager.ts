@@ -7,32 +7,12 @@ import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
 import { db } from '@db'
+import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
+import type { AgentFastReply, ContextInput, IntermediateStep } from '@dto/agent.ts'
 import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT, ToolPromptTemplate } from './prompts.ts'
-import type { MemoryDocument, MemoryMessage, StrayCat } from './stray-cat.ts'
+import type { StrayCat } from './stray-cat.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
 import { NewTokenHandler } from './callbacks.ts'
-
-export interface AgentInput {
-	input: string
-	chat_history: string
-	episodic_memory: string
-	declarative_memory: string
-	[key: string]: string
-}
-
-export interface IntermediateStep {
-	tool: string
-	input: string | null
-	observation: string
-}
-
-export interface AgentFastReply {
-	output: string
-	returnDirect?: boolean
-	intermediateSteps?: IntermediateStep[]
-}
-
-export type InstantToolTrigger = `${string}{name}${string}`
 
 /**
  * Manager of Langchain Agent.
@@ -40,7 +20,7 @@ export type InstantToolTrigger = `${string}{name}${string}`
  * before feeding them to the Agent. It also instantiates the Langchain Agent.
  */
 export class AgentManager {
-	async executeProceduresChain(agentInput: AgentInput, stray: StrayCat) {
+	async executeProceduresChain(agentInput: ContextInput, stray: StrayCat) {
 		const recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
 				&& ['description', 'startExample'].includes(p.metadata?.trigger)
@@ -126,7 +106,7 @@ export class AgentManager {
 		}
 	}
 
-	async executeMemoryChain(input: AgentInput, stray: StrayCat) {
+	async executeMemoryChain(input: ContextInput, stray: StrayCat) {
 		const prefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const suffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
@@ -147,7 +127,7 @@ export class AgentManager {
 		}, { callbacks: [new NewTokenHandler(stray)] })
 	}
 
-	async executeTool(input: AgentInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
+	async executeTool(input: ContextInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
 		const trigger = madHatter.executeHook('instantToolTrigger', '@{name}', stray)
 
 		if (!trigger) return undefined

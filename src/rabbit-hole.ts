@@ -16,20 +16,10 @@ import { destr } from 'destr'
 import type { StrayCat } from '@lg/stray-cat.ts'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
-import type { PointData } from '@memory/vector-memory-collection.ts'
 import { log } from '@logger'
+import type { MemoryJson } from '@dto/vector-memory.ts'
 import { db } from './database.ts'
 import { sleep } from './utils.ts'
-
-export interface MemoryJson {
-	embedder: string
-	collections: {
-		declarative: PointData[]
-		procedural: PointData[]
-		episodic: PointData[]
-		[key: string]: PointData[]
-	}
-}
 
 export type WebParser = [RegExp, new (content: string) => BaseDocumentLoader]
 

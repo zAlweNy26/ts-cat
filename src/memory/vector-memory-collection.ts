@@ -1,22 +1,12 @@
 import { join } from 'node:path'
 import { lstatSync, mkdirSync, renameSync, writeFileSync } from 'node:fs'
-import type { Schemas } from '@qdrant/js-client-rest'
 import { randomUUID } from 'uncrypto'
 import { ofetch } from 'ofetch'
-import type { MemoryDocument } from '@lg'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
+import type { EmbeddedVector, Filter, FilterCondition, FilterMatch, PointData } from '@dto/vector-memory.ts'
+import type { MemoryDocument } from '@dto/message.ts'
 import { vectorDb } from './vector-memory.ts'
-
-export type Filter = Schemas['Filter']
-
-export type FilterCondition = Schemas['FieldCondition']
-
-export type FilterMatch = FilterCondition['match']
-
-export type PointData = Schemas['PointStruct']
-
-export type EmbeddedVector = Schemas['NamedVectorStruct']
 
 export class VectorMemoryCollection {
 	private constructor(public name: string, public embedderName: string, public embedderSize: number) {}

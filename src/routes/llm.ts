@@ -2,10 +2,11 @@ import type { FastifyPluginCallback } from 'fastify'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
-import { type Message, zodBoolean } from '@utils'
+import { zodBoolean } from '@utils'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
+import type { Message } from '@dto/message.ts'
 import { SwaggerTags, customSetting, errorSchema, modelInfo } from '@/context.ts'
 
 export const llm: FastifyPluginCallback = async (fastify) => {

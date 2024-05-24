@@ -2,19 +2,8 @@ import { QdrantClient } from '@qdrant/js-client-rest'
 import { parsedEnv } from '@utils'
 import { madHatter } from '@mh'
 import { log } from '@logger'
+import type { VectorMemoryCollections, VectorMemoryConfig } from '@dto/vector-memory.ts'
 import { VectorMemoryCollection } from './vector-memory-collection.ts'
-
-export interface VectorMemoryConfig {
-	embedderName: string
-	embedderSize: number
-}
-
-export interface VectorMemoryCollections {
-	episodic: VectorMemoryCollection
-	declarative: VectorMemoryCollection
-	procedural: VectorMemoryCollection
-	[key: string]: VectorMemoryCollection
-}
 
 const { qdrantApiKey, qdrantHost, qdrantPort, secure } = parsedEnv
 

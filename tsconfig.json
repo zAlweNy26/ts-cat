@@ -11,6 +11,7 @@
 		"moduleResolution": "NodeNext",
 		"paths": {
 			"@/*": ["./src/*"],
+			"@dto/*": ["./src/dtos/*"],
 			"@factory/*": ["./src/factory/*"],
 			"@factory": ["./src/factory/index.ts"],
 			"@lg/*": ["./src/looking_glass/*"],

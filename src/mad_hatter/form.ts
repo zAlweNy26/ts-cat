@@ -4,9 +4,10 @@ import _Merge from 'lodash/merge.js'
 import { LLMChain } from 'langchain/chains'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { kebabCase } from 'scule'
-import type { AgentFastReply, StrayCat } from '@lg'
+import type { StrayCat } from '@lg'
 import { log } from '@logger'
 import { parseJson, parsedEnv } from '@utils'
+import type { AgentFastReply } from '@dto/agent.ts'
 
 export enum FormState {
 	/**

@@ -148,14 +148,6 @@ export async function compareStrings(input: string, prediction: string, criteria
 export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 /**
- * A message object sent by the user.
- */
-export interface Message {
-	text: string
-	[key: string]: any
-}
-
-/**
  * Generates a random string of the specified length.
  * @param length The length of the random string to generate.
  */

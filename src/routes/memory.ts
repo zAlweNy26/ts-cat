@@ -1,10 +1,10 @@
 import type { FastifyPluginCallback } from 'fastify'
-import type { MemoryDocument } from '@lg/stray-cat.ts'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
-import type { FilterMatch } from '@memory/vector-memory-collection.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import { z } from 'zod'
+import type { MemoryDocument } from '@dto/message.ts'
+import type { FilterMatch } from '@dto/vector-memory.ts'
 import { SwaggerTags, errorSchema } from '@/context.ts'
 
 export const memory: FastifyPluginCallback = async (fastify) => {

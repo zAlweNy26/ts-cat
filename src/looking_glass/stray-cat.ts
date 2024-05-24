@@ -1,65 +1,16 @@
 import type { RawData, WebSocket } from 'ws'
 import callsites from 'callsites'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
-import type { DocumentInput } from '@langchain/core/documents'
 import { Document } from '@langchain/core/documents'
 import { destr } from 'destr'
 import { type PluginManifest, madHatter } from '@mh'
-import type { EmbeddedVector, FilterMatch } from '@memory'
-import type { Message } from '@utils'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
 import type { ChainValues } from '@langchain/core/utils/types'
-import type { AgentFastReply } from './agent-manager.ts'
+import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage, WorkingMemory } from '@dto/message.ts'
+import type { AgentFastReply } from '@dto/agent.ts'
 import { NewTokenHandler } from './callbacks.ts'
 import { cheshireCat } from './cheshire-cat.ts'
-
-export interface MemoryRecallConfig {
-	embedding: number[]
-	k: number
-	threshold: number
-	filter?: Record<string, FilterMatch>
-}
-
-export interface MemoryRecallConfigs {
-	episodic: MemoryRecallConfig
-	declarative: MemoryRecallConfig
-	procedural: MemoryRecallConfig
-	[key: string]: MemoryRecallConfig
-}
-
-export type MemoryDocument = {
-	id: string
-	vector: EmbeddedVector
-	score: number
-} & DocumentInput
-
-export interface WorkingMemory {
-	episodic: MemoryDocument[]
-	declarative: MemoryDocument[]
-	procedural: MemoryDocument[]
-	[key: string]: MemoryDocument[]
-}
-
-export interface MemoryMessage {
-	what: string
-	who: string
-	when: number
-	why?: {
-		input: string
-		intermediateSteps: Record<string, any>[]
-		memory?: WorkingMemory
-	}
-}
-
-export type WSMessage = {
-	type: 'error'
-	name: string
-	description: string
-} | {
-	type: 'token' | 'notification'
-	content: string
-} | ({ type: 'chat' } & MemoryMessage)
 
 export class StrayCat {
 	private chatHistory: MemoryMessage[] = []
