@@ -136,18 +136,21 @@ export class VectorMemoryCollection {
 	 * @param args Optional arguments to pass.
 	 * @returns The id of the added point.
 	 */
-	addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = randomUUID(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
-		return vectorDb.upsert(this.name, {
-			points: [{
-				id: id ?? randomUUID(),
-				vector,
-				payload: {
-					pageContent: content,
-					metadata,
-				},
-			}],
+	async addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = randomUUID(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
+		const point: PointData = {
+			id: id ?? randomUUID(),
+			vector,
+			payload: {
+				pageContent: content,
+				metadata,
+			},
+		}
+		const res = await vectorDb.upsert(this.name, {
+			points: [point],
 			...args,
 		})
+		if (res.status === 'completed') return point
+		else return undefined
 	}
 
 	/**
@@ -155,8 +158,8 @@ export class VectorMemoryCollection {
 	 * @param points An array of {@link PointData} representing the points to be added.
 	 * @returns The result of the upsert operation.
 	 */
-	addPoints(points: PointData[]) {
-		return vectorDb.upsert(this.name, { points })
+	addPoints(points: PointData[], ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
+		return vectorDb.upsert(this.name, { points, ...args })
 	}
 
 	/**

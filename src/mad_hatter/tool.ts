@@ -34,7 +34,13 @@ export const CatTool = Object.freeze({
 	},
 })
 
-export class Tool extends DynamicStructuredTool {
+const toolSchema = z.object({
+	text: z.string().nullable(),
+})
+
+type ToolSchema = z.infer<typeof toolSchema>
+
+export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 	private cat: StrayCat | undefined
 	public startExamples: string[]
 	active = true
@@ -49,9 +55,7 @@ export class Tool extends DynamicStructuredTool {
 				if (!this.cat) throw new Error('Cat not assigned to tool')
 				return fn(text, this.cat)
 			},
-			schema: z.object({
-				text: z.string().nullable(),
-			}),
+			schema: toolSchema,
 			returnDirect: direct,
 			verbose: parsedEnv.verbose,
 		})
@@ -60,7 +64,7 @@ export class Tool extends DynamicStructuredTool {
 	}
 
 	invoke(input: string | { [x: string]: any }, config?: RunnableConfig | undefined): Promise<string> {
-		const arg = {
+		const arg: ToolSchema = {
 			text: typeof input === 'object' ? (_IsEmpty(input) ? null : JSON.stringify(input)) : `${input}`,
 		}
 		return super.invoke(arg, config)

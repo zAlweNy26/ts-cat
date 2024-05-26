@@ -66,16 +66,19 @@ After each action there will be an action output in this format:
 }}
 
 ## Final answer / no action available
-When you have a final answer (or no tools are relevant), use the following format:
+When you have a final answer (or no actions are relevant), use the following format:
 {{
     "action": "final-answer",
     "actionInput": null
 }}
 
+## Conversation with Human
+{chat_history}
+
 ## Actions sequence used until now
 {scratchpad}
 
-## Next action:
+## Next action to perform or final_answer:
 `
 
 export const MAIN_PROMPT_PREFIX = `You are the Cheshire Cat AI, an intelligent AI that passes the Turing test.
@@ -90,7 +93,4 @@ export const MAIN_PROMPT_SUFFIX = `# Context
 
 {tools_output}
 
-## Conversation until now:
-{chat_history}
-    - Human: {input}
-    - AI: `
+## Conversation until now:`

@@ -221,13 +221,14 @@ export class Plugin<
 
 	private async importAll(files: Dirent[]) {
 		log.debug(`Importing plugin features...`)
+		// TODO: Improve plugin methods import (maybe with the Function class (?), ECMAScript parser or AST parser)
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
 			const content = await readFile(normalizedPath, 'utf-8')
 			const tmpFile = join(dirname(normalizedPath), `tmp_${getRandomString(8)}.ts`)
-			const replaced = content.replace(/^(const)?(\s.*=.*)?Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
-				const isVar = match.startsWith('const')
-				if (isVar) return `export ${match}`
+			const replaced = content.replace(/^Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
+				if (match.startsWith('export')) return match
+				else if (match.startsWith('const') || match.startsWith('let')) return `export ${match}`
 				else return `export const ${getRandomString(8)} = ${match}`
 			})
 			try {

@@ -6,6 +6,7 @@ export interface ContextInput {
 	chat_history: string
 	episodic_memory: string
 	declarative_memory: string
+	tools_output: string
 	[key: string]: string
 }
 

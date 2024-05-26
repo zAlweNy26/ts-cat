@@ -25,7 +25,7 @@ nodemon.once('start', () => {
 	log.info('Restarting the Cat...')
 }).on('quit', () => {
 	log.info('Stopping the Cat...')
-	deleteTempFiles('./src', f => f.startsWith('tmp_') && f.endsWith('.ts'))
+	deleteTempFiles('./src')
 	process.exit()
 }).on('error', (err) => {
 	log.error(err)
@@ -35,11 +35,11 @@ process.on('SIGINT', () => {
 	nodemon.emit('quit')
 })
 
-function deleteTempFiles(path: string, check: (str: string) => boolean) {
+function deleteTempFiles(path: string) {
 	readdirSync(path).forEach((file) => {
 		const filePath = join(path, file)
 		const isDirectory = statSync(filePath).isDirectory()
-		if (isDirectory) deleteTempFiles(filePath, check)
-		else if (check(file)) unlinkSync(filePath)
+		if (isDirectory) deleteTempFiles(filePath)
+		else if (file.startsWith('tmp_') && file.endsWith('.ts')) unlinkSync(filePath)
 	})
 }

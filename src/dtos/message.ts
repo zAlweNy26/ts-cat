@@ -44,6 +44,7 @@ export interface WorkingMemory {
  * The content of a memory message.
  */
 export interface MemoryMessage {
+	role: 'AI' | 'User'
 	what: string
 	who: string
 	when: number

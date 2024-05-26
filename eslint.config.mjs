@@ -30,6 +30,7 @@ export default antfu({
 		'regexp/no-super-linear-backtracking': 'warn',
 		'node/prefer-global/process': 'off',
 		'curly': ['warn', 'multi-or-nest'],
+		'antfu/curly': 'off',
 		'antfu/if-newline': 'off',
 		'brace-style': 'off',
 		'no-console': 'off',

@@ -219,7 +219,7 @@ export class RabbitHole {
 			}
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 			doc = madHatter.executeHook('afterInsertInMemory', doc, stray)
-			await sleep(1000)
+			await sleep(500)
 		}
 		docs = madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })

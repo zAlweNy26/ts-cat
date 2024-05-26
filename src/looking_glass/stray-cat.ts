@@ -6,7 +6,6 @@ import { destr } from 'destr'
 import { type PluginManifest, madHatter } from '@mh'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
-import type { ChainValues } from '@langchain/core/utils/types'
 import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage, WorkingMemory } from '@dto/message.ts'
 import type { AgentFastReply } from '@dto/agent.ts'
 import { NewTokenHandler } from './callbacks.ts'
@@ -99,18 +98,20 @@ export class StrayCat {
 
 	/**
 	 * Sends a message through the websocket connection.
+	 *
 	 * If the websocket connection is not open, the message is queued.
-	 * @param message The message to send.
+	 *
+	 * If the message is of type 'chat', it is also stored in the chat history.
+	 * @param msg The message to send.
 	 */
-	send(message: WSMessage) {
+	send(msg: WSMessage) {
 		if (this.ws) {
-			const what = JSON.stringify(message)
-			this.chatHistory.push({ what, who: this.userId, when: Date.now() })
-			this.ws.send(what)
+			this.ws.send(JSON.stringify(msg))
+			if (msg.type === 'chat') this.chatHistory.push(msg)
 		}
 		else {
-			log.warn(`No websocket connection is open for user "${this.userId}". Queuing the message...`)
-			this.wsQueue.push(message)
+			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
+			this.wsQueue.push(msg)
 		}
 	}
 
@@ -139,36 +140,37 @@ export class StrayCat {
 			return
 		}
 
-		let catMsg: ChainValues
+		let catMsg: AgentFastReply
 		try {
 			catMsg = await cheshireCat.currentAgentManager.executeAgent(this)
 		}
 		catch (error) {
 			log.error(error)
 			catMsg = {
-				intermediateSteps: [],
 				output: 'I am sorry, I could not process your request.',
-			} satisfies AgentFastReply
+				intermediateSteps: [],
+			}
 		}
 
-		log.info('Agent response:')
+		log.normal('Agent response:')
 		log.normal(JSON.stringify(catMsg, undefined, 4))
 
-		let doc = new Document({
+		let doc = new Document<Record<string, any>>({
 			pageContent: response.text,
 			metadata: {
 				who: this.userId,
 				when: Date.now(),
 			},
-		}) as Document
+		})
 		doc = madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
 		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
 		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
 		await cheshireCat.currentMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
 
 		let finalOutput: MemoryMessage = {
+			role: 'AI',
 			what: catMsg.output,
-			who: 'AI',
+			who: this.userId,
 			when: Date.now(),
 			why: {
 				input: response.text,
@@ -180,11 +182,36 @@ export class StrayCat {
 		finalOutput = madHatter.executeHook('beforeSendMessage', finalOutput, this)
 
 		if (save) {
-			this.chatHistory.push({ what: response.text, who: 'Human', when: Date.now() })
+			this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
 			this.chatHistory.push(finalOutput)
 		}
 
 		return finalOutput
+	}
+
+	async classify<S extends string, T extends [S, ...S[]]>(sentence: string, labels: T, examples?: { [key in T[number]]: S[] }) {
+		let examplesList = ''
+		if (examples && Object.keys(examples).length > 0) {
+			examplesList += Object.entries<S[]>(examples).reduce((acc, [l, ex]) => {
+				return `${acc}\n"${ex}" -> "${l}"`
+			}, '\n\nExamples:')
+		}
+
+		const labelsList = `"${labels.join('", "')}"`
+		const prompt = `Classify this sentence:
+"${sentence}"
+
+Allowed classes are:
+${labelsList}${examplesList}
+
+"${sentence}" -> `
+
+		const response = await this.llm(prompt)
+		log.info(`Classified sentence: ${response}`)
+
+		const label = labels.find(w => response.includes(w))
+		if (label) return label
+		else return null
 	}
 
 	/**
@@ -246,9 +273,9 @@ export class StrayCat {
 				value.filter,
 				value.k,
 				value.threshold,
-			)
-			log.info(`Recalled ${memories?.length ?? 0} memories for ${key} collection.`)
-			this.workingMemory[key] = memories ?? []
+			) ?? []
+			log.info(`Recalled ${memories.length} memories for ${key} collection.`)
+			this.workingMemory[key] = memories
 		}
 		madHatter.executeHook('afterRecallMemories', this)
 	}
