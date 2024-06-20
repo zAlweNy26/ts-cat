@@ -37,6 +37,11 @@ export const log = Object.freeze({
 		})
 		table.printTable()
 	},
+	dir: (content: any) => console.dir(content, {
+		colors: true,
+		depth: null,
+		breakLength: 120,
+	}),
 	/**
 	 * Logs an error message.
 	 * @param message The error message to be logged.

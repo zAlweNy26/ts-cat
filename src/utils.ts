@@ -113,7 +113,7 @@ export function logWelcome() {
 	console.log('===================== ^._.^ =====================')
 	console.log(`WEBSOCKET: ${getBaseUrl().href.replace('http', 'ws')}ws`)
 	console.log(`REST API:  ${getBaseUrl().href}docs`)
-	console.log(`ADMIN:     ${getBaseUrl().href}admin`)
+	// console.log(`ADMIN:     ${getBaseUrl().href}admin`)
 	console.log('=================================================')
 }
 

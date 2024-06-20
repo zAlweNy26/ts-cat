@@ -6,11 +6,7 @@ export default antfu({
 		indent: 'tab',
 		quotes: 'single',
 	},
-	typescript: {
-		parserOptions: {
-			project: './tsconfig.json',
-		},
-	},
+	typescript: true,
 	yaml: true,
 	markdown: false, // TODO: Temporary fix until code blocks are correctly read
 	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/'],
@@ -18,11 +14,13 @@ export default antfu({
 		'zod-openapi': zodOpenApi,
 	},
 	rules: {
-		'zod-openapi/require-openapi': 'off',
+		// Error: You have used a rule which requires parserServices to be generated.
+		// You must therefore provide a value for the "parserOptions.project" property for @typescript-eslint/parser.
+		/* 'zod-openapi/require-openapi': 'off',
 		'zod-openapi/require-comment': 'off',
 		'zod-openapi/require-example': 'off',
 		'zod-openapi/prefer-zod-default': 'warn',
-		'zod-openapi/prefer-openapi-last': 'warn',
+		'zod-openapi/prefer-openapi-last': 'warn', */
 		'unused-imports/no-unused-vars-ts': 'warn',
 		'style/max-statements-per-line': 'off',
 		'regexp/no-unused-capturing-group': 'warn',

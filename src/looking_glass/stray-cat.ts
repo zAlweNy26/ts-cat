@@ -3,7 +3,7 @@ import callsites from 'callsites'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import { Document } from '@langchain/core/documents'
 import { destr } from 'destr'
-import { type PluginManifest, madHatter } from '@mh'
+import { madHatter } from '@mh'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
 import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage, WorkingMemory } from '@dto/message.ts'
@@ -75,7 +75,7 @@ export class StrayCat {
 		const { active, manifest, settings } = plugin
 		return {
 			active,
-			manifest: manifest as PluginManifest,
+			manifest,
 			settings,
 		}
 	}
@@ -153,7 +153,7 @@ export class StrayCat {
 		}
 
 		log.normal('Agent response:')
-		log.normal(JSON.stringify(catMsg, undefined, 4))
+		log.dir(catMsg)
 
 		let doc = new Document<Record<string, any>>({
 			pageContent: response.text,
@@ -189,12 +189,18 @@ export class StrayCat {
 		return finalOutput
 	}
 
+	/**
+	 * Classifies the given sentence into one of the provided labels.
+	 * @param sentence The sentence to classify
+	 * @param labels The labels to classify the sentence into
+	 * @param examples Optional examples to help the LLM classify the sentence
+	 * @returns The label of the sentence or null if it could not be classified
+	 */
 	async classify<S extends string, T extends [S, ...S[]]>(sentence: string, labels: T, examples?: { [key in T[number]]: S[] }) {
 		let examplesList = ''
 		if (examples && Object.keys(examples).length > 0) {
-			examplesList += Object.entries<S[]>(examples).reduce((acc, [l, ex]) => {
-				return `${acc}\n"${ex}" -> "${l}"`
-			}, '\n\nExamples:')
+			examplesList += Object.entries(examples)
+				.reduce((acc, [l, ex]) => `${acc}\n"${ex}" -> "${l}"`, '\n\nExamples:')
 		}
 
 		const labelsList = `"${labels.join('", "')}"`

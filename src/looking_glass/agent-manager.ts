@@ -25,7 +25,7 @@ import { NewTokenHandler } from './callbacks.ts'
 export class AgentManager {
 	private verboseRunnable = new RunnableLambda({
 		func: (x) => {
-			if (parsedEnv.verbose) log.info(JSON.stringify(x))
+			if (parsedEnv.verbose) log.dir(x)
 			return x
 		},
 	})
@@ -82,7 +82,7 @@ export class AgentManager {
 
 		const agent = RunnablePassthrough.assign({
 			scratchpad: x => generatedScratchpad((x.intermediateSteps ?? []) as AgentStep[]),
-		}).pipe(prompt).pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new ProceduresOutputParser())
+		}).pipe(this.verboseRunnable).pipe(prompt).pipe(stray.currentLLM).pipe(new ProceduresOutputParser())
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
 			agent,
@@ -253,7 +253,7 @@ export class AgentManager {
 
 	getLangchainChatHistory(history: MemoryMessage[]) {
 		const chatHistory = new ChatMessageHistory()
-		history.reverse().forEach((m) => {
+		history.forEach((m) => {
 			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: 'AI', content: m.what }))
 			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: m.what }))
 		})
