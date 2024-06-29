@@ -1,8 +1,7 @@
 import { basename, dirname, extname, join, relative } from 'node:path'
 import type { Dirent } from 'node:fs'
-import { existsSync, readFileSync, statSync } from 'node:fs'
-import { readFile, unlink, writeFile } from 'node:fs/promises'
-import { pathToFileURL } from 'node:url'
+import { existsSync, statSync } from 'node:fs'
+import { unlink } from 'node:fs/promises'
 import { execSync } from 'node:child_process'
 import { defu } from 'defu'
 import { z } from 'zod'
@@ -85,7 +84,7 @@ export class Plugin<
 	}
 
 	async reload() {
-		const tsFiles = getFilesRecursively(this.path).filter(file => extname(file.name) === '.ts')
+		const tsFiles = (await getFilesRecursively(this.path)).filter(file => extname(file.name) === '.ts')
 		if (tsFiles.length === 0) log.error(new Error('Plugin must contain at least one .ts file'))
 
 		if (this._reloading) return
@@ -93,8 +92,8 @@ export class Plugin<
 		this._reloading = true
 		await this.installRequirements()
 		await this.importAll(tsFiles)
-		this.loadManifest()
-		this.loadSettings()
+		await this.loadManifest()
+		await this.loadSettings()
 		this._reloading = false
 	}
 
@@ -149,7 +148,7 @@ export class Plugin<
 	set settings(settings: Record<string, any>) {
 		this._settings = this.schema.parse(settings) as S
 		const settingsPath = join(this.path, 'settings.json')
-		writeFile(settingsPath, JSON.stringify(this._settings, null, 2))
+		Bun.write(settingsPath, JSON.stringify(this._settings, null, 2))
 	}
 
 	/**
@@ -169,12 +168,12 @@ export class Plugin<
 		else log.info(`Plugin ${this.id} ${event}`)
 	}
 
-	private loadManifest() {
+	private async loadManifest() {
 		log.debug('Loading plugin manifest...')
 		const manifestPath = join(this.path, 'plugin.json')
 		if (existsSync(manifestPath)) {
 			try {
-				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
+				const json = destr<PluginManifest>(await Bun.file(manifestPath).text())
 				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
 			}
 			catch (err) {
@@ -185,12 +184,12 @@ export class Plugin<
 		}
 	}
 
-	private loadSettings() {
+	private async loadSettings() {
 		log.debug('Loading plugin settings...')
 		const settingsPath = join(this.path, 'settings.json')
 		if (existsSync(settingsPath)) {
 			try {
-				const json = destr<Record<string, any>>(readFileSync(settingsPath, 'utf-8'))
+				const json = destr<Record<string, any>>(await Bun.file(settingsPath).text())
 				this._settings = this.schema.parse(json) as S
 			}
 			catch (err) {
@@ -206,7 +205,7 @@ export class Plugin<
 		log.debug('Installing plugin requirements...')
 		const requirementsPath = join(this.path, 'requirements.txt')
 		if (existsSync(requirementsPath)) {
-			const requirements = await readFile(requirementsPath, 'utf-8')
+			const requirements = await Bun.file(requirementsPath).text()
 			const names = requirements.split('\n').map(req => req.trim().split('@')[0]!)
 			try {
 				execSync(`npm list ${names.join(' ')}`, { cwd: this.path }).toString()
@@ -224,7 +223,7 @@ export class Plugin<
 		// TODO: Improve plugin methods import (maybe with the Function class (?), ECMAScript parser or AST parser)
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
-			const content = await readFile(normalizedPath, 'utf-8')
+			const content = await Bun.file(normalizedPath).text()
 			const tmpFile = join(dirname(normalizedPath), `tmp_${getRandomString(8)}.ts`)
 
 			const replaced = content.replace(/^Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
@@ -233,8 +232,8 @@ export class Plugin<
 				else return `export const ${getRandomString(8)} = ${match}`
 			})
 			try {
-				await writeFile(tmpFile, replaced)
-				const exported = await import(pathToFileURL(tmpFile).href)
+				await Bun.write(tmpFile, replaced)
+				const exported = await import(Bun.pathToFileURL(tmpFile).href)
 				Object.values(exported).forEach((v) => {
 					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v
 					else if (isForm(v)) this._forms.push(v)

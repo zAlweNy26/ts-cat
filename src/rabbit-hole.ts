@@ -1,5 +1,4 @@
 import { basename, extname, resolve } from 'node:path'
-import { existsSync, readFileSync } from 'node:fs'
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv'
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx'
@@ -19,9 +18,8 @@ import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import type { MemoryJson } from '@dto/vector-memory.ts'
 import { db } from './database.ts'
-import { sleep } from './utils.ts'
 
-export type WebParser = [RegExp, new (content: string) => BaseDocumentLoader]
+export type WebParser = [RegExp, new (url: string) => BaseDocumentLoader]
 
 export type FileParsers = Record<`${string}/${string}`, new (content: string | Blob) => BaseDocumentLoader>
 
@@ -178,8 +176,8 @@ export class RabbitHole {
 		catch (error) {
 			if (error instanceof TypeError) log.info('The string is not a valid URL, trying with a file-system path...')
 			else if (error instanceof Error) log.error(error.message)
-			if (!existsSync(path)) throw new Error('The path does not exist. Skipping ingestion...')
-			const data = readFileSync(resolve(path))
+			if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
+			const data = await Bun.file(resolve(path)).text()
 			const file = new File([data], basename(path), { type: extname(path) })
 			await this.ingestFile(stray, file, chunkSize, chunkOverlap)
 		}
@@ -219,7 +217,7 @@ export class RabbitHole {
 			}
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 			doc = madHatter.executeHook('afterInsertInMemory', doc, stray)
-			await sleep(500)
+			await Bun.sleep(500)
 		}
 		docs = madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import 'zod-openapi/extend'
 import { join } from 'node:path'
-import { readFileSync, readdirSync } from 'node:fs'
+import { readdir } from 'node:fs/promises'
 import _SampleSize from 'lodash/sampleSize.js'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
@@ -107,8 +107,8 @@ export const catPaths = {
 /**
  * Logs a welcome message and prints important URLs.
  */
-export function logWelcome() {
-	const cat = readFileSync('src/welcome.txt', 'utf8')
+export async function logWelcome() {
+	const cat = await Bun.file('src/welcome.txt').text()
 	console.log(cat)
 	console.log('===================== ^._.^ =====================')
 	console.log(`WEBSOCKET: ${getBaseUrl().href.replace('http', 'ws')}ws`)
@@ -122,8 +122,8 @@ export function logWelcome() {
  * @param path The path to search for files.
  * @returns An array of Dirent objects representing the files found.
  */
-export function getFilesRecursively(path: string) {
-	const dirents = readdirSync(path, { withFileTypes: true, recursive: true, encoding: 'utf-8' })
+export async function getFilesRecursively(path: string) {
+	const dirents = await readdir(path, { withFileTypes: true, recursive: true, encoding: 'utf-8' })
 	for (const dirent of dirents) dirent.path = join(dirent.path, dirent.name)
 	return dirents
 }
@@ -142,10 +142,12 @@ export async function compareStrings(input: string, prediction: string, criteria
 }
 
 /**
- * Pauses the execution for a specified number of milliseconds.
- * @param ms The number of milliseconds to wait.
+ * **Waiting for a Bun internal method to be implemented.**
+ *
+ * Checks if a directory exists.
+ * @param path The path to the directory to check.
  */
-export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+export const existsDir = (path: string) => !!Array.from(new Bun.Glob(path).scanSync({ onlyFiles: false }))[0]
 
 /**
  * Generates a random string of the specified length.

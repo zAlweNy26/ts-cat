@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { catPaths, sleep, zodJson } from '@utils'
+import { catPaths, zodJson } from '@utils'
 
 const isGithubAction = process.env.GITHUB_ACTIONS === 'true'
 
@@ -11,13 +11,6 @@ it.runIf(isGithubAction)('test cat paths', () => {
 		assetsPath: 'src/assets',
 		assetsUrl: 'http://localhost:1865/assets',
 	})
-})
-
-it('test sleep', async () => {
-	const start = Date.now()
-	await sleep(100)
-	expect(Date.now() - start).greaterThanOrEqual(95)
-	expect(Date.now() - start).lessThanOrEqual(105)
 })
 
 it('test zod json type', () => {

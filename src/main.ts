@@ -1,4 +1,4 @@
-import path from 'node:path'
+import { resolve } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import Fastify from 'fastify'
 import ws from '@fastify/websocket'
@@ -9,7 +9,6 @@ import multipart, { ajvFilePlugin } from '@fastify/multipart'
 import sensible from '@fastify/sensible'
 import cors from '@fastify/cors'
 import statics from '@fastify/static'
-import underPressure from '@fastify/under-pressure'
 import { checkPort } from 'get-port-please'
 import requestLogger from '@mgcrea/fastify-request-logger'
 import {
@@ -76,11 +75,9 @@ fastify.decorateRequest('stray', null)
 // Register plugins
 await fastify.register(requestLogger)
 
-await fastify.register(underPressure)
-
 await fastify.register(statics, {
 	prefix: '/assets',
-	root: path.resolve(process.cwd(), 'src', 'assets'),
+	root: resolve(process.cwd(), 'src', 'assets'),
 })
 
 await fastify.register(sensible, { sharedSchemaId: 'HttpError' })
@@ -196,7 +193,7 @@ try {
 	await fastify.listen({ host, port })
 	await fastify.ready()
 	fastify.swagger()
-	logWelcome()
+	await logWelcome()
 }
 catch (err) {
 	fastify.log.error(err)
