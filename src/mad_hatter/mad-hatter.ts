@@ -1,6 +1,5 @@
 import { mkdir, readdir, rm } from 'node:fs/promises'
 import { basename, join, sep } from 'node:path'
-import { execSync } from 'node:child_process'
 import chokidar from 'chokidar'
 import { catPaths, existsDir } from '@utils'
 import { db } from '@db'
@@ -139,8 +138,8 @@ export class MadHatter {
 			const requirementsPath = join(plugin.path, 'requirements.txt')
 			if (existsDir(requirementsPath)) {
 				const requirements = await Bun.file(requirementsPath).text()
-				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).join(' ')
-				try { execSync(`pnpm remove ${pkgs}`, { cwd: plugin.path }) }
+				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).filter(p => p !== undefined)
+				try { Bun.spawnSync(['bun', 'remove', ...pkgs]) }
 				catch (error) { log.error(`Error removing requirements for ${plugin.id}: ${error}`) }
 			}
 			await rm(plugin.path, { recursive: true, force: true })

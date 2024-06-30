@@ -2,7 +2,6 @@ import { basename, dirname, extname, join, relative } from 'node:path'
 import type { Dirent } from 'node:fs'
 import { existsSync, statSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
-import { execSync } from 'node:child_process'
 import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
@@ -12,6 +11,7 @@ import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
 import { type Form, isForm } from './form.ts'
+import pkg from '~/package.json'
 
 const pluginManifestSchema = z.object({
 	name: z.string().min(1).trim(),
@@ -216,13 +216,9 @@ export class Plugin<
 		const requirementsPath = join(this.path, 'requirements.txt')
 		if (existsSync(requirementsPath)) {
 			const requirements = await Bun.file(requirementsPath).text()
-			const names = requirements.split('\n').map(req => req.trim().split('@')[0]!)
-			try {
-				execSync(`npm list ${names.join(' ')}`, { cwd: this.path }).toString()
-			}
-			catch (error) {
-				const pkgs = requirements.split('\n').join(' ')
-				try { execSync(`pnpm i ${pkgs}`, { cwd: this.path }) }
+			const pkgs = requirements.split('\n')
+			if (!Object.keys(pkg.dependencies).every(dep => pkgs.includes(dep))) {
+				try { Bun.spawnSync(['bun', 'i', ...pkgs]) }
 				catch (error) { log.error(`Error installing requirements for ${this.id}: ${error}`) }
 			}
 		}

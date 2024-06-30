@@ -9,12 +9,12 @@ import { serverTiming } from '@elysiajs/server-timing'
 import { cors } from '@elysiajs/cors'
 import { staticPlugin } from '@elysiajs/static'
 import { madHatter } from '@mh/mad-hatter.ts'
-import pkg from '../package.json' assert { type: 'json' }
 import { db } from './database.ts'
 import { logWelcome, parsedEnv } from './utils.ts'
 import { apiModels, swaggerTags } from './context.ts'
 import { log } from './logger.ts'
 import { rabbitHole } from './rabbit-hole.ts'
+import pkg from '~/package.json'
 
 const app = new Elysia()
 	.trace(async ({ handle, context }) => {

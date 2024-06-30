@@ -1,4 +1,5 @@
 import { basename, extname, resolve } from 'node:path'
+import { File } from 'node:buffer'
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv'
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx'
@@ -142,7 +143,7 @@ export class RabbitHole {
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
 
 		log.info('Ingesting file...')
-		const loader = new this.fileHandlers[mime]!(file)
+		const loader = new this.fileHandlers[mime]!(file as unknown as Blob)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 		const content = await loader.load()
 		stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
