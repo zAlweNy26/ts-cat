@@ -214,7 +214,7 @@ export class VectorMemoryCollection {
 			documents.push({
 				id: memory.id.toString(),
 				score: memory.score,
-				vector: memory.vector as EmbeddedVector,
+				vector: memory.vector as number[],
 				pageContent: (memory.payload?.pageContent as string),
 				metadata: (memory.payload?.metadata as Record<string, any>),
 			})

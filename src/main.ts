@@ -1,188 +1,157 @@
 import { resolve } from 'node:path'
-import { readFile } from 'node:fs/promises'
-import Fastify from 'fastify'
-import ws from '@fastify/websocket'
-import swagger from '@fastify/swagger'
-import swaggerUi from '@fastify/swagger-ui'
-import formbody from '@fastify/formbody'
-import multipart, { ajvFilePlugin } from '@fastify/multipart'
-import sensible from '@fastify/sensible'
-import cors from '@fastify/cors'
-import statics from '@fastify/static'
 import { checkPort } from 'get-port-please'
-import requestLogger from '@mgcrea/fastify-request-logger'
-import {
-	fastifyZodOpenApiPlugin,
-	fastifyZodOpenApiTransform,
-	fastifyZodOpenApiTransformObject,
-	serializerCompiler,
-	validatorCompiler,
-} from 'fastify-zod-openapi'
-import type { StrayCat } from '@lg/stray-cat.ts'
-import { type CheshireCat, cheshireCat } from '@lg/cheshire-cat.ts'
-import qs from 'qs'
-import { embedder, fileIngestion, llm, memory, plugins, settings, status, websocket } from '@routes'
+import { cheshireCat } from '@lg/cheshire-cat.ts'
+import { embedder, fileIngestion, llm, memory, plugins, settings } from '@routes'
 import isDocker from 'is-docker'
+import { Elysia, t } from 'elysia'
+import { swagger } from '@elysiajs/swagger'
+import { serverTiming } from '@elysiajs/server-timing'
+import { cors } from '@elysiajs/cors'
+import { staticPlugin } from '@elysiajs/static'
+import { madHatter } from '@mh/mad-hatter.ts'
 import pkg from '../package.json' assert { type: 'json' }
-import { type Database, db } from './database.ts'
-import { catPaths, logWelcome, parsedEnv } from './utils.ts'
-import { SwaggerTags } from './context.ts'
+import { db } from './database.ts'
+import { logWelcome, parsedEnv } from './utils.ts'
+import { apiModels, swaggerTags } from './context.ts'
+import { log } from './logger.ts'
+import { rabbitHole } from './rabbit-hole.ts'
 
-declare module 'fastify' {
-	interface FastifyInstance {
-		cat: CheshireCat
-		db: Database
-	}
-	interface FastifyRequest {
-		stray: StrayCat
-	}
-}
-
-const fastify = Fastify({
-	logger: {
-		level: parsedEnv.logLevel,
-		customLevels: {
-			error: 60,
-			warning: 50,
-			normal: 40,
-			info: 30,
-			debug: 20,
+const app = new Elysia()
+	.trace(async ({ handle, context }) => {
+		const { time: start, end } = await handle
+		const time = ((await end) - start).toFixed(2)
+		log.tag('bgMagenta', 'TRACE', `[${context.request.method}] ${context.path} in ${time}ms`)
+	})
+	.decorate({
+		cat: cheshireCat,
+		mh: madHatter,
+		rh: rabbitHole,
+		log,
+		db,
+	})
+	.derive(({ headers, cat }) => {
+		const user = headers.user || 'user'
+		return { stray: cat.getStray(user) || cat.addStray(user) }
+	})
+	.use(serverTiming())
+	.use(cors({
+		origin: parsedEnv.corsAllowedOrigins,
+		methods: '*',
+		allowedHeaders: '*',
+		credentials: true,
+	}))
+	.use(staticPlugin({
+		prefix: '/assets',
+		assets: resolve(process.cwd(), 'src', 'assets'),
+	}))
+	.use(swagger({
+		scalarConfig: {
+			searchHotKey: 'f',
+			isEditable: false,
+			showSidebar: true,
 		},
-		transport: {
-			target: '@mgcrea/pino-pretty-compact',
-			options: {
-				translateTime: 'HH:MM:ss',
-				ignore: 'pid,hostname',
-				levelFirst: true,
-				colorize: true,
+		exclude: ['/docs', '/docs/json'],
+		autoDarkMode: true,
+		path: '/docs',
+		documentation: {
+			info: {
+				title: '😸 Cheshire Cat API',
+				description: pkg.description,
+				version: pkg.version,
 			},
-		},
-	},
-	disableRequestLogging: true,
-	ajv: {
-		plugins: [ajvFilePlugin],
-	},
-})
-
-fastify.setValidatorCompiler(validatorCompiler)
-fastify.setSerializerCompiler(serializerCompiler)
-
-// Decorate instance
-fastify.decorate('cat', cheshireCat)
-fastify.decorate('db', db)
-fastify.decorateRequest('stray', null)
-
-// Register plugins
-await fastify.register(requestLogger)
-
-await fastify.register(statics, {
-	prefix: '/assets',
-	root: resolve(process.cwd(), 'src', 'assets'),
-})
-
-await fastify.register(sensible, { sharedSchemaId: 'HttpError' })
-
-await fastify.register(ws)
-
-await fastify.register(formbody, { parser: str => qs.parse(str) })
-
-await fastify.register(multipart, { attachFieldsToBody: true })
-
-await fastify.register(cors, {
-	origin: parsedEnv.corsAllowedOrigins,
-	methods: '*',
-	allowedHeaders: '*',
-	credentials: true,
-})
-
-await fastify.register(fastifyZodOpenApiPlugin)
-
-await fastify.register(swagger, {
-	transform: fastifyZodOpenApiTransform,
-	transformObject: fastifyZodOpenApiTransformObject,
-	openapi: {
-		info: {
-			title: '😸 Cheshire Cat API',
-			description: pkg.description,
-			version: pkg.version,
-		},
-		servers: [{ url: catPaths.baseUrl }],
-		components: {
-			securitySchemes: {
-				apiKey: {
-					type: 'apiKey',
-					name: 'token',
-					in: 'header',
-					description: 'Authorization header token',
+			tags: Object.values(swaggerTags),
+			security: [{ apiKey: ['token'] }],
+			components: {
+				securitySchemes: {
+					token: {
+						type: 'apiKey',
+						name: 'token',
+						in: 'header',
+						description: 'Authorization header token',
+					},
+				},
+				headers: {
+					user: {
+						description: 'User ID header',
+						example: 'user',
+						schema: { type: 'string' },
+					},
 				},
 			},
 		},
-		security: [{ apiKey: ['token'] }],
-		tags: Object.entries(SwaggerTags).map(([key, value]) => ({ name: value, description: key })),
-	},
-})
-
-const logoIcon = await readFile('./src/assets/favicon.png')
-const swaggerCss = await readFile('./src/assets/swagger-ui-theme.css', { encoding: 'utf-8' })
-await fastify.register(swaggerUi, {
-	routePrefix: '/docs',
-	uiConfig: {
-		docExpansion: 'list',
-		withCredentials: parsedEnv.secure,
-		deepLinking: true,
-		tryItOutEnabled: true,
-		persistAuthorization: true,
-		displayRequestDuration: true,
-		syntaxHighlight: {
-			activate: true,
-			theme: 'agate',
+	}))
+	.use(apiModels)
+	.get('/', () => ({
+		status: 'We\'re all mad here, dear!',
+		version: pkg.version,
+		protected: parsedEnv.apiKey !== undefined,
+	}), {
+		detail: {
+			tags: [swaggerTags.status.name],
+			summary: 'Get server status',
+			description: 'Retrieve the current server status.',
 		},
-	},
-	theme: {
-		title: 'Cheshire Cat - Swagger',
-		css: [
-			{
-				filename: 'custom.css',
-				content: swaggerCss,
-			},
-		],
-		favicon: [
-			{
-				filename: 'favicon.png',
-				rel: 'icon',
-				sizes: '64x64',
-				type: 'image/png',
-				content: logoIcon,
-			},
-		],
-	},
-})
+		response: {
+			200: t.Object({
+				status: t.String(),
+				version: t.String(),
+				protected: t.Boolean(),
+			}),
+			400: 'error',
+		},
+	})
+	.ws('/ws/:userId', {
+		params: t.Object({
+			userId: t.String({ default: 'user' }),
+		}),
+		body: t.Intersect([
+			t.Object({
+				text: t.String(),
+				save: t.Optional(t.BooleanString()),
+			}),
+			t.Record(t.String(), t.Any()),
+		]),
+		open: async (ws) => {
+			const { data: { cat, params } } = ws
+			const user = params.userId
+			let stray = cat.getStray(user)
+			if (stray) stray.addWebSocket(ws)
+			else stray = cat.addStray(user, ws)
+			log.debug(`User ${user} connected to the WebSocket.`)
+			while (stray.wsQueue.length) {
+				const message = stray.wsQueue.shift()
+				if (message) stray.send(message)
+			}
+		},
+		close: ({ data: { cat, params } }) => {
+			const user = params.userId
+			cat.removeStray(user)
+			log.debug(`User ${user} disconnected from the WebSocket.`)
+		},
+		message: ({ data: { cat, params, body } }) => {
+			const user = params.userId
+			const stray = cat.getStray(user)!
+			stray.run(body, body.save).then(stray.send).catch(log.error)
+		},
+		error: ({ error }) => {
+			log.dir(error)
+		},
+	})
 
-// Register routes
-await fastify.register(status)
-await fastify.register(settings, { prefix: '/settings' })
-await fastify.register(llm, { prefix: '/llm' })
-await fastify.register(embedder, { prefix: '/embedder' })
-await fastify.register(memory, { prefix: '/memory' })
-await fastify.register(plugins, { prefix: '/plugins' })
-await fastify.register(fileIngestion, { prefix: '/rabbithole' })
-await fastify.register(websocket, { prefix: '/ws' })
+export type App = typeof app
 
-// Register hooks
-fastify.addHook('preParsing', async (req, rep) => {
-	const apiKey = req.headers.token, realKey = parsedEnv.apiKey
-	const publicRoutes = ['/docs', '/assets', '/ws']
+app.use(settings)
+app.use(llm)
+app.use(embedder)
+app.use(memory)
+app.use(fileIngestion)
+app.use(plugins)
 
-	// Check if the request has a valid API key
-	if (realKey && realKey !== apiKey && req.url !== '/' && !publicRoutes.some(r => req.url.startsWith(r)))
-		return rep.unauthorized('Invalid API key')
-
-	// Add a StrayCat instance to the request object
-	const userId = (Array.isArray(req.headers.userId) ? req.headers.userId[0] : req.headers.userId) || 'user'
-	const stray = cheshireCat.getStray(userId)
-	if (!stray) req.stray = cheshireCat.addStray(userId)
-	else req.stray = stray
-})
+export type FullApp = typeof app & ReturnType<typeof plugins> &
+	ReturnType<typeof embedder> &
+	ReturnType<typeof fileIngestion> &
+	ReturnType<typeof memory> &
+	ReturnType<typeof llm> & ReturnType<typeof settings>
 
 const inDocker = isDocker()
 
@@ -190,15 +159,15 @@ try {
 	const port = inDocker ? 80 : parsedEnv.port
 	const host = inDocker ? '0.0.0.0' : parsedEnv.host
 	await checkPort(port, host)
-	await fastify.listen({ host, port })
-	await fastify.ready()
-	fastify.swagger()
+	app.listen({
+		hostname: parsedEnv.host,
+		port: parsedEnv.port,
+	})
 	await logWelcome()
 }
 catch (err) {
-	fastify.log.error(err)
-	await fastify.close()
+	await app.stop()
 	process.exit(1)
 }
 
-export default fastify
+export default app

@@ -12,9 +12,19 @@ import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
 import { type Form, isForm } from './form.ts'
-import { pluginManifestSchema } from '@/context.ts'
 
-export type PluginManifest = z.infer<typeof pluginManifestSchema>
+const pluginManifestSchema = z.object({
+	name: z.string().min(1).trim(),
+	version: z.string().trim().regex(/^\d{1,3}\.\d{1,3}\.\d{1,3}$/).default('0.0.1'),
+	description: z.string().min(1).trim().default('No description provided'),
+	authorName: z.string().min(1).trim().default('Anonymous'),
+	authorUrl: z.string().trim().url().optional(),
+	pluginUrl: z.string().trim().url().optional(),
+	thumb: z.string().trim().url().optional(),
+	tags: z.array(z.string().trim()).default(['miscellaneous', 'unknown']),
+})
+
+type PluginManifest = z.infer<typeof pluginManifestSchema>
 
 interface PluginEvents {
 	installed: (manifest: PluginManifest) => void

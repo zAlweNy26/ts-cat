@@ -1,5 +1,4 @@
 import 'dotenv/config'
-import 'zod-openapi/extend'
 import { join } from 'node:path'
 import { readdir } from 'node:fs/promises'
 import _SampleSize from 'lodash/sampleSize.js'
@@ -35,7 +34,7 @@ export const zodPrimitive: z.ZodType<Primitive> = z.lazy(() =>
 /**
  * A Zod schema for fixing coercion of boolean value.
  */
-export const zodBoolean = z.string().transform(v => v === 'true').default('false').openapi({ type: 'boolean' })
+export const zodBoolean = z.string().transform(v => v === 'true').default('false')
 
 const envSchema = z.object({
 	CORE_HOST: z.string().default('localhost'),
