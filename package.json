@@ -65,6 +65,7 @@
 		"chokidar": "^3.6.0",
 		"consola": "^3.2.3",
 		"console-table-printer": "^2.12.1",
+		"croner": "8.0.2",
 		"d3-dsv": "^2.0.0",
 		"date-fns": "^3.6.0",
 		"defu": "^6.1.4",
