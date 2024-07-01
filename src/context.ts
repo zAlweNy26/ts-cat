@@ -33,13 +33,22 @@ export const swaggerTags = {
 	},
 } as const
 
+export class UnauthorizedError extends Error {
+	code = 'UNAUTHORIZED'
+	status = 401
+
+	constructor(message?: string) {
+		super(message ?? 'UNAUTHORIZED')
+	}
+}
+
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
 export function authMiddleware(app: Elysia) {
 	return app.onBeforeHandle(({ headers }) => {
 		const apiKey = headers.token, realKey = parsedEnv.apiKey
 		if (realKey && realKey !== apiKey)
-			throw new Error('Invalid API key')
+			throw new UnauthorizedError('Invalid API key')
 	})
 }
 
