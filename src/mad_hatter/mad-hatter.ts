@@ -1,9 +1,7 @@
-import { existsSync, mkdir, readdirSync } from 'node:fs'
-import { readFile, rm } from 'node:fs/promises'
+import { mkdir, readdir, rm } from 'node:fs/promises'
 import { basename, join, sep } from 'node:path'
-import { execSync } from 'node:child_process'
 import chokidar from 'chokidar'
-import { catPaths } from '@utils'
+import { catPaths, existsDir } from '@utils'
 import { db } from '@db'
 import { log } from '@logger'
 import type { HookNames, HookTypes, Hooks } from './hook.ts'
@@ -22,7 +20,10 @@ export class MadHatter {
 	tools: Tool[] = []
 	forms: Form[] = []
 
-	private constructor() {}
+	private constructor() {
+		log.silent('Initializing the Mad Hatter...')
+		this.activePlugins = db.data.activePlugins
+	}
 
 	/**
 	 * Get the Mad Hatter instance
@@ -30,9 +31,7 @@ export class MadHatter {
 	 */
 	static async getInstance() {
 		if (!MadHatter.instance) {
-			log.silent('Initializing the Mad Hatter...')
 			MadHatter.instance = new MadHatter()
-			MadHatter.instance.activePlugins = db.data.activePlugins
 			await MadHatter.instance.installPlugin(`${basePath}/mad_hatter/core_plugin`)
 			await MadHatter.instance.findPlugins()
 		}
@@ -74,8 +73,8 @@ export class MadHatter {
 	 */
 	async findPlugins() {
 		log.silent('Finding plugins...')
-		if (existsSync(pluginsPath)) {
-			const dirs = readdirSync(pluginsPath, { withFileTypes: true })
+		if (existsDir(pluginsPath)) {
+			const dirs = await readdir(pluginsPath, { withFileTypes: true })
 			for (const dir of dirs) {
 				if (dir.isDirectory()) {
 					const pluginPath = join(pluginsPath, dir.name)
@@ -83,7 +82,15 @@ export class MadHatter {
 				}
 			}
 		}
-		else mkdir(pluginsPath, { recursive: true }, () => log.debug('Created plugins directory'))
+		else {
+			try {
+				await mkdir(pluginsPath, { recursive: true })
+				log.debug('Created plugins directory')
+			}
+			catch (error) {
+				log.error('Error creating plugins directory:', error)
+			}
+		}
 		log.success('Active plugins:', this.activePlugins.join(', '))
 		this.syncHooksAndProcedures()
 		if (Object.keys(this.hooks).length > 0) {
@@ -130,10 +137,10 @@ export class MadHatter {
 		if (plugin) {
 			plugin.triggerEvent('removed')
 			const requirementsPath = join(plugin.path, 'requirements.txt')
-			if (existsSync(requirementsPath)) {
-				const requirements = await readFile(requirementsPath, 'utf-8')
-				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).join(' ')
-				try { execSync(`pnpm remove ${pkgs}`, { cwd: plugin.path }) }
+			if (existsDir(requirementsPath)) {
+				const requirements = await Bun.file(requirementsPath).text()
+				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).filter(p => p !== undefined)
+				try { Bun.spawnSync(['bun', 'remove', ...pkgs]) }
 				catch (error) { log.error(`Error removing requirements for ${plugin.id}: ${error}`) }
 			}
 			await rm(plugin.path, { recursive: true, force: true })

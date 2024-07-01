@@ -1,170 +1,156 @@
-import type { MultipartFile } from '@fastify/multipart'
-import type { FastifyPluginCallback } from 'fastify'
-import { log } from '@logger'
-import { rabbitHole } from '@rh'
-import { z } from 'zod'
-import { zodBoolean } from '@utils'
-import { SwaggerTags, errorSchema, fileSchema } from '@/context.ts'
+import { t } from 'elysia'
+import { authMiddleware, swaggerTags } from '@/context'
+import type { App } from '@/main'
 
-export const fileIngestion: FastifyPluginCallback = async (fastify) => {
-	fastify.get('/allowed-mimetypes', { schema: {
-		description: 'Retrieve the allowed mimetypes that can be ingested by the Rabbit Hole.',
-		tags: [SwaggerTags['Rabbit Hole']],
-		summary: 'Get allowed mimetypes',
-		response: {
-			200: z.object({
-				allowedMimetypes: z.array(z.string()),
+export function fileIngestion(app: App) {
+	return app.group('/rabbithole', { detail: { tags: [swaggerTags.rh.name] } }, i => i
+		.use(authMiddleware)
+		.get('/allowed-mimetypes', ({ rh }) => {
+			return {
+				allowedMimetypes: Object.keys(rh.fileParsers),
+			}
+		}, {
+			detail: {
+				description: 'Retrieve the allowed mimetypes that can be ingested by the Rabbit Hole.',
+				summary: 'Get allowed mimetypes',
+			},
+			response: {
+				200: t.Object({
+					allowedMimetypes: t.Array(t.String()),
+				}),
+			},
+		})
+		.post('/chunk', async ({ rh, body, query, stray, log }) => {
+			const { sync, source } = query
+			try {
+				if (sync) await rh.ingestContent(stray, body.chunk, source)
+				else rh.ingestContent(stray, body.chunk).catch(log.error)
+			}
+			catch (error) {
+				log.error('Error while ingesting chunk:', error)
+				throw new Error('Error while ingesting the passed chunk')
+			}
+			return {
+				info: sync ? 'Chunk has been ingested successfully.' : 'Chunk is being ingested asynchronously...',
+			}
+		}, {
+			body: t.Object({
+				chunk: t.Union([t.String(), t.Array(t.String())]),
 			}),
-		},
-	} }, () => {
-		return {
-			allowedMimetypes: Object.keys(rabbitHole.fileParsers),
-		}
-	})
-
-	fastify.post<{
-		Body: string
-		Querystring: {
-			sync?: boolean
-			source?: string
-		}
-	}>('/chunk', { schema: {
-		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
-		tags: [SwaggerTags['Rabbit Hole']],
-		summary: 'Upload text chunk',
-		body: z.string().min(10),
-		querystring: z.object({
-			sync: zodBoolean,
-			source: z.string().default('unknown'),
-		}),
-		response: {
-			200: z.object({ info: z.string() }),
-			400: errorSchema,
-		},
-	} }, async (req, rep) => {
-		const chunk = req.body, { sync, source } = req.query
-		try {
-			if (sync) await rabbitHole.ingestContent(req.stray, chunk, source)
-			else rabbitHole.ingestContent(req.stray, chunk).catch(log.error)
-		}
-		catch (error) {
-			log.error('Error while ingesting chunk:', error)
-			return rep.badRequest('Error while ingesting the passed chunk.')
-		}
-		return {
-			info: sync ? 'Chunk has been ingested successfully.' : 'Chunk is being ingested asynchronously...',
-		}
-	})
-
-	fastify.post<{
-		Body: {
-			file: MultipartFile
-		}
-		Querystring: {
-			sync?: boolean
-			chunkSize?: number
-			chunkOverlap?: number
-		}
-	}>('/file', { schema: {
-		description: 'Upload a file whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
-		tags: [SwaggerTags['Rabbit Hole']],
-		summary: 'Upload file',
-		consumes: ['multipart/form-data'],
-		body: z.object({ file: fileSchema }),
-		querystring: z.object({
-			sync: zodBoolean,
-			chunkSize: z.coerce.number().optional(),
-			chunkOverlap: z.coerce.number().optional(),
-		}),
-		response: {
-			200: z.object({ info: z.string() }),
-			400: errorSchema,
-		},
-	} }, async (req, rep) => {
-		const { file } = req.body, { sync, chunkOverlap, chunkSize } = req.query
-		try {
-			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
-			if (sync) await rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap)
-			else rabbitHole.ingestFile(req.stray, uploadFile, chunkSize, chunkOverlap).catch(log.error)
-		}
-		catch (error) {
-			log.error('Error while ingesting file:', error)
-			return rep.badRequest('Error while ingesting the passed file.')
-		}
-		return {
-			info: sync ? 'File has been ingested successfully.' : 'File is being ingested asynchronously...',
-		}
-	})
-
-	fastify.post<{
-		Body: string
-		Querystring: {
-			sync?: boolean
-			chunkSize?: number
-			chunkOverlap?: number
-		}
-	}>('/web', { schema: {
-		description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
-		tags: [SwaggerTags['Rabbit Hole']],
-		summary: 'Upload URL',
-		body: z.string().min(5).default('https://example.com').openapi({ description: 'URL of the website or the path of the file to ingest.' }),
-		querystring: z.object({
-			sync: zodBoolean,
-			chunkSize: z.coerce.number().optional(),
-			chunkOverlap: z.coerce.number().optional(),
-		}),
-		response: {
-			200: z.object({ info: z.string() }),
-			400: errorSchema,
-		},
-	} }, async (req, rep) => {
-		const webUrl = req.body, { sync, chunkOverlap, chunkSize } = req.query
-		try {
-			if (sync) await rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap)
-			else rabbitHole.ingestPathOrURL(req.stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
-		}
-		catch (error) {
-			log.error('Error while ingesting web url:', error)
-			return rep.badRequest('Error while ingesting the passed url.')
-		}
-		return {
-			info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
-		}
-	})
-
-	fastify.post<{
-		Body: {
-			file: MultipartFile
-		}
-		Querystring: {
-			sync?: boolean
-		}
-	}>('/memory', { schema: {
-		description: 'Upload a memory json file to the cat memory.',
-		tags: [SwaggerTags['Rabbit Hole']],
-		summary: 'Upload memory',
-		consumes: ['multipart/form-data'],
-		body: z.object({ file: fileSchema }),
-		querystring: z.object({
-			sync: zodBoolean,
-		}),
-		response: {
-			200: z.object({ info: z.string() }),
-			400: errorSchema,
-		},
-	} }, async (req, rep) => {
-		const { file } = req.body, { sync } = req.query
-		try {
-			const uploadFile = new File([await file.toBuffer()], file.filename, { type: file.mimetype })
-			if (sync) await rabbitHole.ingestMemory(uploadFile)
-			else rabbitHole.ingestMemory(uploadFile).catch(log.error)
-		}
-		catch (error) {
-			log.error('Error while ingesting memory file:', error)
-			return rep.badRequest('Error while ingesting the passed memory file.')
-		}
-		return {
-			info: sync ? 'Memory file has been ingested successfully.' : 'Memory file is being ingested asynchronously...',
-		}
-	})
+			query: t.Object({
+				sync: t.BooleanString({ default: true }),
+				source: t.String(),
+			}),
+			detail: {
+				description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
+				summary: 'Upload text chunk',
+			},
+			response: {
+				200: t.Object({
+					info: t.String(),
+				}),
+				400: 'error',
+			},
+		})
+		.post('/file', async ({ rh, body, query, stray, log }) => {
+			const { file } = body, { sync, chunkOverlap, chunkSize } = query
+			try {
+				if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
+				else rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+			}
+			catch (error) {
+				log.error('Error while ingesting file:', error)
+				throw new Error('Error while ingesting the passed file')
+			}
+			return {
+				info: sync ? 'File has been ingested successfully.' : 'File is being ingested asynchronously...',
+			}
+		}, {
+			body: t.Object({
+				file: t.File(),
+			}),
+			query: t.Object({
+				sync: t.BooleanString({ default: true }),
+				chunkSize: t.Numeric({ default: 256 }),
+				chunkOverlap: t.Numeric({ default: 64 }),
+			}),
+			detail: {
+				description: 'Upload a file whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
+				summary: 'Upload file',
+			},
+			response: {
+				200: t.Object({
+					info: t.String(),
+				}),
+				400: 'error',
+			},
+		})
+		.post('/memory', async ({ rh, body, query, log }) => {
+			const { file } = body, { sync } = query
+			try {
+				if (sync) await rh.ingestMemory(file)
+				else rh.ingestMemory(file).catch(log.error)
+			}
+			catch (error) {
+				log.error('Error while ingesting memory file:', error)
+				throw new Error('Error while ingesting the passed memory file')
+			}
+			return {
+				info: sync ? 'Memory file has been ingested successfully.' : 'Memory file is being ingested asynchronously...',
+			}
+		}, {
+			body: t.Object({
+				file: t.File(),
+			}),
+			query: t.Object({
+				sync: t.BooleanString({ default: true }),
+			}),
+			detail: {
+				description: 'Upload a memory json file to the cat memory.',
+				summary: 'Upload memory',
+			},
+			response: {
+				200: t.Object({
+					info: t.String(),
+				}),
+				400: 'error',
+			},
+		})
+		.post('/web', async ({ rh, body, query, stray, log }) => {
+			const { webUrl } = body, { sync, chunkOverlap, chunkSize } = query
+			try {
+				if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap)
+				else rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
+			}
+			catch (error) {
+				log.error('Error while ingesting web url:', error)
+				throw new Error('Error while ingesting the passed url')
+			}
+			return {
+				info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
+			}
+		}, {
+			body: t.Object({
+				webUrl: t.String({
+					format: 'uri',
+					default: 'https://example.com',
+					description: 'URL of the website or the path of the file to ingest.',
+				}),
+			}),
+			query: t.Object({
+				sync: t.BooleanString({ default: true }),
+				chunkSize: t.Numeric({ default: 256 }),
+				chunkOverlap: t.Numeric({ default: 64 }),
+			}),
+			detail: {
+				description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
+				summary: 'Upload URL',
+			},
+			response: {
+				200: t.Object({
+					info: t.String(),
+				}),
+				400: 'error',
+			},
+		}))
 }

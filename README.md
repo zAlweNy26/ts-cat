@@ -39,14 +39,13 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 
 ## Pre-requisites
 
-- Node.js 18.x
-- pnpm 8.10.x
+- Bun (>= 1.1.0)
 
 ## Installation
 
 ```bash
 # (for development)
-pnpm install
+bun install
 rm -f .git/hooks/pre-commit && ln -s ../../pre-commit .git/hooks/pre-commit
 
 # (for production)
@@ -57,9 +56,9 @@ docker compose build --no-cache
 
 ```bash
 # (for development, with watcher)
-pnpm run dev
+bun run dev
 # (for development, without watcher)
-pnpm start
+bun start
 
 # (for production)
 docker compose up
@@ -70,5 +69,5 @@ docker compose up
 To run the tests, be sure to have the Docker compose up and running. Then you can do:
 
 ```bash
-docker exec -it ccat_ts pnpm test
+docker exec -it ccat_ts bun test
 ```

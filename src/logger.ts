@@ -11,7 +11,6 @@ const logger = createConsola({
 		compact: true,
 		date: true,
 	},
-	fancy: true,
 })
 
 /**

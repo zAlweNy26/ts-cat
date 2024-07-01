@@ -1,0 +1,19 @@
+logLevel = "warn"
+telemetry = true
+
+[test]
+root = "./test"
+
+[install]
+dev = true
+peer = true
+exact = true
+auto = "auto"
+
+[install.lockfile]
+save = true
+
+[run]
+shell = "bun"
+bun = true
+silent = true

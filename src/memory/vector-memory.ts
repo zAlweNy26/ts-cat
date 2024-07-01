@@ -20,6 +20,7 @@ export class VectorMemory {
 	collections!: VectorMemoryCollections
 
 	private constructor() {
+		log.silent('Initializing the Vector Memory...')
 		this.vectorDb = vectorDb
 	}
 
@@ -28,10 +29,7 @@ export class VectorMemory {
 	 * @returns The Vector Memory class as a singleton
 	 */
 	static async getInstance(params: VectorMemoryConfig) {
-		if (!VectorMemory.instance) {
-			log.silent('Initializing the Vector Memory...')
-			VectorMemory.instance = new VectorMemory()
-		}
+		if (!VectorMemory.instance) VectorMemory.instance = new VectorMemory()
 		await VectorMemory.instance.initCollections(params)
 		return VectorMemory.instance
 	}

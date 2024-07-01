@@ -1,4 +1,4 @@
-import path from 'node:path'
+import { join } from 'node:path'
 import { type BaseLLMParams, LLM } from '@langchain/core/language_models/llms'
 import { OpenAI } from '@langchain/openai'
 import { ofetch } from 'ofetch'
@@ -68,6 +68,6 @@ export class CustomOpenAILLM extends OpenAI {
 		})
 
 		this.url = params?.modelKwargs?.url as string ?? ''
-		this.openAIApiBase = path.join(this.url, 'v1')
+		this.openAIApiBase = join(this.url, 'v1')
 	}
 }

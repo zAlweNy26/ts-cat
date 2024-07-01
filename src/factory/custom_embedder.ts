@@ -1,4 +1,4 @@
-import path from 'node:path'
+import { join } from 'node:path'
 import type { EmbeddingsParams } from '@langchain/core/embeddings'
 import { Embeddings } from '@langchain/core/embeddings'
 import { FlagEmbedding } from 'fastembed'
@@ -13,7 +13,7 @@ export class CustomOpenAIEmbeddings extends Embeddings {
 	constructor(params: EmbeddingsParams & { url: string }) {
 		const { url, ...args } = params
 		super(args)
-		this.url = path.join(url, 'v1/embeddings')
+		this.url = join(url, 'v1/embeddings')
 	}
 
 	async embedDocuments(documents: string[]): Promise<number[][]> {
