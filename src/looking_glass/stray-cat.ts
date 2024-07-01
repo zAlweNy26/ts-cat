@@ -50,6 +50,14 @@ export class StrayCat {
 		return cheshireCat.currentEmbedder
 	}
 
+	get whiteRabbit() {
+		return cheshireCat.whiteRabbit
+	}
+
+	get rabbitHole() {
+		return cheshireCat.rabbitHole
+	}
+
 	/**
 	 * Retrieves information about the plugin where is being executed.
 	 * @returns An object containing the plugin's active status, manifest, and settings.

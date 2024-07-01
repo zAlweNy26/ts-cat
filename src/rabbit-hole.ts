@@ -43,6 +43,7 @@ export class RabbitHole {
 	}
 
 	private constructor() {
+		log.silent('Initializing the Rabbit Hole...')
 		this.fileHandlers = madHatter.executeHook('fileParsers', this.fileHandlers)
 		this.webHandlers = madHatter.executeHook('webParsers', this.webHandlers)
 		this.splitter = madHatter.executeHook('textSplitter', new RecursiveCharacterTextSplitter({
@@ -56,11 +57,8 @@ export class RabbitHole {
 	 * Get the Rabbit Hole instance
 	 * @returns The Rabbit Hole class as a singleton
 	 */
-	static getInstance() {
-		if (!RabbitHole.instance) {
-			log.silent('Initializing the Rabbit Hole...')
-			RabbitHole.instance = new RabbitHole()
-		}
+	static async getInstance() {
+		if (!RabbitHole.instance) RabbitHole.instance = new RabbitHole()
 		return RabbitHole.instance
 	}
 

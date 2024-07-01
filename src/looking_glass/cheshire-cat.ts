@@ -8,6 +8,8 @@ import { log } from '@logger'
 import type { PointData } from '@dto/vector-memory.ts'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat, type WS } from './stray-cat.ts'
+import { whiteRabbit } from './white-rabbit.ts'
+import { rabbitHole } from '@/rabbit-hole.ts'
 
 type ProcedureHash = Record<string, {
 	name: string
@@ -26,6 +28,7 @@ export class CheshireCat {
 	private _embedderSize = 0
 
 	private constructor() {
+		log.silent('Initializing the Cheshire Cat...')
 		madHatter.executeHook('beforeBootstrap', this)
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
@@ -40,7 +43,6 @@ export class CheshireCat {
 	 */
 	static async getInstance() {
 		if (!CheshireCat.instance) {
-			log.silent('Initializing the Cheshire Cat...')
 			CheshireCat.instance = new CheshireCat()
 			await CheshireCat.instance.loadMemory()
 			await CheshireCat.instance.embedProcedures()
@@ -62,6 +64,14 @@ export class CheshireCat {
 
 	get currentMemory() {
 		return this.memory
+	}
+
+	get whiteRabbit() {
+		return whiteRabbit
+	}
+
+	get rabbitHole() {
+		return rabbitHole
 	}
 
 	get embedderSize() {

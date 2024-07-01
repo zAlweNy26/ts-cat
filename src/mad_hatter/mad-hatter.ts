@@ -20,7 +20,10 @@ export class MadHatter {
 	tools: Tool[] = []
 	forms: Form[] = []
 
-	private constructor() {}
+	private constructor() {
+		log.silent('Initializing the Mad Hatter...')
+		this.activePlugins = db.data.activePlugins
+	}
 
 	/**
 	 * Get the Mad Hatter instance
@@ -28,9 +31,7 @@ export class MadHatter {
 	 */
 	static async getInstance() {
 		if (!MadHatter.instance) {
-			log.silent('Initializing the Mad Hatter...')
 			MadHatter.instance = new MadHatter()
-			MadHatter.instance.activePlugins = db.data.activePlugins
 			await MadHatter.instance.installPlugin(`${basePath}/mad_hatter/core_plugin`)
 			await MadHatter.instance.findPlugins()
 		}
