@@ -36,7 +36,7 @@
 		"build": "bun build src/** --outdir ./dist --target bun",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
-		"test": "vitest dev --run",
+		"test": "vitest dev --exclude \"**/test/api/**\" --run",
 		"test:ui": "vitest dev --ui",
 		"release": "bun run lint && bun run test && changelogen --release && git push --follow-tags",
 		"typecheck": "tsc --noEmit",

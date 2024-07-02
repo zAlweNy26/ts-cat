@@ -6,7 +6,7 @@ import app from '@/main.ts'
 
 const api = treaty(app)
 
-describe('Api Status', () => {
+describe('api status', () => {
 	it('return correct response', async () => {
 		const { data } = await api.index.get()
 
