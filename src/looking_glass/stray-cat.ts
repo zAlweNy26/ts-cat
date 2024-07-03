@@ -1,19 +1,28 @@
-import type { RawData, WebSocket } from 'ws'
 import callsites from 'callsites'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import { Document } from '@langchain/core/documents'
-import { destr } from 'destr'
 import { madHatter } from '@mh'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
 import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage, WorkingMemory } from '@dto/message.ts'
 import type { AgentFastReply } from '@dto/agent.ts'
-import { NewTokenHandler } from './callbacks.ts'
+import type { ServerWebSocket } from 'bun'
+import type { TSchema } from 'elysia'
+import type { TypeCheck } from 'elysia/type-system'
+import type { ElysiaWS } from 'elysia/ws'
 import { cheshireCat } from './cheshire-cat.ts'
+import { NewTokenHandler } from './callbacks.ts'
+
+export type WS = ElysiaWS<
+	ServerWebSocket<{
+		validator?: TypeCheck<TSchema>
+	}>,
+	any,
+	any
+>
 
 export class StrayCat {
 	private chatHistory: MemoryMessage[] = []
-	private _ws?: WebSocket
 	private userMessage!: Message
 	public wsQueue: WSMessage[] = []
 	public activeForm?: string
@@ -23,27 +32,10 @@ export class StrayCat {
 		procedural: [],
 	}
 
-	constructor(public userId: string, ws?: WebSocket) {
-		this._ws = ws
-		if (this._ws) this._ws.on('message', this.onMessage)
-	}
-
-	private async onMessage(message: RawData) {
-		let msg: Message
-		try { msg = destr(message.toString()) }
-		catch (error) {
-			msg = { text: message.toString() }
-		}
-		const res = await this.run(msg)
-		if (res) this.send({ type: 'chat', ...res })
-	}
+	constructor(public userId: string, private ws?: WS) {}
 
 	get lastUserMessage() {
 		return this.userMessage
-	}
-
-	get ws() {
-		return this._ws
 	}
 
 	get plugins() {
@@ -56,6 +48,14 @@ export class StrayCat {
 
 	get currentEmbedder() {
 		return cheshireCat.currentEmbedder
+	}
+
+	get whiteRabbit() {
+		return cheshireCat.whiteRabbit
+	}
+
+	get rabbitHole() {
+		return cheshireCat.rabbitHole
 	}
 
 	/**
@@ -84,16 +84,8 @@ export class StrayCat {
 	 * This property is used to establish a new WebSocket connection.
 	 * @param value The WebSocket instance.
 	 */
-	set ws(value: WebSocket | undefined) {
-		this._ws = value
-		this._ws?.on('open', () => {
-			log.info(`User ${this.userId} is now connected to the WebSocket.`)
-			while (this.wsQueue.length) {
-				const message = this.wsQueue.shift()
-				if (message) this.send(message)
-			}
-		})
-		this._ws?.on('message', this.onMessage)
+	addWebSocket(value: WS | undefined) {
+		this.ws = value
 	}
 
 	/**
@@ -121,7 +113,7 @@ export class StrayCat {
 	 * @param save Whether to save the message or not in the chat history (default: true).
 	 * @returns The response message
 	 */
-	async run(msg: Message, save = true) {
+	async run(msg: Message, save = true): Promise<WSMessage> {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
 
@@ -131,13 +123,20 @@ export class StrayCat {
 		if (response.text.length > cheshireCat.embedderSize) {
 			log.warn(`The input is too long. Storing it as document...`)
 			await rabbitHole.ingestContent(this, response.text)
-			return
+			return {
+				type: 'notification',
+				content: 'The input is too long. Storing it as document...',
+			}
 		}
 
 		try { await this.recallRelevantMemories() }
 		catch (error) {
 			log.error(error)
-			return
+			return {
+				type: 'error',
+				name: 'MemoryRecallError',
+				description: 'An error occurred while trying to recall relevant memories.',
+			}
 		}
 
 		let catMsg: AgentFastReply
@@ -186,7 +185,10 @@ export class StrayCat {
 			this.chatHistory.push(finalOutput)
 		}
 
-		return finalOutput
+		return {
+			type: 'chat',
+			...finalOutput,
+		}
 	}
 
 	/**

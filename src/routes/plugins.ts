@@ -1,315 +1,261 @@
-import { createReadStream, createWriteStream, mkdirSync, readdirSync } from 'node:fs'
-import { createGunzip } from 'node:zlib'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { FastifyPluginCallback } from 'fastify'
+import { mkdir, readdir } from 'node:fs/promises'
+import { NotFoundError, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import type { MultipartFile } from '@fastify/multipart'
-import { madHatter } from '@mh/mad-hatter.ts'
-import { log } from '@logger'
-import { z } from 'zod'
-import { zodBoolean } from '@utils'
-import { SwaggerTags, customSetting, errorSchema, fileSchema, pluginInfo, pluginSettings } from '@/context.ts'
+import { authMiddleware, pluginInfo, pluginSettings, swaggerTags } from '@/context'
+import type { App } from '@/main'
 
-export const plugins: FastifyPluginCallback = async (fastify) => {
-	fastify.get('/', { schema: {
-		description: 'Get list of available plugins.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Get plugins',
-		response: {
-			200: z.object({
-				installed: z.array(pluginInfo),
-				registry: z.array(pluginInfo),
-			}),
-		},
-	} }, () => {
-		const ps = madHatter.installedPlugins.map(({ info }) => info)
-
-		return {
-			installed: ps,
-			registry: [],
-		}
-	})
-
-	fastify.get<{
-		Params: { pluginId: string }
-	}>('/:pluginId', { schema: {
-		description: 'Returns information on a single plugin.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Get plugin details',
-		params: z.object({
-			pluginId: z.string().min(1).trim(),
-		}),
-		response: {
-			200: pluginInfo,
-			404: errorSchema,
-		},
-	} }, (req, rep) => {
-		const { pluginId } = req.params
-		const p = madHatter.getPlugin(pluginId)
-		if (!p) return rep.notFound('Plugin not found')
-		return p.info
-	})
-
-	fastify.delete<{
-		Params: { pluginId: string }
-	}>('/:pluginId', { schema: {
-		description: 'Totally removes the specified plugin.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Delete plugin',
-		params: z.object({
-			pluginId: z.string().min(1).trim(),
-		}),
-		response: {
-			204: z.null().describe('Plugin deleted successfully.'),
-			404: errorSchema,
-			400: errorSchema,
-		},
-	} }, (req, rep) => {
-		const { pluginId } = req.params
-		const p = madHatter.getPlugin(pluginId)
-		if (!p) return rep.notFound('Plugin not found')
-		if (p.id === 'core_plugin') return rep.badRequest('Cannot delete core plugin')
-		madHatter.removePlugin(pluginId)
-		return rep.code(204)
-	})
-
-	fastify.post<{
-		Body: {
-			file: MultipartFile
-		}
-		Querystring: {
-			async: boolean
-		}
-	}>('/upload', { schema: {
-		description: 'Install a new plugin from a zip file.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Install plugin',
-		consumes: ['multipart/form-data'],
-		body: z.object({
-			file: fileSchema,
-		}),
-		querystring: z.object({
-			async: zodBoolean,
-		}),
-		response: {
-			200: z.object({ info: z.string() }),
-			400: errorSchema,
-			500: errorSchema,
-		},
-	} }, (req, rep) => {
-		const { file } = req.body
-		const allowedTypes = ['application/zip', 'application/x-zip-compressed', 'application/x-tar', 'application/x-gzip', 'application/x-bzip2']
-		if (!allowedTypes.includes(file.mimetype)) return rep.badRequest('Invalid file type. It must be one of the following: zip, tar, gzip, bzip2')
-		log.info(`Uploading plugin ${file.filename}`)
-
-		const extractDir = join(tmpdir(), 'ccat-plugin-extract')
-		mkdirSync(extractDir, { recursive: true })
-		const tempFilePath = join(extractDir, file.filename)
-
-		file.file.pipe(createWriteStream(tempFilePath)).on('finish', () => {
-			createReadStream(extractDir)
-				.pipe(createGunzip())
-				.on('end', async () => {
-					const files = readdirSync(tempFilePath)
-					const tsFiles = files.filter(f => f.endsWith('.ts'))
-					if (tsFiles.length === 0) {
-						log.error('No .ts files found in the extracted plugin folder')
-						return rep.badRequest('No .ts files found in the extracted plugin folder')
-					}
-					try {
-						const plugin = await madHatter.installPlugin(tempFilePath)
-						madHatter.togglePlugin(plugin.id)
-					}
-					catch (error) {
-						log.warn(error)
-					}
-				})
-				.on('error', (err) => {
-					log.error(`Error unzipping plugin: ${err.message}`)
-					return rep.internalServerError('Error unzipping plugin')
-				})
-		})
-
-		return {
-			info: 'Plugin is being installed asynchronously',
-		}
-	})
-
-	fastify.post<{
-		Body: {
-			url: string
-		}
-		Querystring: {
-			async: boolean
-		}
-	}>('/upload/registry', { schema: {
-		description: 'Install a new plugin from the registry.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Install plugin from registry',
-		body: z.object({
-			url: z.string().url(),
-		}),
-		querystring: z.object({
-			async: zodBoolean,
-		}),
-		response: {
-			200: z.object({ info: z.string() }),
-			400: errorSchema,
-		},
-	} }, (req) => {
-		const { url } = req.body
-		log.info(`Installing plugin from registry: ${url}`)
-		return {
-			info: 'Plugin is being installed asynchronously',
-		}
-	})
-
-	fastify.patch<{
-		Params: { pluginId: string }
-	}>('/toggle/:pluginId', { schema: {
-		description: 'Enable or disable a single plugin.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Toggle plugin',
-		params: z.object({
-			pluginId: z.string().min(1).trim(),
-		}),
-		response: {
-			200: z.object({
-				active: z.boolean(),
-			}),
-			404: errorSchema,
-			400: errorSchema,
-		},
-	} }, (req, rep) => {
-		const { pluginId } = req.params
-		const p = madHatter.getPlugin(pluginId)
-		if (!p) return rep.notFound('Plugin not found')
-		if (p.id === 'core_plugin') return rep.badRequest('Cannot toggle core plugin')
-		const active = madHatter.togglePlugin(pluginId)
-		return {
-			active,
-		}
-	})
-
-	fastify.patch<{
-		Params: {
-			pluginId: string
-			procedureName: string
-		}
-	}>('/toggle/:pluginId/procedure/:procedureName', { schema: {
-		description: 'Enable or disable a single procedure of a plugin.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Toggle plugin procedure',
-		params: z.object({
-			pluginId: z.string().min(1).trim(),
-			procedureName: z.string().min(1).trim(),
-		}),
-		response: {
-			200: z.object({
-				active: z.boolean(),
-			}),
-			404: errorSchema,
-			400: errorSchema,
-		},
-	} }, (req, rep) => {
-		const { pluginId, procedureName } = req.params
-		const p = madHatter.getPlugin(pluginId)
-		if (!p) return rep.notFound('Plugin not found')
-		const tool = p.tools.find(t => t.name === procedureName)
-		const form = p.forms.find(f => f.name === procedureName)
-		if (!tool && !form) return rep.notFound('Procedure not found')
-		if (tool) tool.active = !tool.active
-		if (form) form.active = !form.active
-		fastify.db.update((db) => {
-			if (tool) {
-				if (tool.active) db.activeTools.push(procedureName)
-				else db.activeTools = db.activeTools.filter(t => t !== procedureName)
+export function plugins(app: App) {
+	return app.group('/plugins', { detail: { tags: [swaggerTags.plugins.name] } }, i => i
+		.use(authMiddleware)
+		.get('/', ({ mh }) => {
+			const ps = mh.installedPlugins.map(({ info }) => info)
+			return {
+				installed: ps,
+				registry: [],
 			}
-			else if (form) {
-				if (form.active) db.activeForms.push(procedureName)
-				else db.activeForms = db.activeForms.filter(f => f !== procedureName)
-			}
+		}, {
+			detail: {
+				description: 'Get list of available plugins.',
+				summary: 'Get plugins',
+			},
+			response: {
+				200: t.Object({
+					installed: t.Array(t.Ref(pluginInfo)),
+					registry: t.Array(t.Ref(pluginInfo)),
+				}),
+			},
 		})
-		return {
-			active: (tool?.active ?? form?.active) ?? false,
-		}
-	})
+		.get('/:pluginId', ({ mh, params }) => {
+			const id = params.pluginId
+			const p = mh.getPlugin(id)
+			if (!p) throw new NotFoundError('Plugin not found')
+			return p.info
+		}, {
+			detail: {
+				description: 'Returns information on a single plugin.',
+				summary: 'Get plugin details',
+			},
+			params: t.Object({ pluginId: t.String() }),
+			response: {
+				200: 'pluginInfo',
+				404: 'error',
+			},
+		})
+		.delete('/:pluginId', async ({ mh, params, log }) => {
+			const id = params.pluginId
+			const p = mh.getPlugin(id)
+			if (!p) throw new NotFoundError('Plugin not found')
+			if (p.id === 'core_plugin') throw new Error('Cannot delete core plugin')
+			try {
+				await mh.removePlugin(id)
+			}
+			catch (error) {
+				log.error(error)
+				throw new Error('Unable to remove the plugin')
+			}
+		}, {
+			detail: {
+				description: 'Totally removes the specified plugin.',
+				summary: 'Delete plugin',
+			},
+			params: t.Object({ pluginId: t.String() }),
+			response: {
+				204: t.Void(),
+				404: 'error',
+				400: 'error',
+			},
+		})
+		.post('/upload', async ({ body, log, mh }) => {
+			const { file } = body
+			const allowedTypes = ['application/zip', 'application/x-zip-compressed', 'application/x-tar', 'application/x-gzip', 'application/x-bzip2']
+			if (!allowedTypes.includes(file.type)) throw new Error('Invalid file type. It must be one of the following: zip, tar, gzip, bzip2')
+			log.info(`Uploading plugin ${file.type}`)
 
-	fastify.get('/settings', { schema: {
-		description: 'Returns the settings of all the plugins.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Get plugins settings',
-		response: {
-			200: z.object({
-				settings: z.array(pluginSettings),
+			const extractDir = join(tmpdir(), 'ccat-plugin-extract')
+			await mkdir(extractDir, { recursive: true })
+			const tempFilePath = join(extractDir, file.name)
+
+			const decompressed = Bun.gunzipSync(await file.arrayBuffer())
+			await Bun.write(tempFilePath, decompressed)
+			const files = await readdir(tempFilePath)
+			const tsFiles = files.filter(f => f.endsWith('.ts'))
+			if (tsFiles.length === 0) {
+				log.error('No .ts files found in the extracted plugin folder')
+				throw new Error('No .ts files found in the extracted plugin folder')
+			}
+			try {
+				const plugin = await mh.installPlugin(tempFilePath)
+				mh.togglePlugin(plugin.id)
+			}
+			catch (error) {
+				log.warn(error)
+			}
+
+			return {
+				info: 'Plugin is being installed asynchronously',
+			}
+		}, {
+			detail: {
+				description: 'Install a new plugin from a zip file.',
+				summary: 'Install plugin',
+			},
+			body: t.Object({
+				file: t.File(),
 			}),
-		},
-	} }, () => {
-		const ps = madHatter.installedPlugins.map(p => ({
-			name: p.id,
-			value: p.settings,
-			schema: zodToJsonSchema(p.schema),
+			querystring: t.Object({
+				async: t.BooleanString({ default: true }),
+			}),
+			response: {
+				200: t.Object({ info: t.String() }),
+				400: 'error',
+				500: 'error',
+			},
+		})
+		.post('/upload/registry', async ({ body, log }) => {
+			const { url } = body
+			log.info(`Installing plugin from registry: ${url}`)
+			return {
+				info: 'Plugin is being installed asynchronously',
+			}
+		}, {
+			detail: {
+				description: 'Install a new plugin from the registry.',
+				summary: 'Install plugin from registry',
+			},
+			body: t.Object({
+				url: t.String({ format: 'uri' }),
+			}),
+			querystring: t.Object({
+				async: t.BooleanString({ default: true }),
+			}),
+			response: {
+				200: t.Object({ info: t.String() }),
+				400: 'error',
+			},
+		})
+		.patch('/toggle/:pluginId', async ({ body, params, mh }) => {
+			const id = params.pluginId
+			const p = mh.getPlugin(id)
+			if (!p) throw new NotFoundError('Plugin not found')
+			const { active } = body
+			if (active) mh.togglePlugin(id)
+			return {
+				active: p.active,
+			}
+		}, {
+			detail: {
+				description: 'Enable or disable a single plugin.',
+				summary: 'Toggle plugin',
+			},
+			params: t.Object({ pluginId: t.String() }),
+			body: t.Object({ active: t.Boolean() }),
+			response: {
+				200: t.Object({ active: t.Boolean() }),
+				404: 'error',
+				400: 'error',
+			},
+		})
+		.patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, mh, db }) => {
+			const { pluginId, procedureName } = params
+			const p = mh.getPlugin(pluginId)
+			if (!p) throw new NotFoundError('Plugin not found')
+			const tool = p.tools.find(t => t.name === procedureName)
+			const form = p.forms.find(f => f.name === procedureName)
+			if (!tool && !form) throw new NotFoundError('Procedure not found')
+			if (tool) tool.active = !tool.active
+			if (form) form.active = !form.active
+			db.update((db) => {
+				if (tool) {
+					if (tool.active) db.activeTools.push(procedureName)
+					else db.activeTools = db.activeTools.filter(t => t !== procedureName)
+				}
+				else if (form) {
+					if (form.active) db.activeForms.push(procedureName)
+					else db.activeForms = db.activeForms.filter(f => f !== procedureName)
+				}
+			})
+			return {
+				active: (tool?.active ?? form?.active) ?? false,
+			}
+		}, {
+			detail: {
+				description: 'Enable or disable a single procedure of a plugin.',
+				summary: 'Toggle plugin procedure',
+			},
+			params: t.Object({
+				pluginId: t.String(),
+				procedureName: t.String(),
+			}),
+			response: {
+				200: t.Object({ active: t.Boolean() }),
+				404: 'error',
+				400: 'error',
+			},
+		})
+		.get('/settings', ({ mh }) => {
+			const ps = mh.installedPlugins.map(p => ({
+				name: p.id,
+				value: p.settings,
+				schema: zodToJsonSchema(p.schema),
+			}))
+			return {
+				settings: ps,
+			}
+		}, {
+			detail: {
+				description: 'Returns the settings of all the plugins.',
+				summary: 'Get plugins settings',
+			},
+			response: {
+				200: t.Object({
+					settings: t.Array(t.Ref(pluginSettings)),
+				}),
+			},
+		})
+		.get('/settings/:pluginId', ({ mh, params }) => {
+			const id = params.pluginId
+			const p = mh.getPlugin(id)
+			if (!p) throw new NotFoundError('Plugin not found')
+			return {
+				name: id,
+				schema: zodToJsonSchema(p.schema),
+				value: p.settings,
+			}
+		}, {
+			detail: {
+				description: 'Returns the settings of the specified plugin.',
+				summary: 'Get plugin settings',
+			},
+			params: t.Object({ pluginId: t.String() }),
+			response: {
+				200: 'pluginSettings',
+				404: 'error',
+			},
+		})
+		.put('/settings/:pluginId', ({ body, params, mh }) => {
+			const id = params.pluginId
+			const p = mh.getPlugin(id)
+			if (!p) throw new NotFoundError('Plugin not found')
+			const parsed = p.schema.safeParse(body)
+			if (!parsed.success) throw new Error(parsed.error.errors.map(e => e.message).join())
+			p.settings = parsed.data
+			return {
+				name: id,
+				value: parsed.data,
+			}
+		}, {
+			detail: {
+				description: 'Updates the settings of the specified plugin.',
+				summary: 'Update plugin settings',
+			},
+			params: t.Object({ pluginId: t.String() }),
+			body: t.Record(t.String(), t.Any()),
+			response: {
+				200: 'customSetting',
+				404: 'error',
+				400: 'error',
+			},
 		}))
-
-		return {
-			settings: ps,
-		}
-	})
-
-	fastify.get<{
-		Params: {
-			pluginId: string
-		}
-	}>('/settings/:pluginId', { schema: {
-		description: 'Returns the settings of the specified plugin.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Get plugin settings',
-		params: z.object({
-			pluginId: z.string().min(1).trim(),
-		}),
-		response: {
-			200: pluginSettings,
-			404: errorSchema,
-		},
-	} }, (req, rep) => {
-		const { pluginId } = req.params
-		const p = madHatter.getPlugin(pluginId)
-		if (!p) return rep.notFound('Plugin not found')
-		return {
-			name: p.id,
-			schema: zodToJsonSchema(p.schema),
-			value: p.settings,
-		}
-	})
-
-	fastify.put<{
-		Body: Record<string, any>
-		Params: {
-			pluginId: string
-		}
-	}>('/settings/:pluginId', { schema: {
-		description: 'Updates the settings of the specified plugin.',
-		tags: [SwaggerTags.Plugins],
-		summary: 'Update plugin settings',
-		params: z.object({
-			pluginId: z.string().min(1).trim(),
-		}),
-		body: z.record(z.any()),
-		response: {
-			200: customSetting,
-			400: errorSchema,
-		},
-	} }, (req, rep) => {
-		const id = req.params.pluginId
-		const p = madHatter.getPlugin(id)
-		if (!p) return rep.notFound('Plugin not found')
-		const parsed = p.schema.passthrough().safeParse(req.body)
-		if (!parsed.success) return rep.badRequest(parsed.error.errors.join())
-		p.settings = parsed.data
-		return {
-			name: id,
-			value: parsed.data,
-		}
-	})
 }

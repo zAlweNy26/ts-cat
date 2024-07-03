@@ -1,4 +1,3 @@
-import type { WebSocket } from 'ws'
 import type { Embeddings } from '@langchain/core/embeddings'
 import type { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { getEmbedder, getLLM } from '@factory'
@@ -8,7 +7,9 @@ import { db } from '@db'
 import { log } from '@logger'
 import type { PointData } from '@dto/vector-memory.ts'
 import { AgentManager } from './agent-manager.ts'
-import { StrayCat } from './stray-cat.ts'
+import { StrayCat, type WS } from './stray-cat.ts'
+import { whiteRabbit } from './white-rabbit.ts'
+import { rabbitHole } from '@/rabbit-hole.ts'
 
 type ProcedureHash = Record<string, {
 	name: string
@@ -27,6 +28,7 @@ export class CheshireCat {
 	private _embedderSize = 0
 
 	private constructor() {
+		log.silent('Initializing the Cheshire Cat...')
 		madHatter.executeHook('beforeBootstrap', this)
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
@@ -41,7 +43,6 @@ export class CheshireCat {
 	 */
 	static async getInstance() {
 		if (!CheshireCat.instance) {
-			log.silent('Initializing the Cheshire Cat...')
 			CheshireCat.instance = new CheshireCat()
 			await CheshireCat.instance.loadMemory()
 			await CheshireCat.instance.embedProcedures()
@@ -65,6 +66,14 @@ export class CheshireCat {
 		return this.memory
 	}
 
+	get whiteRabbit() {
+		return whiteRabbit
+	}
+
+	get rabbitHole() {
+		return rabbitHole
+	}
+
 	get embedderSize() {
 		return this._embedderSize
 	}
@@ -83,9 +92,13 @@ export class CheshireCat {
 	 * @param userId The unique identifier of the stray cat.
 	 * @returns The StrayCat instance associated with the given userId.
 	 */
-	addStray(userId: string, ws?: WebSocket) {
+	addStray(userId: string, ws?: WS) {
 		this.strays.set(userId, new StrayCat(userId, ws))
 		return this.getStray(userId)!
+	}
+
+	removeStray(userId: string) {
+		return this.strays.delete(userId)
 	}
 
 	/**

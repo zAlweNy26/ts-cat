@@ -1,5 +1,5 @@
 import { basename, extname, resolve } from 'node:path'
-import { existsSync, readFileSync } from 'node:fs'
+import { File } from 'node:buffer'
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv'
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx'
@@ -19,9 +19,8 @@ import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import type { MemoryJson } from '@dto/vector-memory.ts'
 import { db } from './database.ts'
-import { sleep } from './utils.ts'
 
-export type WebParser = [RegExp, new (content: string) => BaseDocumentLoader]
+export type WebParser = [RegExp, new (url: string) => BaseDocumentLoader]
 
 export type FileParsers = Record<`${string}/${string}`, new (content: string | Blob) => BaseDocumentLoader>
 
@@ -44,6 +43,7 @@ export class RabbitHole {
 	}
 
 	private constructor() {
+		log.silent('Initializing the Rabbit Hole...')
 		this.fileHandlers = madHatter.executeHook('fileParsers', this.fileHandlers)
 		this.webHandlers = madHatter.executeHook('webParsers', this.webHandlers)
 		this.splitter = madHatter.executeHook('textSplitter', new RecursiveCharacterTextSplitter({
@@ -57,11 +57,8 @@ export class RabbitHole {
 	 * Get the Rabbit Hole instance
 	 * @returns The Rabbit Hole class as a singleton
 	 */
-	static getInstance() {
-		if (!RabbitHole.instance) {
-			log.silent('Initializing the Rabbit Hole...')
-			RabbitHole.instance = new RabbitHole()
-		}
+	static async getInstance() {
+		if (!RabbitHole.instance) RabbitHole.instance = new RabbitHole()
 		return RabbitHole.instance
 	}
 
@@ -144,7 +141,7 @@ export class RabbitHole {
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
 
 		log.info('Ingesting file...')
-		const loader = new this.fileHandlers[mime]!(file)
+		const loader = new this.fileHandlers[mime]!(file as unknown as Blob)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 		const content = await loader.load()
 		stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
@@ -178,8 +175,8 @@ export class RabbitHole {
 		catch (error) {
 			if (error instanceof TypeError) log.info('The string is not a valid URL, trying with a file-system path...')
 			else if (error instanceof Error) log.error(error.message)
-			if (!existsSync(path)) throw new Error('The path does not exist. Skipping ingestion...')
-			const data = readFileSync(resolve(path))
+			if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
+			const data = await Bun.file(resolve(path)).text()
 			const file = new File([data], basename(path), { type: extname(path) })
 			await this.ingestFile(stray, file, chunkSize, chunkOverlap)
 		}
@@ -219,7 +216,7 @@ export class RabbitHole {
 			}
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 			doc = madHatter.executeHook('afterInsertInMemory', doc, stray)
-			await sleep(500)
+			await Bun.sleep(500)
 		}
 		docs = madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })

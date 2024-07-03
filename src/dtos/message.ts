@@ -1,5 +1,6 @@
 import type { DocumentInput } from '@langchain/core/documents'
-import type { EmbeddedVector, FilterMatch } from './vector-memory.ts'
+import type { FilterMatch } from './vector-memory.ts'
+import type { IntermediateStep } from './agent.ts'
 
 /**
  * The configuration for memory recall.
@@ -26,7 +27,7 @@ export interface MemoryRecallConfigs {
  */
 export type MemoryDocument = {
 	id: string
-	vector: EmbeddedVector
+	vector: number[]
 	score: number
 } & DocumentInput
 
@@ -50,7 +51,7 @@ export interface MemoryMessage {
 	when: number
 	why?: {
 		input: string
-		intermediateSteps: Record<string, any>[]
+		intermediateSteps: IntermediateStep[]
 		memory?: WorkingMemory
 	}
 }

@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { lstatSync, mkdirSync, renameSync, writeFileSync } from 'node:fs'
+import { lstat, mkdir, rename } from 'node:fs/promises'
 import { randomUUID } from 'uncrypto'
 import { ofetch } from 'ofetch'
 import { parsedEnv } from '@utils'
@@ -90,11 +90,11 @@ export class VectorMemoryCollection {
 			return
 		}
 		log.warn(`Saving "${this.name}" collection dump...`)
-		const stats = lstatSync(folder)
+		const stats = await lstat(folder)
 		if (stats.isDirectory()) log.info('Directory dormouse exists')
 		else {
 			log.warn('Creating dormouse directory...')
-			mkdirSync(folder)
+			await mkdir(folder)
 		}
 		const snapshot = await vectorDb.createSnapshot(this.name)
 		if (!snapshot) {
@@ -106,9 +106,9 @@ export class VectorMemoryCollection {
 		const collectionAlias = await vectorDb.getCollectionAliases(this.name)
 		const aliasName = collectionAlias.aliases[0]?.alias_name ?? `${this.embedderName}_${this.name}`
 		const res = await ofetch<string>(remoteSnap)
-		writeFileSync(dumpDir, res)
+		await Bun.write(dumpDir, res)
 		const newName = join(folder, aliasName.replaceAll('/', '_').concat('.snapshot'))
-		renameSync(dumpDir, newName)
+		await rename(dumpDir, newName)
 		const snapshots = await vectorDb.listSnapshots(this.name)
 		snapshots.forEach(async snap => vectorDb.deleteSnapshot(this.name, snap.name))
 		log.info(`Dump ${newName} saved successfully`)
@@ -214,7 +214,7 @@ export class VectorMemoryCollection {
 			documents.push({
 				id: memory.id.toString(),
 				score: memory.score,
-				vector: memory.vector as EmbeddedVector,
+				vector: memory.vector as number[],
 				pageContent: (memory.payload?.pageContent as string),
 				metadata: (memory.payload?.metadata as Record<string, any>),
 			})

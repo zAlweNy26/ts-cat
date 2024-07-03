@@ -1,5 +1,6 @@
 import { ZodIssueCode, z } from 'zod'
 import type { Embeddings } from '@langchain/core/embeddings'
+import { JinaEmbeddings } from '@langchain/community/embeddings/jina'
 import { TogetherAIEmbeddings } from '@langchain/community/embeddings/togetherai'
 import { FireworksEmbeddings } from '@langchain/community/embeddings/fireworks'
 import { FakeEmbeddings } from '@langchain/core/utils/testing'
@@ -151,6 +152,21 @@ const cohereEmbedderConfig: Readonly<EmbedderSettings> = Object.freeze({
 	},
 })
 
+const jinaEmbedderConfig: Readonly<EmbedderSettings> = Object.freeze({
+	name: 'JinaEmbedder',
+	humanReadableName: 'Jina Embedder',
+	description: 'Configuration for Jina embeddings',
+	link: 'https://jina.ai/embeddings/',
+	config: z.object({
+		apiKey: z.string(),
+		model: z.string().default('jina-clip-v1'),
+	}),
+	getModel(params: z.input<typeof cohereEmbedderConfig.config>) {
+		const { apiKey, model } = this.config.parse(params)
+		return new JinaEmbeddings({ model, apiKey })
+	},
+})
+
 const customOpenAIEmbedderConfig: Readonly<EmbedderSettings> = Object.freeze({
 	name: 'CustomOpenAIEmbedder',
 	humanReadableName: 'OpenAI-compatible API embedder',
@@ -206,6 +222,7 @@ export function getAllowedEmbedders() {
 		azureOpenAIEmbedderConfig,
 		fireworksEmbedderConfig,
 		togetherAIEmbedderConfig,
+		jinaEmbedderConfig,
 		cohereEmbedderConfig,
 		customOpenAIEmbedderConfig,
 		qdrantFastEmbedSettings,

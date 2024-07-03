@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest'
-import { catPaths, sleep, zodJson } from '@utils'
+import { catPaths, zodJson } from '@utils'
 
 const isGithubAction = process.env.GITHUB_ACTIONS === 'true'
 
-it.runIf(isGithubAction)('test cat paths', () => {
+it.runIf(isGithubAction)('cat paths', () => {
 	expect(catPaths).toMatchObject({
 		basePath: 'src',
 		baseUrl: 'http://localhost:1865/',
@@ -13,14 +13,7 @@ it.runIf(isGithubAction)('test cat paths', () => {
 	})
 })
 
-it('test sleep', async () => {
-	const start = Date.now()
-	await sleep(100)
-	expect(Date.now() - start).greaterThanOrEqual(95)
-	expect(Date.now() - start).lessThanOrEqual(105)
-})
-
-it('test zod json type', () => {
+it('zod json type', () => {
 	const json = { a: 1, b: '2' }
 
 	expect(zodJson.parse(json)).toMatchObject(json)
