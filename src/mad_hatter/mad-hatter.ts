@@ -135,7 +135,9 @@ export class MadHatter {
 	async removePlugin(id: string) {
 		const plugin = this.plugins.get(id)
 		if (plugin) {
+			log.debug(`Removing plugin: ${id}`)
 			plugin.triggerEvent('removed')
+			plugin.fileUrls.forEach(u => URL.revokeObjectURL(u))
 			const requirementsPath = join(plugin.path, 'requirements.txt')
 			if (existsDir(requirementsPath)) {
 				const requirements = await Bun.file(requirementsPath).text()
@@ -219,7 +221,7 @@ export class MadHatter {
 export const madHatter = await MadHatter.getInstance()
 
 chokidar.watch('src/plugins', {
-	ignored: ['**/settings.json', '**/tmp_*.ts'],
+	ignored: ['**/settings.json'],
 	ignoreInitial: true,
 	persistent: true,
 }).on('all', async (event, path) => {

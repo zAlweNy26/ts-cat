@@ -141,11 +141,10 @@ export async function compareStrings(input: string, prediction: string, criteria
 }
 
 /**
- * **Waiting for a Bun internal method to be implemented.**
- *
  * Checks if a directory exists.
  * @param path The path to the directory to check.
  */
+// TODO: Wait for a Bun internal method to be implemented
 export const existsDir = (path: string) => !!Array.from(new Bun.Glob(path).scanSync({ onlyFiles: false }))[0]
 
 /**
