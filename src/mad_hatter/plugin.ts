@@ -1,7 +1,6 @@
-import { basename, dirname, extname, join, relative } from 'node:path'
+import { basename, extname, join, relative } from 'node:path'
 import type { Dirent } from 'node:fs'
 import { existsSync, statSync } from 'node:fs'
-import { unlink } from 'node:fs/promises'
 import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
@@ -23,6 +22,8 @@ const pluginManifestSchema = z.object({
 	thumb: z.string().trim().url().optional(),
 	tags: z.array(z.string().trim()).default(['miscellaneous', 'unknown']),
 })
+
+const transpiler = new Bun.Transpiler({ loader: 'ts' })
 
 type PluginManifest = z.infer<typeof pluginManifestSchema>
 
@@ -76,6 +77,7 @@ export class Plugin<
 	private _hooks: Hook[] = []
 	private _tools: Tool[] = []
 	private _forms: Form[] = []
+	private _fileUrls: string[] = []
 
 	private constructor(public path: string) {
 		if (!existsSync(path)) log.error(new Error('Plugin path does not exist'))
@@ -149,6 +151,10 @@ export class Plugin<
 
 	get schema() {
 		return this._schema
+	}
+
+	get fileUrls() {
+		return [...this._fileUrls]
 	}
 
 	get settings() {
@@ -230,16 +236,16 @@ export class Plugin<
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
 			const content = await Bun.file(normalizedPath).text()
-			const tmpFile = join(dirname(normalizedPath), `tmp_${getRandomString(8)}.ts`)
-
 			const replaced = content.replace(/^Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
 				if (match.startsWith('export')) return match
 				else if (match.startsWith('const') || match.startsWith('let')) return `export ${match}`
 				else return `export const ${getRandomString(8)} = ${match}`
 			})
+			const jsCode = transpiler.transformSync(replaced)
+			const blob = new Blob([`// ID: ${this.id}\n${jsCode}`], { type: 'application/javascript' })
+			const moduleUrl = URL.createObjectURL(blob)
 			try {
-				await Bun.write(tmpFile, replaced)
-				const exported = await import(Bun.pathToFileURL(tmpFile).href)
+				const exported = await import(moduleUrl)
 				Object.values(exported).forEach((v) => {
 					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v
 					else if (isForm(v)) this._forms.push(v)
@@ -252,7 +258,7 @@ export class Plugin<
 				log.error('Error importing plugin:', error)
 			}
 			finally {
-				await unlink(tmpFile)
+				this._fileUrls.push(moduleUrl)
 			}
 		}
 	}
