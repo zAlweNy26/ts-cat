@@ -32,14 +32,14 @@ From inside any hook, tool or form, you can access the current plugin informatio
 ```ts
 // For example, in a hook
 CatHook.add('agentPromptPrefix', (prefix, cat) => {
-    const info = cat.getPluginInfo()
+    const info = cat.getPluginInfo('your_plugin_id')
     if (!info) return prefix
     return info.settings.prefix
 })
 
 // For example, in a tool
 CatTool.add('myToolName', 'myToolDescription', async (input, cat) => {
-    const info = cat.getPluginInfo()
+    const info = cat.getPluginInfo('your_plugin_id')
     // ...
 }, {
     direct: true,
@@ -54,7 +54,7 @@ CatForm.add('myFormName', {
     description: 'myFormDescription',
     startExamples: ['myFormExample1', 'myFormExample2'],
     async onSubmit({ myKey1, myKey2 }, cat) {
-        const info = cat.getPluginInfo()
+        const info = cat.getPluginInfo('your_plugin_id')
         // ...
     }
 })

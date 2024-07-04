@@ -65,7 +65,7 @@ export class StrayCat {
 	 *
 	 * Returns undefined if the plugin is not found.
 	 */
-	async getPluginInfo(id: string) {
+	getPluginInfo(id: string) {
 		// TODO: Wait for Bun to implement the `resolveObjectURL` method.
 		/* const paths = callsites().map(site => site.getFileName())
 		const tmp = paths.find(path => path?.includes('blob:'))
