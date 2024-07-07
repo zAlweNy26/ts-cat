@@ -22,6 +22,9 @@ export type WS = ElysiaWS<
 	any
 >
 
+/**
+ * The stray cat goes around tools and hook, making troubles
+ */
 export class StrayCat {
 	private chatHistory: MemoryMessage[] = []
 	private userMessage!: Message
