@@ -18,7 +18,7 @@ export interface EmbedderSettings {
 	description: string
 	link?: string
 	config: z.ZodEffects<z.AnyZodObject> | z.AnyZodObject
-	getModel: (params: z.input<EmbedderSettings['config']>) => Embeddings
+	getModel: (params: z.input<this['config']>) => Embeddings
 }
 
 const fakeEmbedderConfig: Readonly<EmbedderSettings> = Object.freeze({

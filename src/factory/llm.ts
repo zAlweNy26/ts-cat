@@ -18,7 +18,7 @@ export interface LLMSettings {
 	description: string
 	link?: string
 	config: z.ZodEffects<z.AnyZodObject> | z.AnyZodObject
-	getModel: (params: z.input<LLMSettings['config']>) => BaseLanguageModel
+	getModel: (params: z.input<this['config']>) => BaseLanguageModel
 }
 
 const defaultLLMConfig: Readonly<LLMSettings> = Object.freeze({

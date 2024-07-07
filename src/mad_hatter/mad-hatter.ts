@@ -15,7 +15,7 @@ export class MadHatter {
 	private static instance: MadHatter
 	private plugins = new Map<string, Plugin>()
 	private activePlugins: Plugin['id'][] = []
-	onPluginsSyncCallback?: () => void = undefined
+	onPluginsSyncCallback?: () => Promise<void> = undefined
 	hooks: Partial<Hooks> = {}
 	tools: Tool[] = []
 	forms: Form[] = []
@@ -65,7 +65,7 @@ export class MadHatter {
 	 * Gets a copy of the installed plugins.
 	 */
 	get installedPlugins() {
-		return Array.from([...this.plugins.values()])
+		return [...this.plugins.values()]
 	}
 
 	/**
@@ -92,7 +92,7 @@ export class MadHatter {
 			}
 		}
 		log.success('Active plugins:', this.activePlugins.join(', '))
-		this.syncHooksAndProcedures()
+		await this.syncHooksAndProcedures()
 		if (Object.keys(this.hooks).length > 0) {
 			log.success('Added hooks:')
 			log.table(Object.entries(this.hooks).map(([key, value]) =>
@@ -149,7 +149,7 @@ export class MadHatter {
 			this.activePlugins = this.activePlugins.filter(p => p !== id)
 			db.update(db => db.activePlugins = this.activePlugins)
 			this.plugins.delete(id)
-			this.syncHooksAndProcedures()
+			await this.syncHooksAndProcedures()
 		}
 	}
 
@@ -162,7 +162,7 @@ export class MadHatter {
 		if (plugin && !plugin.reloading) {
 			log.info(`Reloading plugin: ${plugin.id}`)
 			await plugin.reload()
-			this.syncHooksAndProcedures()
+			await this.syncHooksAndProcedures()
 		}
 	}
 
@@ -171,7 +171,7 @@ export class MadHatter {
 	 * @param id The ID of the plugin to toggle.
 	 * @param sync Whether to synchronize hooks and tools immediately. Default is true.
 	 */
-	togglePlugin(id: string, sync = true) {
+	async togglePlugin(id: string, sync = true) {
 		const plugin = this.plugins.get(id)
 		if (plugin) {
 			const active = this.activePlugins.includes(id)
@@ -184,7 +184,7 @@ export class MadHatter {
 				this.activePlugins.push(plugin.id)
 			}
 			db.update(db => db.activePlugins = this.activePlugins)
-			if (sync) this.syncHooksAndProcedures()
+			if (sync) await this.syncHooksAndProcedures()
 			return plugin.active
 		}
 		return false
@@ -194,7 +194,7 @@ export class MadHatter {
 	 * Synchronizes hooks, tools and forms.
 	 * It also sorts the hooks by priority.
 	 */
-	syncHooksAndProcedures() {
+	async syncHooksAndProcedures() {
 		log.silent('Synchronizing hooks, tools and forms...')
 		this.tools = []
 		this.forms = []
@@ -214,7 +214,7 @@ export class MadHatter {
 		Object.entries(this.hooks).forEach(([name, hooks]) => {
 			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority)
 		})
-		this.onPluginsSyncCallback?.()
+		await this.onPluginsSyncCallback?.()
 	}
 }
 

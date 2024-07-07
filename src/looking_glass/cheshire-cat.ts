@@ -97,6 +97,11 @@ export class CheshireCat {
 		return this.getStray(userId)!
 	}
 
+	/**
+	 * Removes a stray instance for the specified user from the collection.
+	 * @param userId The ID of the user to remove.
+	 * @returns True if the user was successfully removed, false otherwise.
+	 */
 	removeStray(userId: string) {
 		return this.strays.delete(userId)
 	}
@@ -124,13 +129,12 @@ export class CheshireCat {
 	 * @returns The found Embedder settings from db or the default LLM settings
 	 */
 	loadLanguageEmbedder() {
-		const selected = db.data.selectedEmbedder, embSettings = db.getEmbedderSettings(), llmSettings = db.getLLMSettings()
+		const selected = db.data.selectedEmbedder, settings = db.getEmbedderSettings()
 		try {
-			if (!llmSettings) throw new Error('LLM settings not found')
 			const embedder = getEmbedder(selected)
 			if (!embedder) throw new Error('Embedder not found')
-			if (!embSettings && embedder.name !== 'FakeEmbedder') throw new Error('Embedder settings not found')
-			return embedder.getModel(embSettings ?? {})
+			if (!settings) throw new Error('Embedder settings not found')
+			return embedder.getModel(settings)
 		}
 		catch (error) {
 			log.error(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
@@ -148,11 +152,10 @@ export class CheshireCat {
 			log.error('Embedder size is 0')
 			throw new Error('Embedder size is 0. Unable to proceed.')
 		}
-		const vectorMemoryConfig = {
+		this.memory = await getVectorMemory({
 			embedderName: db.data.selectedEmbedder,
 			embedderSize: this.embedderSize,
-		}
-		this.memory = await getVectorMemory(vectorMemoryConfig)
+		})
 	}
 
 	private buildEmbeddedProceduresHashes(procedures: PointData[]) {
@@ -160,8 +163,8 @@ export class CheshireCat {
 		for (const proc of procedures) {
 			const metadata = proc.payload?.metadata as Record<string, any>
 			const pageContent = (proc.payload?.pageContent as string).toLowerCase().replace(/\s/g, '_')
-			const hasDescription = metadata.trigger === 'description' ? '' : `.${pageContent ?? 'empty'}`
-			const hash = `${metadata.source ?? 'unknown'}.${metadata.trigger ?? 'unsupported'}${hasDescription}`
+			const description = metadata.trigger === 'description' ? '' : `.${pageContent ?? 'empty'}`
+			const hash = `${metadata.source ?? 'unknown'}.${metadata.trigger ?? 'unsupported'}${description}`
 			hashes[hash] = proc.id.toString()
 		}
 		return hashes

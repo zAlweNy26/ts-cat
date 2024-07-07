@@ -87,7 +87,7 @@ export function plugins(app: App) {
 			}
 			try {
 				const plugin = await mh.installPlugin(tempFilePath)
-				mh.togglePlugin(plugin.id)
+				await mh.togglePlugin(plugin.id)
 			}
 			catch (error) {
 				log.warn(error)
@@ -104,7 +104,7 @@ export function plugins(app: App) {
 			body: t.Object({
 				file: t.File(),
 			}),
-			querystring: t.Object({
+			query: t.Object({
 				async: t.BooleanString({ default: true }),
 			}),
 			response: {
@@ -127,7 +127,7 @@ export function plugins(app: App) {
 			body: t.Object({
 				url: t.String({ format: 'uri' }),
 			}),
-			querystring: t.Object({
+			query: t.Object({
 				async: t.BooleanString({ default: true }),
 			}),
 			response: {
@@ -140,7 +140,7 @@ export function plugins(app: App) {
 			const p = mh.getPlugin(id)
 			if (!p) throw new NotFoundError('Plugin not found')
 			const { active } = body
-			if (active) mh.togglePlugin(id)
+			if (active) await mh.togglePlugin(id)
 			return {
 				active: p.active,
 			}
