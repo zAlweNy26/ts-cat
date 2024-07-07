@@ -192,7 +192,7 @@ export class RabbitHole {
 	 */
 	async storeDocuments(stray: StrayCat, docs: Document[], source: string) {
 		log.info(`Preparing to store ${docs.length} documents`)
-		docs = madHatter.executeHook('beforeStoreDocuments', docs, stray)
+		docs = await madHatter.executeHook('beforeStoreDocuments', docs, stray)
 		for (let [i, doc] of docs.entries()) {
 			const index = i + 1
 			const percRead = Math.round((index / docs.length) * 100)
@@ -201,7 +201,7 @@ export class RabbitHole {
 			log.info(readMsg)
 			doc.metadata.source = source
 			doc.metadata.when = Date.now()
-			doc = madHatter.executeHook('beforeInsertInMemory', doc, stray)
+			doc = await madHatter.executeHook('beforeInsertInMemory', doc, stray)
 			if (doc.pageContent) {
 				const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([doc.pageContent])
 				if (docEmbedding.length === 0) {
@@ -215,10 +215,10 @@ export class RabbitHole {
 				)
 			}
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
-			doc = madHatter.executeHook('afterInsertInMemory', doc, stray)
+			doc = await madHatter.executeHook('afterInsertInMemory', doc, stray)
 			await Bun.sleep(500)
 		}
-		docs = madHatter.executeHook('afterStoreDocuments', docs, stray)
+		docs = await madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
 		log.info(`Done uploading ${source}`)
 	}
@@ -233,12 +233,12 @@ export class RabbitHole {
 	 * @returns An array of documents.
 	 */
 	async splitDocs(stray: StrayCat, docs: Document[], chunkSize?: number, chunkOverlap?: number) {
-		docs = madHatter.executeHook('beforeSplitDocs', docs, stray)
+		docs = await madHatter.executeHook('beforeSplitDocs', docs, stray)
 		this.splitter.chunkSize = chunkSize ??= db.data.chunkSize
 		this.splitter.chunkOverlap = chunkOverlap ??= db.data.chunkOverlap
 		log.info('Splitting documents with chunk size', chunkSize, 'and overlap', chunkOverlap)
 		docs = (await this.splitter.splitDocuments(docs)).filter(d => d.pageContent.length > 10)
-		docs = madHatter.executeHook('afterSplitDocs', docs, stray)
+		docs = await madHatter.executeHook('afterSplitDocs', docs, stray)
 		return docs
 	}
 }

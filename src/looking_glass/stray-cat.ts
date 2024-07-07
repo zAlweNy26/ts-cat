@@ -125,7 +125,7 @@ export class StrayCat {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
 
-		const response = this.userMessage = madHatter.executeHook('beforeReadMessage', msg, this)
+		const response = this.userMessage = await madHatter.executeHook('beforeReadMessage', msg, this)
 
 		// TODO: Find another way to handle this
 		if (response.text.length > cheshireCat.embedderSize) {
@@ -169,7 +169,7 @@ export class StrayCat {
 				when: Date.now(),
 			},
 		})
-		doc = madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
+		doc = await madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
 		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
 		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
 		await cheshireCat.currentMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
@@ -186,7 +186,7 @@ export class StrayCat {
 			},
 		}
 
-		finalOutput = madHatter.executeHook('beforeSendMessage', finalOutput, this)
+		finalOutput = await madHatter.executeHook('beforeSendMessage', finalOutput, this)
 
 		if (save) {
 			this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
@@ -255,7 +255,7 @@ ${labelsList}${examplesList}
 	async recallRelevantMemories(query?: string) {
 		if (!query) query = this.userMessage.text
 
-		query = madHatter.executeHook('recallQuery', query, this)
+		query = await madHatter.executeHook('recallQuery', query, this)
 		log.info(`Recall query: ${query}`)
 
 		const queryEmbedding = await cheshireCat.currentEmbedder.embedQuery(query)
@@ -281,7 +281,7 @@ ${labelsList}${examplesList}
 		}
 		recallConfigs = {
 			...recallConfigs,
-			...madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
+			...await madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
 		}
 		for (const [key, value] of Object.entries(recallConfigs)) {
 			const memories = await cheshireCat.currentMemory.collections[key]?.recallMemoriesFromEmbedding(
