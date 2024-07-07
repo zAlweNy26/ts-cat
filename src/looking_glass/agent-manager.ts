@@ -39,7 +39,7 @@ export class AgentManager {
 		const allowedProcedures: Record<string, Tool | Form> = {}
 		const returnDirectTools: string[] = []
 
-		recalledProcedures = madHatter.executeHook('allowedTools', recalledProcedures, stray)
+		recalledProcedures = await madHatter.executeHook('allowedTools', recalledProcedures, stray)
 
 		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
@@ -62,7 +62,7 @@ export class AgentManager {
 		}
 
 		let prompt = ChatPromptTemplate.fromMessages([
-			SystemMessagePromptTemplate.fromTemplate(madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
+			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
 		])
 
 		prompt = await prompt.partial({
@@ -133,8 +133,8 @@ export class AgentManager {
 	}
 
 	async executeMemoryChain(input: ContextInput, stray: StrayCat) {
-		const prefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
-		const suffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
+		const prefix = await madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
+		const suffix = await madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(prefix + suffix),
@@ -165,7 +165,7 @@ export class AgentManager {
 		const instantTool = db.data.instantTool
 		if (!instantTool) return undefined
 
-		const trigger = madHatter.executeHook('instantToolTrigger', '@{name}', stray)
+		const trigger = await madHatter.executeHook('instantToolTrigger', '@{name}', stray)
 		if (!trigger) return undefined
 
 		const calledTool = madHatter.tools.filter(t => t.active)
@@ -184,7 +184,7 @@ export class AgentManager {
 	}
 
 	async executeAgent(stray: StrayCat): Promise<AgentFastReply> {
-		const agentInput = madHatter.executeHook('beforeAgentStarts', {
+		const agentInput = await madHatter.executeHook('beforeAgentStarts', {
 			input: stray.lastUserMessage.text,
 			chat_history: this.stringifyChatHistory(stray.getHistory(5)),
 			episodic_memory: this.getEpisodicMemoriesPrompt(stray.workingMemory.episodic),
@@ -196,7 +196,7 @@ export class AgentManager {
 
 		if (instantTool) return instantTool
 
-		const fastReply = madHatter.executeHook('agentFastReply', undefined, stray)
+		const fastReply = await madHatter.executeHook('agentFastReply', undefined, stray)
 
 		if (fastReply) return fastReply
 
@@ -211,7 +211,7 @@ export class AgentManager {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
 				const proceduresResult = await this.executeProceduresChain(agentInput, agentInput.chat_history, stray)
-				const afterProcedures = madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
+				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
 				intermediateSteps = afterProcedures.intermediateSteps ?? []
 				if (intermediateSteps.length > 0) {

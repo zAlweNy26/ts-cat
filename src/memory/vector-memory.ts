@@ -40,7 +40,7 @@ export class VectorMemory {
 			declarative: await VectorMemoryCollection.create('declarative', embedderName, embedderSize),
 			episodic: await VectorMemoryCollection.create('episodic', embedderName, embedderSize),
 			procedural: await VectorMemoryCollection.create('procedural', embedderName, embedderSize),
-			...madHatter.executeHook('memoryCollections', {}),
+			...await madHatter.executeHook('memoryCollections', {}),
 		}
 	}
 

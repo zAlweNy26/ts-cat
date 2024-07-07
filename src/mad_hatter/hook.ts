@@ -15,34 +15,34 @@ export interface HookTypes {
 	allowedEmbedders: (embedders: EmbedderSettings[]) => EmbedderSettings[]
 	allowedLLMs: (llms: LLMSettings[]) => LLMSettings[]
 	// Agent Manager hooks
-	agentPromptInstructions: (prompt: string, stray: StrayCat) => string
-	allowedTools: (tools: string[], stray: StrayCat) => string[]
-	beforeAgentStarts: (input: ContextInput, stray: StrayCat) => ContextInput
-	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayCat) => Nullable<AgentFastReply>
-	agentPromptPrefix: (prefix: string, stray: StrayCat) => string
-	agentPromptSuffix: (suffix: string, stray: StrayCat) => string
-	afterProceduresChain: (output: AgentFastReply, stray: StrayCat) => AgentFastReply
-	afterMemoryChain: (output: AgentFastReply, stray: StrayCat) => AgentFastReply
-	instantToolTrigger: (input: Nullable<InstantToolTrigger>, stray: StrayCat) => Nullable<InstantToolTrigger>
+	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
+	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>
+	beforeAgentStarts: (input: ContextInput, stray: StrayCat) => MaybePromise<ContextInput>
+	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayCat) => MaybePromise<Nullable<AgentFastReply>>
+	agentPromptPrefix: (prefix: string, stray: StrayCat) => MaybePromise<string>
+	agentPromptSuffix: (suffix: string, stray: StrayCat) => MaybePromise<string>
+	afterProceduresChain: (output: AgentFastReply, stray: StrayCat) => MaybePromise<AgentFastReply>
+	afterMemoryChain: (output: AgentFastReply, stray: StrayCat) => MaybePromise<AgentFastReply>
+	instantToolTrigger: (input: Nullable<InstantToolTrigger>, stray: StrayCat) => MaybePromise<Nullable<InstantToolTrigger>>
 	// Stray Cat hooks
-	recallQuery: (query: string, stray: StrayCat) => string
-	beforeReadMessage: (msg: Message, stray: StrayCat) => Message
-	beforeSendMessage: (msg: MemoryMessage, stray: StrayCat) => MemoryMessage
-	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => Document
-	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MemoryRecallConfigs
-	afterRecallMemories: (stray: StrayCat) => void
+	recallQuery: (query: string, stray: StrayCat) => MaybePromise<string>
+	beforeReadMessage: (msg: Message, stray: StrayCat) => MaybePromise<Message>
+	beforeSendMessage: (msg: MemoryMessage, stray: StrayCat) => MaybePromise<MemoryMessage>
+	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
+	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>
+	afterRecallMemories: (stray: StrayCat) => MaybePromise<void>
 	// Vector Memory hooks
-	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => Record<string, VectorMemoryCollection>
+	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => MaybePromise<Record<string, VectorMemoryCollection>>
 	// Rabbit Hole hooks
 	fileParsers: (loaders: FileParsers) => FileParsers
 	webParsers: (loaders: WebParser[]) => WebParser[]
 	textSplitter: (splitter: TextSplitter) => TextSplitter
-	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
-	afterStoreDocuments: (docs: Document[], stray: StrayCat) => Document[]
-	beforeInsertInMemory: (doc: Document, stray: StrayCat) => Document
-	afterInsertInMemory: (doc: Document, stray: StrayCat) => Document
-	beforeSplitDocs: (texts: Document[], stray: StrayCat) => Document[]
-	afterSplitDocs: (docs: Document[], stray: StrayCat) => Document[]
+	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
+	afterStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
+	beforeInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
+	afterInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
+	beforeSplitDocs: (texts: Document[], stray: StrayCat) => MaybePromise<Document[]>
+	afterSplitDocs: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 }
 
 interface HookOptions {
