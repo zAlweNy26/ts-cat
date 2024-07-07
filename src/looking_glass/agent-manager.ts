@@ -1,4 +1,4 @@
-import { AgentExecutor, type AgentStep } from 'langchain/agents'
+import { AgentExecutor, AgentRunnableSequence, type AgentStep } from 'langchain/agents'
 import { ChatPromptTemplate, SystemMessagePromptTemplate, interpolateFString } from '@langchain/core/prompts'
 import { formatDistanceToNow } from 'date-fns'
 import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
@@ -44,6 +44,7 @@ export class AgentManager {
 		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p) && p.returnDirect) returnDirectTools.push(p.name)
+				p.assignCat(stray)
 				allowedProcedures[p.name] = p
 			}
 		})
@@ -80,9 +81,15 @@ export class AgentManager {
 			}, '')
 		}
 
-		const agent = RunnablePassthrough.assign({
-			scratchpad: x => generatedScratchpad((x.intermediateSteps ?? []) as AgentStep[]),
-		}).pipe(this.verboseRunnable).pipe(prompt).pipe(stray.currentLLM).pipe(new ProceduresOutputParser())
+		const agent = AgentRunnableSequence.fromRunnables([
+			RunnablePassthrough.assign({
+				agent_scratchpad: x => generatedScratchpad((x.intermediateSteps ?? []) as AgentStep[]),
+			}),
+			prompt,
+			this.verboseRunnable,
+			stray.currentLLM,
+			new ProceduresOutputParser(),
+		], { singleAction: true })
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
 			agent,
@@ -254,7 +261,7 @@ export class AgentManager {
 	getLangchainChatHistory(history: MemoryMessage[]) {
 		const chatHistory = new ChatMessageHistory()
 		history.forEach((m) => {
-			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: 'AI', content: m.what }))
+			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: m.who, content: m.what }))
 			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: m.what }))
 		})
 		return chatHistory.getMessages()
