@@ -1,0 +1,2 @@
+export PATH=$PATH:$HOME/.bun/bin
+bun run typecheck && bun run lint && bun run test
