@@ -136,6 +136,8 @@ export class StrayCat {
 			}
 		}
 
+		if (save) this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
+
 		try { await this.recallRelevantMemories() }
 		catch (error) {
 			log.error(error)
@@ -187,10 +189,7 @@ export class StrayCat {
 
 		finalOutput = await madHatter.executeHook('beforeSendMessage', finalOutput, this)
 
-		if (save) {
-			this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
-			this.chatHistory.push(finalOutput)
-		}
+		if (save) this.chatHistory.push(finalOutput)
 
 		return {
 			type: 'chat',

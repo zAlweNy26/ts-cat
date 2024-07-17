@@ -95,7 +95,7 @@ export class AgentManager {
 			agent,
 			tools: allowedTools.filter(isTool),
 			returnIntermediateSteps: true,
-			maxIterations: 5,
+			maxIterations: 3,
 			verbose: parsedEnv.verbose,
 		})
 
