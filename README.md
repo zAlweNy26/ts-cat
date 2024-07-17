@@ -48,7 +48,7 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 
 ## Pre-requisites
 
-- Bun (>= 1.1.0)
+- Bun (>= 1.1.19)
 
 ## Installation
 

@@ -1,5 +1,5 @@
-// import { resolveObjectURL } from 'node:buffer'
-// import callsites from 'callsites'
+import { resolveObjectURL } from 'node:buffer'
+import callsites from 'callsites'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import { Document } from '@langchain/core/documents'
 import { madHatter } from '@mh'
@@ -63,21 +63,20 @@ export class StrayCat {
 	}
 
 	/**
-	 * Retrieves information about a plugin based on its ID.
+	 * Retrieves information about a plugin based on where it's executed.
 	 * @returns An object containing the plugin's active status, manifest, and settings.
 	 *
 	 * Returns undefined if the plugin is not found.
 	 */
-	getPluginInfo(id: string) {
-		// TODO: Wait for Bun to implement the `resolveObjectURL` method.
-		/* const paths = callsites().map(site => site.getFileName())
+	async getPluginInfo() {
+		const paths = callsites().map(site => site.getFileName())
 		const tmp = paths.find(path => path?.includes('blob:'))
 		if (!tmp) return undefined
 		const blob = resolveObjectURL(tmp)
 		if (!blob) return undefined
 		const text = await blob.text()
 		const id = text.match(/^\/\/ ID:\s*(\S+)/)?.[1]
-		if (!id) return undefined */
+		if (!id) return undefined
 		const plugin = madHatter.getPlugin(id)
 		if (!plugin) return undefined
 		const { active, manifest, settings } = plugin
