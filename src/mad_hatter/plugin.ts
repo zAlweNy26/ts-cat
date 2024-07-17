@@ -1,21 +1,31 @@
-import { basename, dirname, extname, join, relative } from 'node:path'
+import { basename, extname, join, relative } from 'node:path'
 import type { Dirent } from 'node:fs'
-import { existsSync, readFileSync, statSync } from 'node:fs'
-import { readFile, unlink, writeFile } from 'node:fs/promises'
-import { pathToFileURL } from 'node:url'
-import { execSync } from 'node:child_process'
+import { existsSync, statSync } from 'node:fs'
 import { defu } from 'defu'
 import { z } from 'zod'
 import { destr } from 'destr'
 import { titleCase } from 'scule'
-import { generateRandomString, getFilesRecursively, getZodDefaults } from '@utils'
+import { getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
 import { log } from '@logger'
 import { type Hook, isHook } from './hook.ts'
 import { type Tool, isTool } from './tool.ts'
 import { type Form, isForm } from './form.ts'
-import { pluginManifestSchema } from '@/context.ts'
+import pkg from '~/package.json'
 
-export type PluginManifest = z.infer<typeof pluginManifestSchema>
+const pluginManifestSchema = z.object({
+	name: z.string().min(1).trim(),
+	version: z.string().trim().regex(/^\d{1,3}\.\d{1,3}\.\d{1,3}$/).default('0.0.1'),
+	description: z.string().min(1).trim().default('No description provided'),
+	authorName: z.string().min(1).trim().default('Anonymous'),
+	authorUrl: z.string().trim().url().optional(),
+	pluginUrl: z.string().trim().url().optional(),
+	thumb: z.string().trim().url().optional(),
+	tags: z.array(z.string().trim()).default(['miscellaneous', 'unknown']),
+})
+
+const transpiler = new Bun.Transpiler({ loader: 'ts' })
+
+type PluginManifest = z.infer<typeof pluginManifestSchema>
 
 interface PluginEvents {
 	installed: (manifest: PluginManifest) => void
@@ -43,7 +53,7 @@ export const CatPlugin = Object.freeze({
 	 * @param schema the settings schema to use
 	 * @returns the settings object
 	 */
-	settings: <T extends Record<string, z.ZodType>>(schema: T) => z.object(schema),
+	settings: <T extends Record<string, z.ZodType>>(schema: T) => z.object(schema).describe('Plugin settings'),
 	/**
 	 * Add an event to the plugin
 	 * @param event The name of the event to listen to. It can be `installed`, `enabled`, `disabled` or `removed`.
@@ -67,6 +77,7 @@ export class Plugin<
 	private _hooks: Hook[] = []
 	private _tools: Tool[] = []
 	private _forms: Form[] = []
+	private _fileUrls: string[] = []
 
 	private constructor(public path: string) {
 		if (!existsSync(path)) log.error(new Error('Plugin path does not exist'))
@@ -85,7 +96,7 @@ export class Plugin<
 	}
 
 	async reload() {
-		const tsFiles = getFilesRecursively(this.path).filter(file => extname(file.name) === '.ts')
+		const tsFiles = (await getFilesRecursively(this.path)).filter(file => extname(file.name) === '.ts')
 		if (tsFiles.length === 0) log.error(new Error('Plugin must contain at least one .ts file'))
 
 		if (this._reloading) return
@@ -93,8 +104,8 @@ export class Plugin<
 		this._reloading = true
 		await this.installRequirements()
 		await this.importAll(tsFiles)
-		this.loadManifest()
-		this.loadSettings()
+		await this.loadManifest()
+		await this.loadSettings()
 		this._reloading = false
 	}
 
@@ -142,6 +153,10 @@ export class Plugin<
 		return this._schema
 	}
 
+	get fileUrls() {
+		return [...this._fileUrls]
+	}
+
 	get settings() {
 		return this._settings
 	}
@@ -149,7 +164,7 @@ export class Plugin<
 	set settings(settings: Record<string, any>) {
 		this._settings = this.schema.parse(settings) as S
 		const settingsPath = join(this.path, 'settings.json')
-		writeFile(settingsPath, JSON.stringify(this._settings, null, 2))
+		Bun.write(settingsPath, JSON.stringify(this._settings, null, 2))
 	}
 
 	/**
@@ -169,12 +184,12 @@ export class Plugin<
 		else log.info(`Plugin ${this.id} ${event}`)
 	}
 
-	private loadManifest() {
+	private async loadManifest() {
 		log.debug('Loading plugin manifest...')
 		const manifestPath = join(this.path, 'plugin.json')
 		if (existsSync(manifestPath)) {
 			try {
-				const json = destr<PluginManifest>(readFileSync(manifestPath, 'utf-8'))
+				const json = destr<PluginManifest>(await Bun.file(manifestPath).text())
 				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
 			}
 			catch (err) {
@@ -185,12 +200,12 @@ export class Plugin<
 		}
 	}
 
-	private loadSettings() {
+	private async loadSettings() {
 		log.debug('Loading plugin settings...')
 		const settingsPath = join(this.path, 'settings.json')
 		if (existsSync(settingsPath)) {
 			try {
-				const json = destr<Record<string, any>>(readFileSync(settingsPath, 'utf-8'))
+				const json = destr<Record<string, any>>(await Bun.file(settingsPath).text())
 				this._settings = this.schema.parse(json) as S
 			}
 			catch (err) {
@@ -206,14 +221,10 @@ export class Plugin<
 		log.debug('Installing plugin requirements...')
 		const requirementsPath = join(this.path, 'requirements.txt')
 		if (existsSync(requirementsPath)) {
-			const requirements = await readFile(requirementsPath, 'utf-8')
-			const names = requirements.split('\n').map(req => req.trim().split('@')[0]!)
-			try {
-				execSync(`npm list ${names.join(' ')}`, { cwd: this.path }).toString()
-			}
-			catch (error) {
-				const pkgs = requirements.split('\n').join(' ')
-				try { execSync(`pnpm i ${pkgs}`, { cwd: this.path }) }
+			const requirements = await Bun.file(requirementsPath).text()
+			const pkgs = requirements.split('\n')
+			if (!Object.keys(pkg.dependencies).every(dep => pkgs.includes(dep))) {
+				try { Bun.spawnSync(['bun', 'i', ...pkgs]) }
 				catch (error) { log.error(`Error installing requirements for ${this.id}: ${error}`) }
 			}
 		}
@@ -221,20 +232,22 @@ export class Plugin<
 
 	private async importAll(files: Dirent[]) {
 		log.debug(`Importing plugin features...`)
+		// TODO: Improve plugin methods import (maybe with the Function class (?), ECMAScript parser or AST parser)
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
-			const content = await readFile(normalizedPath, 'utf-8')
-			const tmpFile = join(dirname(normalizedPath), `tmp_${generateRandomString(10)}.ts`)
-			const replaced = content.replace(/^(const|let)?(\s.*=.*)?Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
-				const id = generateRandomString(10)
-				const isVar = match.startsWith('const') || match.startsWith('let')
-				return `export ${isVar ? match : `const ${id} = ${match}`}`
+			const content = await Bun.file(normalizedPath).text()
+			const replaced = content.replace(/^Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
+				if (match.startsWith('export')) return match
+				else if (match.startsWith('const') || match.startsWith('let')) return `export ${match}`
+				else return `export const ${getRandomString(8)} = ${match}`
 			})
+			const jsCode = transpiler.transformSync(replaced)
+			const blob = new Blob([`// ID: ${this.id}\n${jsCode}`], { type: 'application/javascript' })
+			const moduleUrl = URL.createObjectURL(blob)
 			try {
-				await writeFile(tmpFile, replaced)
-				const exported = await import(pathToFileURL(tmpFile).href)
+				const exported = await import(moduleUrl)
 				Object.values(exported).forEach((v) => {
-					if (v instanceof z.ZodObject) this._schema = v
+					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v
 					else if (isForm(v)) this._forms.push(v)
 					else if (isTool(v)) this._tools.push(v)
 					else if (isHook(v)) this._hooks.push({ ...v, from: this.id })
@@ -245,7 +258,7 @@ export class Plugin<
 				log.error('Error importing plugin:', error)
 			}
 			finally {
-				await unlink(tmpFile)
+				this._fileUrls.push(moduleUrl)
 			}
 		}
 	}

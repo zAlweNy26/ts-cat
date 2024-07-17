@@ -1,42 +1,44 @@
-import { AgentActionOutputParser } from 'langchain/agents'
-import type { AgentAction, AgentFinish } from 'langchain/schema'
+import { z } from 'zod'
+import { type AgentAction, AgentActionOutputParser, type AgentFinish } from 'langchain/agents'
 import { madHatter } from '@mh'
 import { log } from '@logger'
-import { destr } from 'destr'
+import { parseJson } from '@utils'
 import { OutputParserException } from '@langchain/core/output_parsers'
 
+const agentOutputSchema = z.object({
+	action: z.string(),
+	actionInput: z.string().nullish().transform((v) => {
+		if (typeof v === 'string') {
+			const str = v.trim().replace(/^['"]|['"]$/g, '').replace(/None|undefined/g, 'null')
+			return str === 'null' ? null : str
+		}
+		return null
+	}),
+})
+
+type AgentOutput = z.infer<typeof agentOutputSchema>
+
 export class ProceduresOutputParser extends AgentActionOutputParser {
-	lc_namespace = ['looking_glass', 'output-parser']
+	lc_namespace = ['looking_glass', 'procedures-output-parser']
 
 	async parse(output: string): Promise<AgentFinish | AgentAction> {
-		output += '}'
-		output = output.replace('None', 'null')
-
-		let parsedOutput: Record<string, any> = {}
+		let parsedOutput: AgentOutput
 
 		try {
-			parsedOutput = destr(output)
+			parsedOutput = await parseJson(output, agentOutputSchema)
 		}
 		catch (error) {
-			log.error(error)
+			log.error(`Could not parse LLM output: ${output}`)
 			throw new OutputParserException(`Could not parse LLM output: ${output}`)
 		}
 
-		const action = parsedOutput.action
-		const actionInput = String(parsedOutput.actionInput)?.trim().replace(/"/g, '') ?? null
+		const parsedLog = JSON.stringify(parsedOutput, null, 4)
+
+		const { action, actionInput } = parsedOutput
 
 		if (action === 'final-answer') {
 			return {
-				log: output,
-				returnValues: {
-					output: actionInput,
-				},
-			}
-		}
-
-		if (action === 'none-of-the-others') {
-			return {
-				log: output,
+				log: parsedLog,
 				returnValues: {
 					output: null,
 				},
@@ -47,7 +49,7 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 
 		if (form) {
 			return {
-				log: output,
+				log: parsedLog,
 				returnValues: {
 					output: null,
 					form: action,
@@ -56,15 +58,16 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 		}
 
 		return {
-			log: output,
+			log: parsedLog,
 			tool: action,
-			toolInput: actionInput,
+			toolInput: actionInput ?? {},
 		}
 	}
 
 	getFormatInstructions() {
 		return `{
-            "output": "string"
+            "action": "string",
+			"actionInput": "string" // or null if not needed
         }`
 	}
 }

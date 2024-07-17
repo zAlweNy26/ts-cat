@@ -9,10 +9,10 @@ CatTool.add('GetTime', 'Useful to get the current time when asked. Input is alwa
 	startExamples: ['What time is it', 'Get the time'],
 })
 
-CatTool.add('GetName', 'Useful to get the current user name when asked. Input is the user name.', async (input) => {
-	return `Your name is ${input}`
+CatTool.add('GenerateName', 'Useful to generate a random name when asked. Input is the country origin of the name.', async (input, cat) => {
+	return cat.llm(`Give me a name that is from ${input}`)
 }, {
-	startExamples: ['My name is Daniele', 'I\'m John'],
+	startExamples: ['I want an african name', 'Generate an italian name'],
 })
 
 CatForm.add('PizzaForm', {

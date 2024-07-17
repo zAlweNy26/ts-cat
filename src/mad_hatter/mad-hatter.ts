@@ -1,9 +1,7 @@
-import { existsSync, mkdir, readdirSync } from 'node:fs'
-import { readFile, rm } from 'node:fs/promises'
+import { mkdir, readdir, rm } from 'node:fs/promises'
 import { basename, join, sep } from 'node:path'
-import { execSync } from 'node:child_process'
 import chokidar from 'chokidar'
-import { catPaths } from '@utils'
+import { catPaths, existsDir } from '@utils'
 import { db } from '@db'
 import { log } from '@logger'
 import type { HookNames, HookTypes, Hooks } from './hook.ts'
@@ -17,12 +15,15 @@ export class MadHatter {
 	private static instance: MadHatter
 	private plugins = new Map<string, Plugin>()
 	private activePlugins: Plugin['id'][] = []
-	onPluginsSyncCallback?: () => void = undefined
+	onPluginsSyncCallback?: () => Promise<void> = undefined
 	hooks: Partial<Hooks> = {}
 	tools: Tool[] = []
 	forms: Form[] = []
 
-	private constructor() {}
+	private constructor() {
+		log.silent('Initializing the Mad Hatter...')
+		this.activePlugins = db.data.activePlugins
+	}
 
 	/**
 	 * Get the Mad Hatter instance
@@ -30,9 +31,7 @@ export class MadHatter {
 	 */
 	static async getInstance() {
 		if (!MadHatter.instance) {
-			log.silent('Initializing the Mad Hatter...')
 			MadHatter.instance = new MadHatter()
-			MadHatter.instance.activePlugins = db.data.activePlugins
 			await MadHatter.instance.installPlugin(`${basePath}/mad_hatter/core_plugin`)
 			await MadHatter.instance.findPlugins()
 		}
@@ -66,7 +65,7 @@ export class MadHatter {
 	 * Gets a copy of the installed plugins.
 	 */
 	get installedPlugins() {
-		return Array.from([...this.plugins.values()])
+		return [...this.plugins.values()]
 	}
 
 	/**
@@ -74,8 +73,8 @@ export class MadHatter {
 	 */
 	async findPlugins() {
 		log.silent('Finding plugins...')
-		if (existsSync(pluginsPath)) {
-			const dirs = readdirSync(pluginsPath, { withFileTypes: true })
+		if (existsDir(pluginsPath)) {
+			const dirs = await readdir(pluginsPath, { withFileTypes: true })
 			for (const dir of dirs) {
 				if (dir.isDirectory()) {
 					const pluginPath = join(pluginsPath, dir.name)
@@ -83,9 +82,17 @@ export class MadHatter {
 				}
 			}
 		}
-		else mkdir(pluginsPath, { recursive: true }, () => log.debug('Created plugins directory'))
+		else {
+			try {
+				await mkdir(pluginsPath, { recursive: true })
+				log.debug('Created plugins directory')
+			}
+			catch (error) {
+				log.error('Error creating plugins directory:', error)
+			}
+		}
 		log.success('Active plugins:', this.activePlugins.join(', '))
-		this.syncHooksAndProcedures()
+		await this.syncHooksAndProcedures()
 		if (Object.keys(this.hooks).length > 0) {
 			log.success('Added hooks:')
 			log.table(Object.entries(this.hooks).map(([key, value]) =>
@@ -128,19 +135,21 @@ export class MadHatter {
 	async removePlugin(id: string) {
 		const plugin = this.plugins.get(id)
 		if (plugin) {
+			log.debug(`Removing plugin: ${id}`)
 			plugin.triggerEvent('removed')
+			plugin.fileUrls.forEach(u => URL.revokeObjectURL(u))
 			const requirementsPath = join(plugin.path, 'requirements.txt')
-			if (existsSync(requirementsPath)) {
-				const requirements = await readFile(requirementsPath, 'utf-8')
-				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).join(' ')
-				try { execSync(`pnpm remove ${pkgs}`, { cwd: plugin.path }) }
+			if (existsDir(requirementsPath)) {
+				const requirements = await Bun.file(requirementsPath).text()
+				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).filter(p => p !== undefined)
+				try { Bun.spawnSync(['bun', 'remove', ...pkgs]) }
 				catch (error) { log.error(`Error removing requirements for ${plugin.id}: ${error}`) }
 			}
 			await rm(plugin.path, { recursive: true, force: true })
 			this.activePlugins = this.activePlugins.filter(p => p !== id)
-			this.plugins.delete(id)
-			this.syncHooksAndProcedures()
 			db.update(db => db.activePlugins = this.activePlugins)
+			this.plugins.delete(id)
+			await this.syncHooksAndProcedures()
 		}
 	}
 
@@ -153,7 +162,7 @@ export class MadHatter {
 		if (plugin && !plugin.reloading) {
 			log.info(`Reloading plugin: ${plugin.id}`)
 			await plugin.reload()
-			this.syncHooksAndProcedures()
+			await this.syncHooksAndProcedures()
 		}
 	}
 
@@ -162,7 +171,7 @@ export class MadHatter {
 	 * @param id The ID of the plugin to toggle.
 	 * @param sync Whether to synchronize hooks and tools immediately. Default is true.
 	 */
-	togglePlugin(id: string, sync = true) {
+	async togglePlugin(id: string, sync = true) {
 		const plugin = this.plugins.get(id)
 		if (plugin) {
 			const active = this.activePlugins.includes(id)
@@ -175,7 +184,7 @@ export class MadHatter {
 				this.activePlugins.push(plugin.id)
 			}
 			db.update(db => db.activePlugins = this.activePlugins)
-			if (sync) this.syncHooksAndProcedures()
+			if (sync) await this.syncHooksAndProcedures()
 			return plugin.active
 		}
 		return false
@@ -185,7 +194,7 @@ export class MadHatter {
 	 * Synchronizes hooks, tools and forms.
 	 * It also sorts the hooks by priority.
 	 */
-	syncHooksAndProcedures() {
+	async syncHooksAndProcedures() {
 		log.silent('Synchronizing hooks, tools and forms...')
 		this.tools = []
 		this.forms = []
@@ -205,14 +214,14 @@ export class MadHatter {
 		Object.entries(this.hooks).forEach(([name, hooks]) => {
 			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority)
 		})
-		this.onPluginsSyncCallback?.()
+		await this.onPluginsSyncCallback?.()
 	}
 }
 
 export const madHatter = await MadHatter.getInstance()
 
 chokidar.watch('src/plugins', {
-	ignored: ['**/settings.json', '**/tmp_*.ts'],
+	ignored: ['**/settings.json'],
 	ignoreInitial: true,
 	persistent: true,
 }).on('all', async (event, path) => {

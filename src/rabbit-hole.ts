@@ -1,13 +1,13 @@
 import { basename, extname, resolve } from 'node:path'
-import { existsSync, readFileSync } from 'node:fs'
-import { PDFLoader } from 'langchain/document_loaders/fs/pdf'
-import { CSVLoader } from 'langchain/document_loaders/fs/csv'
+import { File } from 'node:buffer'
+import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
+import { CSVLoader } from '@langchain/community/document_loaders/fs/csv'
+import { DocxLoader } from '@langchain/community/document_loaders/fs/docx'
+import { PPTXLoader } from '@langchain/community/document_loaders/fs/pptx'
 import { TextLoader } from 'langchain/document_loaders/fs/text'
-import { DocxLoader } from 'langchain/document_loaders/fs/docx'
 import { JSONLoader } from 'langchain/document_loaders/fs/json'
-import { PPTXLoader } from 'langchain/document_loaders/fs/pptx'
 import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
-import { CheerioWebBaseLoader } from 'langchain/document_loaders/web/cheerio'
+import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio'
 import { getEncoding } from 'js-tiktoken'
 import type { TextSplitter } from 'langchain/text_splitter'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
@@ -16,22 +16,11 @@ import { destr } from 'destr'
 import type { StrayCat } from '@lg/stray-cat.ts'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
-import type { PointData } from '@memory/vector-memory-collection.ts'
 import { log } from '@logger'
+import type { MemoryJson } from '@dto/vector-memory.ts'
 import { db } from './database.ts'
-import { sleep } from './utils.ts'
 
-export interface MemoryJson {
-	embedder: string
-	collections: {
-		declarative: PointData[]
-		procedural: PointData[]
-		episodic: PointData[]
-		[key: string]: PointData[]
-	}
-}
-
-export type WebParser = [RegExp, new (content: string) => BaseDocumentLoader]
+export type WebParser = [RegExp, new (url: string) => BaseDocumentLoader]
 
 export type FileParsers = Record<`${string}/${string}`, new (content: string | Blob) => BaseDocumentLoader>
 
@@ -39,7 +28,7 @@ export class RabbitHole {
 	private static instance: RabbitHole
 	private splitter: TextSplitter
 	private webHandlers: WebParser[] = [
-		[/^(https?:\/\/)?(www\.)?.*\..*$/g, CheerioWebBaseLoader],
+		[/^.*$/g, CheerioWebBaseLoader],
 	]
 
 	private fileHandlers: FileParsers = {
@@ -54,6 +43,7 @@ export class RabbitHole {
 	}
 
 	private constructor() {
+		log.silent('Initializing the Rabbit Hole...')
 		this.fileHandlers = madHatter.executeHook('fileParsers', this.fileHandlers)
 		this.webHandlers = madHatter.executeHook('webParsers', this.webHandlers)
 		this.splitter = madHatter.executeHook('textSplitter', new RecursiveCharacterTextSplitter({
@@ -67,11 +57,8 @@ export class RabbitHole {
 	 * Get the Rabbit Hole instance
 	 * @returns The Rabbit Hole class as a singleton
 	 */
-	static getInstance() {
-		if (!RabbitHole.instance) {
-			log.silent('Initializing the Rabbit Hole...')
-			RabbitHole.instance = new RabbitHole()
-		}
+	static async getInstance() {
+		if (!RabbitHole.instance) RabbitHole.instance = new RabbitHole()
 		return RabbitHole.instance
 	}
 
@@ -154,7 +141,7 @@ export class RabbitHole {
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
 
 		log.info('Ingesting file...')
-		const loader = new this.fileHandlers[mime]!(file)
+		const loader = new this.fileHandlers[mime]!(file as unknown as Blob)
 		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 		const content = await loader.load()
 		stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
@@ -188,8 +175,8 @@ export class RabbitHole {
 		catch (error) {
 			if (error instanceof TypeError) log.info('The string is not a valid URL, trying with a file-system path...')
 			else if (error instanceof Error) log.error(error.message)
-			if (!existsSync(path)) throw new Error('The path does not exist. Skipping ingestion...')
-			const data = readFileSync(resolve(path))
+			if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
+			const data = await Bun.file(resolve(path)).text()
 			const file = new File([data], basename(path), { type: extname(path) })
 			await this.ingestFile(stray, file, chunkSize, chunkOverlap)
 		}
@@ -205,20 +192,20 @@ export class RabbitHole {
 	 */
 	async storeDocuments(stray: StrayCat, docs: Document[], source: string) {
 		log.info(`Preparing to store ${docs.length} documents`)
-		docs = madHatter.executeHook('beforeStoreDocuments', docs, stray)
+		docs = await madHatter.executeHook('beforeStoreDocuments', docs, stray)
 		for (let [i, doc] of docs.entries()) {
 			const index = i + 1
 			const percRead = Math.round((index / docs.length) * 100)
 			const readMsg = `Read ${percRead}% of ${source}`
 			stray.send({ type: 'notification', content: readMsg })
-			log.warn(readMsg)
+			log.info(readMsg)
 			doc.metadata.source = source
 			doc.metadata.when = Date.now()
-			doc = madHatter.executeHook('beforeInsertInMemory', doc, stray)
+			doc = await madHatter.executeHook('beforeInsertInMemory', doc, stray)
 			if (doc.pageContent) {
 				const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([doc.pageContent])
 				if (docEmbedding.length === 0) {
-					log.warn(`Skipped memory insertion of empty document (${index + 1}/${docs.length})`)
+					log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 					continue
 				}
 				await cheshireCat.currentMemory.collections.declarative.addPoint(
@@ -227,11 +214,13 @@ export class RabbitHole {
 					doc.metadata,
 				)
 			}
-			else log.warn(`Skipped memory insertion of empty document (${index + 1}/${docs.length})`)
-			await sleep(1000)
+			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
+			doc = await madHatter.executeHook('afterInsertInMemory', doc, stray)
+			await Bun.sleep(500)
 		}
+		docs = await madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
-		log.warn(`Done uploading ${source}`)
+		log.info(`Done uploading ${source}`)
 	}
 
 	/**
@@ -244,12 +233,12 @@ export class RabbitHole {
 	 * @returns An array of documents.
 	 */
 	async splitDocs(stray: StrayCat, docs: Document[], chunkSize?: number, chunkOverlap?: number) {
-		docs = madHatter.executeHook('beforeSplitDocs', docs, stray)
+		docs = await madHatter.executeHook('beforeSplitDocs', docs, stray)
 		this.splitter.chunkSize = chunkSize ??= db.data.chunkSize
 		this.splitter.chunkOverlap = chunkOverlap ??= db.data.chunkOverlap
 		log.info('Splitting documents with chunk size', chunkSize, 'and overlap', chunkOverlap)
 		docs = (await this.splitter.splitDocuments(docs)).filter(d => d.pageContent.length > 10)
-		docs = madHatter.executeHook('afterSplitDocs', docs, stray)
+		docs = await madHatter.executeHook('afterSplitDocs', docs, stray)
 		return docs
 	}
 }

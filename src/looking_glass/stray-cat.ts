@@ -1,69 +1,32 @@
-import type { RawData, WebSocket } from 'ws'
+import { resolveObjectURL } from 'node:buffer'
 import callsites from 'callsites'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
-import type { DocumentInput } from '@langchain/core/documents'
 import { Document } from '@langchain/core/documents'
-import type { ChainValues } from 'langchain/schema'
-import { destr } from 'destr'
-import { type PluginManifest, madHatter } from '@mh'
-import type { EmbeddedVector, FilterMatch } from '@memory'
-import type { Message } from '@utils'
+import { madHatter } from '@mh'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
-import type { AgentFastReply } from './agent-manager.ts'
-import { NewTokenHandler } from './callbacks.ts'
+import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage, WorkingMemory } from '@dto/message.ts'
+import type { AgentFastReply } from '@dto/agent.ts'
+import type { ServerWebSocket } from 'bun'
+import type { TSchema } from 'elysia'
+import type { TypeCheck } from 'elysia/type-system'
+import type { ElysiaWS } from 'elysia/ws'
 import { cheshireCat } from './cheshire-cat.ts'
+import { NewTokenHandler } from './callbacks.ts'
 
-export interface MemoryRecallConfig {
-	embedding: number[]
-	k: number
-	threshold: number
-	filter?: Record<string, FilterMatch>
-}
+export type WS = ElysiaWS<
+	ServerWebSocket<{
+		validator?: TypeCheck<TSchema>
+	}>,
+	any,
+	any
+>
 
-export interface MemoryRecallConfigs {
-	episodic: MemoryRecallConfig
-	declarative: MemoryRecallConfig
-	procedural: MemoryRecallConfig
-	[key: string]: MemoryRecallConfig
-}
-
-export type MemoryDocument = {
-	id: string
-	vector: EmbeddedVector
-	score: number
-} & DocumentInput
-
-export interface WorkingMemory {
-	episodic: MemoryDocument[]
-	declarative: MemoryDocument[]
-	procedural: MemoryDocument[]
-	[key: string]: MemoryDocument[]
-}
-
-export interface MemoryMessage {
-	what: string
-	who: string
-	when: number
-	why?: {
-		input: string
-		intermediateSteps: Record<string, any>[]
-		memory?: WorkingMemory
-	}
-}
-
-export type WSMessage = {
-	type: 'error'
-	name: string
-	description: string
-} | {
-	type: 'token' | 'notification'
-	content: string
-} | ({ type: 'chat' } & MemoryMessage)
-
+/**
+ * The stray cat goes around tools and hook, making troubles
+ */
 export class StrayCat {
 	private chatHistory: MemoryMessage[] = []
-	private _ws?: WebSocket
 	private userMessage!: Message
 	public wsQueue: WSMessage[] = []
 	public activeForm?: string
@@ -73,27 +36,10 @@ export class StrayCat {
 		procedural: [],
 	}
 
-	constructor(public userId: string, ws?: WebSocket) {
-		this._ws = ws
-		if (this._ws) this._ws.on('message', this.onMessage)
-	}
-
-	private async onMessage(message: RawData) {
-		let msg: Message
-		try { msg = destr(message.toString()) }
-		catch (error) {
-			msg = { text: message.toString() }
-		}
-		const res = await this.run(msg)
-		if (res) this.send({ type: 'chat', ...res })
-	}
+	constructor(public userId: string, private ws?: WS) {}
 
 	get lastUserMessage() {
 		return this.userMessage
-	}
-
-	get ws() {
-		return this._ws
 	}
 
 	get plugins() {
@@ -108,24 +54,35 @@ export class StrayCat {
 		return cheshireCat.currentEmbedder
 	}
 
+	get whiteRabbit() {
+		return cheshireCat.whiteRabbit
+	}
+
+	get rabbitHole() {
+		return cheshireCat.rabbitHole
+	}
+
 	/**
-	 * Retrieves information about the plugin where is being executed.
+	 * Retrieves information about a plugin based on where it's executed.
 	 * @returns An object containing the plugin's active status, manifest, and settings.
+	 *
 	 * Returns undefined if the plugin is not found.
 	 */
-	getPluginInfo() {
+	async getPluginInfo() {
 		const paths = callsites().map(site => site.getFileName())
-		const folder = paths.find(path => path?.includes('src/plugins/'))
-		if (!folder) return undefined
-		const match = folder.match(/src\/plugins\/(.+?)\/tmp/)
-		if (!match || !match[1]) return undefined
-		const id = match[1]
+		const tmp = paths.find(path => path?.includes('blob:'))
+		if (!tmp) return undefined
+		const blob = resolveObjectURL(tmp)
+		if (!blob) return undefined
+		const text = await blob.text()
+		const id = text.match(/^\/\/ ID:\s*(\S+)/)?.[1]
+		if (!id) return undefined
 		const plugin = madHatter.getPlugin(id)
 		if (!plugin) return undefined
 		const { active, manifest, settings } = plugin
 		return {
 			active,
-			manifest: manifest as PluginManifest,
+			manifest,
 			settings,
 		}
 	}
@@ -134,32 +91,26 @@ export class StrayCat {
 	 * This property is used to establish a new WebSocket connection.
 	 * @param value The WebSocket instance.
 	 */
-	set ws(value: WebSocket | undefined) {
-		this._ws = value
-		this._ws?.on('open', () => {
-			log.info(`User ${this.userId} is now connected to the WebSocket.`)
-			while (this.wsQueue.length) {
-				const message = this.wsQueue.shift()
-				if (message) this.send(message)
-			}
-		})
-		this._ws?.on('message', this.onMessage)
+	addWebSocket(value: WS | undefined) {
+		this.ws = value
 	}
 
 	/**
 	 * Sends a message through the websocket connection.
+	 *
 	 * If the websocket connection is not open, the message is queued.
-	 * @param message The message to send.
+	 *
+	 * If the message is of type 'chat', it is also stored in the chat history.
+	 * @param msg The message to send.
 	 */
-	send(message: WSMessage) {
+	send(msg: WSMessage) {
 		if (this.ws) {
-			const what = JSON.stringify(message)
-			this.chatHistory.push({ what, who: this.userId, when: Date.now() })
-			this.ws.send(what)
+			this.ws.send(JSON.stringify(msg))
+			if (msg.type === 'chat') this.chatHistory.push(msg)
 		}
 		else {
-			log.warn(`No websocket connection is open for user "${this.userId}". Queuing the message...`)
-			this.wsQueue.push(message)
+			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
+			this.wsQueue.push(msg)
 		}
 	}
 
@@ -169,54 +120,65 @@ export class StrayCat {
 	 * @param save Whether to save the message or not in the chat history (default: true).
 	 * @returns The response message
 	 */
-	async run(msg: Message, save = true) {
+	async run(msg: Message, save = true): Promise<WSMessage> {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
-		const response = this.userMessage = madHatter.executeHook('beforeReadMessage', msg, this)
+
+		const response = this.userMessage = await madHatter.executeHook('beforeReadMessage', msg, this)
+
+		// TODO: Find another way to handle this
 		if (response.text.length > cheshireCat.embedderSize) {
 			log.warn(`The input is too long. Storing it as document...`)
-			rabbitHole.ingestContent(this, response.text)
-			return
+			await rabbitHole.ingestContent(this, response.text)
+			return {
+				type: 'notification',
+				content: 'The input is too long. Storing it as document...',
+			}
 		}
 
-		try {
-			await this.recallRelevantMemories()
-		}
+		if (save) this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
+
+		try { await this.recallRelevantMemories() }
 		catch (error) {
 			log.error(error)
-			return
+			return {
+				type: 'error',
+				name: 'MemoryRecallError',
+				description: 'An error occurred while trying to recall relevant memories.',
+			}
 		}
 
-		let catMsg: ChainValues
+		let catMsg: AgentFastReply
 		try {
 			catMsg = await cheshireCat.currentAgentManager.executeAgent(this)
 		}
 		catch (error) {
 			log.error(error)
 			catMsg = {
-				intermediateSteps: [],
 				output: 'I am sorry, I could not process your request.',
-			} satisfies AgentFastReply
+				intermediateSteps: [],
+			}
 		}
 
-		log.info('Agent response:')
-		log.normal(JSON.stringify(catMsg, undefined, 4))
+		log.normal('Agent response:')
+		log.dir(catMsg)
 
-		let doc = new Document({
+		let doc = new Document<Record<string, any>>({
 			pageContent: response.text,
 			metadata: {
 				who: this.userId,
 				when: Date.now(),
 			},
-		}) as Document<Record<string, any>>
-		doc = madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
+		})
+		doc = await madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
 		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
 		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
 		await cheshireCat.currentMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
 
 		let finalOutput: MemoryMessage = {
+			role: 'AI',
 			what: catMsg.output,
-			who: 'AI',
+			who: this.userId,
 			when: Date.now(),
 			why: {
 				input: response.text,
@@ -225,14 +187,45 @@ export class StrayCat {
 			},
 		}
 
-		finalOutput = madHatter.executeHook('beforeSendMessage', finalOutput, this)
+		finalOutput = await madHatter.executeHook('beforeSendMessage', finalOutput, this)
 
-		if (save) {
-			this.chatHistory.push({ what: response.text, who: 'Human', when: Date.now() })
-			this.chatHistory.push(finalOutput)
+		if (save) this.chatHistory.push(finalOutput)
+
+		return {
+			type: 'chat',
+			...finalOutput,
+		}
+	}
+
+	/**
+	 * Classifies the given sentence into one of the provided labels.
+	 * @param sentence The sentence to classify
+	 * @param labels The labels to classify the sentence into
+	 * @param examples Optional examples to help the LLM classify the sentence
+	 * @returns The label of the sentence or null if it could not be classified
+	 */
+	async classify<S extends string, T extends [S, ...S[]]>(sentence: string, labels: T, examples?: { [key in T[number]]: S[] }) {
+		let examplesList = ''
+		if (examples && Object.keys(examples).length > 0) {
+			examplesList += Object.entries(examples)
+				.reduce((acc, [l, ex]) => `${acc}\n"${ex}" -> "${l}"`, '\n\nExamples:')
 		}
 
-		return finalOutput
+		const labelsList = `"${labels.join('", "')}"`
+		const prompt = `Classify this sentence:
+"${sentence}"
+
+Allowed classes are:
+${labelsList}${examplesList}
+
+"${sentence}" -> `
+
+		const response = await this.llm(prompt)
+		log.info(`Classified sentence: ${response}`)
+
+		const label = labels.find(w => response.includes(w))
+		if (label) return label
+		else return null
 	}
 
 	/**
@@ -260,7 +253,7 @@ export class StrayCat {
 	async recallRelevantMemories(query?: string) {
 		if (!query) query = this.userMessage.text
 
-		query = madHatter.executeHook('recallQuery', query, this)
+		query = await madHatter.executeHook('recallQuery', query, this)
 		log.info(`Recall query: ${query}`)
 
 		const queryEmbedding = await cheshireCat.currentEmbedder.embedQuery(query)
@@ -286,7 +279,7 @@ export class StrayCat {
 		}
 		recallConfigs = {
 			...recallConfigs,
-			...madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
+			...await madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
 		}
 		for (const [key, value] of Object.entries(recallConfigs)) {
 			const memories = await cheshireCat.currentMemory.collections[key]?.recallMemoriesFromEmbedding(
@@ -294,8 +287,9 @@ export class StrayCat {
 				value.filter,
 				value.k,
 				value.threshold,
-			)
-			this.workingMemory[key] = memories ?? []
+			) ?? []
+			log.info(`Recalled ${memories.length} memories for ${key} collection.`)
+			this.workingMemory[key] = memories
 		}
 		madHatter.executeHook('afterRecallMemories', this)
 	}

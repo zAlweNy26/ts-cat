@@ -1,16 +1,16 @@
 {
 	"compilerOptions": {
-		"target": "ES2022",
-		"lib": [
-			"ES2022"
-		],
+		"target": "ESNext",
+		"lib": ["ESNext"],
 		"moduleDetection": "force",
 		"baseUrl": ".",
 		"rootDir": ".",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
 		"paths": {
+			"~/*": ["./*"],
 			"@/*": ["./src/*"],
+			"@dto/*": ["./src/dtos/*"],
 			"@factory/*": ["./src/factory/*"],
 			"@factory": ["./src/factory/index.ts"],
 			"@lg/*": ["./src/looking_glass/*"],
@@ -37,13 +37,17 @@
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
 		"strict": true,
+		"noFallthroughCasesInSwitch": true,
 		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"noEmit": true,
 		"outDir": "dist",
 		"sourceMap": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
 		"skipLibCheck": true
 	},
 	"include": [

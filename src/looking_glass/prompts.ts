@@ -18,58 +18,79 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 		const steps = (values.intermediate_steps ?? values.intermediateSteps) as AgentStep[]
 		const procedures = Object.values(this.procedures)
 
+		if (steps && steps.length > 0) {
+			values.scratchpad = '## Actions sequence used until now\n'
+			values.scratchpad += steps.reduce((acc, { action, observation }) => {
+				let thought = `${action.log}\n`
+				thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
+				return acc + thought
+			}, '')
+		}
+		else values.scratchpad = ''
+
+		values.tools = procedures.map(p => `\t- "${p.name}": ${p.description}`).join('\n')
+
+		values.tool_names = procedures.map(p => `"${p.name}"`).join(', ')
+
 		if (procedures.map(p => p.startExamples).some(examples => examples.length > 0)) {
 			values.examples = '## Here some examples:\n'
 			values.examples += procedures.reduce((acc, p) => {
-				const question = `${acc}\nQuestion: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
-				const example = JSON.stringify({
-					action: p.name,
-					actionInput: 'input of the action according to it\'s description',
-				}, undefined, 4)
-				return `${question}\n${example}\n`
+				const question = `Question: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
+				const example = `{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}`
+				return `${acc}\n${question}\n${example}\n`
 			}, '')
 		}
-
-		values.agent_scratchpad = steps.reduce((acc, step) =>
-			`${acc}\n${JSON.stringify({ observation: step.observation }, undefined, 4)}\n`, '')
-
-		values.tools = procedures.map(p => `\t- ${p.name}: ${p.description}`).join('\n')
-
-		values.tool_names = procedures.map(p => p.name).join(', ')
+		else values.examples = ''
 
 		return super.format(values)
 	}
 }
 
-export const TOOL_PROMPT = `Answer the following question: \`{input}\`
-You can only reply using these tools:
+export const TOOL_PROMPT = `Create a JSON action to complete the action sequence, with the correct "action" and "actionInput" to help the Human.
+You can use one of these actions:
 {tools}
-	- final-answer: Use this to respond to the user when you have the final answer. Input is the final answer.
-	- none-of-the-others: Use this tool if none of the others tools help. Input is always null.
+	- "final-answer": Use this action to finish or no relevant action is available. Input is always null.
 
-If you want to do an action, use the following format:
+## To add an action, use only the following format:
 {{
-	"action": "action-name", // The name of the action to take, should be one of [{tool_names}, final-answer, none-of-the-others]
-	"actionInput": "input of the action", // The input to the action, shoud be a string
+	"action": // string - represents the name of the action to take, should be one of [{tool_names}, "final-answer"]
+	"actionInput": // string or null - represents the input to the action
 }}
 
 {examples}
 
-## Begin!
+## Action output
+After each action there will be an action output in this format:
+{{
+    "actionOutput": // Output of the previous action
+}}
 
-Question: {input}
-{agent_scratchpad}`
+## Final answer / no action available
+When you have a final answer (or no actions are relevant), use the following format:
+{{
+    "action": "final-answer",
+    "actionInput": null
+}}
+
+## Conversation with Human
+{chat_history}
+
+## Actions sequence used until now
+{scratchpad}
+
+## Next action to perform or final_answer:
+`
 
 export const MAIN_PROMPT_PREFIX = `You are the Cheshire Cat AI, an intelligent AI that passes the Turing test.
 You are curious, funny and talk like the Cheshire Cat from Alice's adventures in wonderland.
 You answer Human with a focus on the following context.`
 
 export const MAIN_PROMPT_SUFFIX = `# Context
+
 {episodic_memory}
+
 {declarative_memory}
+
 {tools_output}
 
-## Conversation until now:
-{chat_history}
-    - Human: {input}
-    - AI: `
+## Conversation until now:`

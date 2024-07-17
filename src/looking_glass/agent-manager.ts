@@ -1,37 +1,21 @@
-import { AgentExecutor, LLMSingleActionAgent } from 'langchain/agents'
-import { LLMChain } from 'langchain/chains'
-import { PromptTemplate, interpolateFString } from '@langchain/core/prompts'
+import { AgentExecutor, AgentRunnableSequence, type AgentStep } from 'langchain/agents'
+import { ChatPromptTemplate, SystemMessagePromptTemplate, interpolateFString } from '@langchain/core/prompts'
 import { formatDistanceToNow } from 'date-fns'
-import type { AgentStep, ChainValues } from 'langchain/schema'
 import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
 import { db } from '@db'
-import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT, ToolPromptTemplate } from './prompts.ts'
-import type { MemoryDocument, MemoryMessage, StrayCat } from './stray-cat.ts'
+import { StringOutputParser } from '@langchain/core/output_parsers'
+import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
+import type { AgentFastReply, ContextInput, IntermediateStep } from '@dto/agent.ts'
+import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
+import _Random from 'lodash/random.js'
+import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
+import { AIMessage, HumanMessage } from '@langchain/core/messages'
+import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.ts'
+import type { StrayCat } from './stray-cat.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
 import { NewTokenHandler } from './callbacks.ts'
-
-export interface AgentInput {
-	input: string
-	chat_history: string
-	episodic_memory: string
-	declarative_memory: string
-	[key: string]: string
-}
-
-export interface IntermediateStep {
-	tool: string
-	toolInput: string
-	observation: string
-}
-
-export interface AgentFastReply {
-	output: string
-	intermediateSteps?: IntermediateStep[]
-}
-
-export type InstantToolTrigger = `${string}{name}${string}`
 
 /**
  * Manager of Langchain Agent.
@@ -39,47 +23,79 @@ export type InstantToolTrigger = `${string}{name}${string}`
  * before feeding them to the Agent. It also instantiates the Langchain Agent.
  */
 export class AgentManager {
-	async executeProceduresChain(agentInput: AgentInput, stray: StrayCat) {
-		const recalledProcedures = stray.workingMemory.procedural.filter((p) => {
+	private verboseRunnable = new RunnableLambda({
+		func: (x) => {
+			if (parsedEnv.verbose) log.dir(x)
+			return x
+		},
+	})
+
+	async executeProceduresChain(agentInput: ContextInput, chatHistory: string, stray: StrayCat) {
+		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
 				&& ['description', 'startExample'].includes(p.metadata?.trigger)
 		}).map(p => p.metadata?.source as string)
 
 		const allowedProcedures: Record<string, Tool | Form> = {}
-		const allowedTools: Tool[] = []
 		const returnDirectTools: string[] = []
+
+		recalledProcedures = await madHatter.executeHook('allowedTools', recalledProcedures, stray)
 
 		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
-				if (isTool(p)) {
-					allowedTools.push(p.assignCat(stray))
-					if (p.returnDirect) returnDirectTools.push(p.name)
-				}
+				if (isTool(p) && p.returnDirect) returnDirectTools.push(p.name)
+				p.assignCat(stray)
 				allowedProcedures[p.name] = p
 			}
 		})
 
-		const prompt = new ToolPromptTemplate(allowedProcedures, {
-			template: madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray),
-			inputVariables: ['input', 'tools', 'tool_names', 'intermediate_steps', 'agent_scratchpad', 'examples'],
+		const allowedTools = Object.values(allowedProcedures)
+
+		let examples = ''
+		if (allowedTools.map(p => p.startExamples).some(examples => examples.length > 0)) {
+			examples += allowedTools.reduce((acc, p) => {
+				const question = `Question: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
+				const example = `{{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}}`
+				return `${acc}\n${question}\n${example}\n`
+			}, '## Here some examples:\n')
+			examples += '{{\n\t"action": "final-answer",\n\t"actionInput": null\n}}'
+		}
+
+		let prompt = ChatPromptTemplate.fromMessages([
+			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
+		])
+
+		prompt = await prompt.partial({
+			tools: allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n'),
+			tool_names: Object.keys(allowedProcedures).map(p => `"${p}"`).join(', '),
+			chat_history: chatHistory,
+			scratchpad: '',
+			examples,
 		})
 
-		const agentChain = new LLMChain({
+		const generatedScratchpad = (steps: AgentStep[]) => {
+			return steps.reduce((acc, { action, observation }) => {
+				let thought = `${action.log}\n`
+				thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
+				return acc + thought
+			}, '')
+		}
+
+		const agent = AgentRunnableSequence.fromRunnables([
+			RunnablePassthrough.assign({
+				agent_scratchpad: x => generatedScratchpad((x.intermediateSteps ?? []) as AgentStep[]),
+			}),
 			prompt,
-			llm: stray.currentLLM,
-			verbose: parsedEnv.verbose,
-		})
-
-		const agent = new LLMSingleActionAgent({
-			llmChain: agentChain,
-			outputParser: new ProceduresOutputParser(),
-			stop: ['}'],
-		})
+			this.verboseRunnable,
+			stray.currentLLM,
+			new ProceduresOutputParser(),
+		], { singleAction: true })
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
 			agent,
-			tools: allowedTools.filter(t => madHatter.executeHook('allowedTools', allowedTools.map(a => a.name), stray).includes(t.name)),
+			tools: allowedTools.filter(isTool),
 			returnIntermediateSteps: true,
+			maxIterations: 3,
 			verbose: parsedEnv.verbose,
 		})
 
@@ -89,20 +105,45 @@ export class AgentManager {
 		const intermediateSteps: IntermediateStep[] = []
 		for (const step of (result.intermediateSteps ?? []) as AgentStep[]) {
 			const { action, observation } = step
-			if (returnDirectTools.includes(action.tool)) result.returnDirect = true
-			intermediateSteps.push({ tool: action.tool, toolInput: action.toolInput, observation })
+			const { tool, toolInput } = action
+			if (returnDirectTools.includes(tool)) result.returnDirect = true
+			intermediateSteps.push({
+				tool,
+				input: typeof toolInput === 'string' ? toolInput : null,
+				observation,
+			})
 		}
-		result.intermediateSteps = intermediateSteps
 
-		if ('form' in result && typeof result.form === 'string') {
+		if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
 			const form = allowedProcedures[result.form] as Form
 			form.assignCat(stray)
 			stray.activeForm = result.form
-			result = form.next()
+			result = await form.next()
 			result.returnDirect = true
+			intermediateSteps.push({
+				tool: result.form,
+				input: null,
+				observation: result.output,
+			})
 		}
 
-		return result
+		result.intermediateSteps = intermediateSteps
+
+		return result as AgentFastReply
+	}
+
+	async executeMemoryChain(input: ContextInput, stray: StrayCat) {
+		const prefix = await madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
+		const suffix = await madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
+
+		const prompt = ChatPromptTemplate.fromMessages([
+			SystemMessagePromptTemplate.fromTemplate(prefix + suffix),
+			...(await this.getLangchainChatHistory(stray.getHistory(5))),
+		])
+
+		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new StringOutputParser())
+
+		return await chain.invoke(input, { callbacks: [new NewTokenHandler(stray)] })
 	}
 
 	async executeFormAgent(stray: StrayCat) {
@@ -120,77 +161,63 @@ export class AgentManager {
 		}
 	}
 
-	async executeMemoryChain(input: AgentInput, prefix: string, suffix: string, stray: StrayCat) {
-		const inputVariables = Object.keys(input).filter(k => (prefix + suffix).includes(k))
-		const prompt = new PromptTemplate({
-			template: prefix + suffix,
-			inputVariables,
-		})
-		const memoryChain = new LLMChain({
-			prompt,
-			llm: stray.currentLLM,
-			verbose: parsedEnv.verbose,
-			outputKey: 'output',
-		})
-		return await memoryChain.invoke(input, { callbacks: [new NewTokenHandler(stray)] })
-	}
+	async executeTool(input: ContextInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
+		const instantTool = db.data.instantTool
+		if (!instantTool) return undefined
 
-	async executeTool(input: AgentInput, stray: StrayCat): Promise<ChainValues | undefined> {
-		const trigger = madHatter.executeHook('instantToolTrigger', '@{name}', stray)
-
+		const trigger = await madHatter.executeHook('instantToolTrigger', '@{name}', stray)
 		if (!trigger) return undefined
 
 		const calledTool = madHatter.tools.filter(t => t.active)
 			.find(({ name }) => input.input.startsWith(interpolateFString(trigger, { name })))
-		const instantTool = db.data.instantTool
 
-		if (calledTool && instantTool) {
+		if (calledTool) {
 			const toolInput = input.input.replace(interpolateFString(trigger, { name: calledTool.name }), '').trim()
 			calledTool.assignCat(stray)
-			return { output: await calledTool.call(toolInput) }
+			const output = await calledTool.invoke(toolInput)
+			return {
+				output,
+				intermediateSteps: [{ tool: calledTool.name, input: toolInput, observation: output }],
+			}
 		}
 		return undefined
 	}
 
-	async executeAgent(stray: StrayCat): Promise<ChainValues> {
-		const episodicMemoryFormatted = this.getEpisodicMemoriesPrompt(stray.workingMemory.episodic)
-		const declarativeMemoryFormatted = this.getDeclarativeMemoriesPrompt(stray.workingMemory.declarative)
-		const chatHistoryFormatted = this.getChatHistoryPrompt(stray.getHistory())
-		const input = stray.lastUserMessage
-
-		const agentInput = madHatter.executeHook('beforeAgentStarts', {
-			input: input.text,
-			chat_history: chatHistoryFormatted,
-			episodic_memory: episodicMemoryFormatted,
-			declarative_memory: declarativeMemoryFormatted,
+	async executeAgent(stray: StrayCat): Promise<AgentFastReply> {
+		const agentInput = await madHatter.executeHook('beforeAgentStarts', {
+			input: stray.lastUserMessage.text,
+			chat_history: this.stringifyChatHistory(stray.getHistory(5)),
+			episodic_memory: this.getEpisodicMemoriesPrompt(stray.workingMemory.episodic),
+			declarative_memory: this.getDeclarativeMemoriesPrompt(stray.workingMemory.declarative),
+			tools_output: '',
 		}, stray)
 
 		const instantTool = await this.executeTool(agentInput, stray)
 
 		if (instantTool) return instantTool
 
-		const fastReply = madHatter.executeHook('agentFastReply', undefined, stray)
+		const fastReply = await madHatter.executeHook('agentFastReply', undefined, stray)
 
 		if (fastReply) return fastReply
-
-		const promptPrefix = madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
-		const promptSuffix = madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
 		const formResult = await this.executeFormAgent(stray)
 
 		if (formResult) return formResult
 
-		const intermediateSteps: IntermediateStep[] = []
 		const proceduralMemories = stray.workingMemory.procedural
+		let intermediateSteps: IntermediateStep[] = []
 
 		if (proceduralMemories.length > 0) {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
-				const proceduresResult = await this.executeProceduresChain(agentInput, stray)
-				const afterProcedures = madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
+				const proceduresResult = await this.executeProceduresChain(agentInput, agentInput.chat_history, stray)
+				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
-				if (afterProcedures.output) agentInput.tools_output = `## Tools output: \n${afterProcedures.output}`
-				intermediateSteps.push(...(afterProcedures.intermediateSteps ?? []))
+				intermediateSteps = afterProcedures.intermediateSteps ?? []
+				if (intermediateSteps.length > 0) {
+					agentInput.tools_output = `## Tools output: \n`
+					agentInput.tools_output += intermediateSteps.reduce((acc, { tool, observation }) => `${acc}\t- ${tool}: ${observation}\n`, '')
+				}
 			}
 			catch (error) {
 				log.error(`Error executing procedures agent:`)
@@ -198,35 +225,45 @@ export class AgentManager {
 			}
 		}
 
-		if (agentInput.tools_output === undefined) agentInput.tools_output = ''
-
-		const result = await this.executeMemoryChain(agentInput, promptPrefix, promptSuffix, stray)
-		result.intermediateSteps = intermediateSteps
-		const afterMemory = madHatter.executeHook('afterMemoryChain', result, stray)
+		const memoryOutput = await this.executeMemoryChain(agentInput, stray)
+		const reply: AgentFastReply = {
+			output: memoryOutput,
+			intermediateSteps,
+		}
+		const afterMemory = madHatter.executeHook('afterMemoryChain', reply, stray)
 
 		return afterMemory
 	}
 
 	getEpisodicMemoriesPrompt(docs: MemoryDocument[]) {
-		let memoryTexts = docs.map(d => d.pageContent.replace(/\n/gm, '. '))
+		let memoryTexts = docs.map(d => d.pageContent.replace(/\n$/gm, '. '))
 		if (memoryTexts.length === 0) return ''
 		const memoryTimestamps = docs.map((d) => {
 			const timestamp = d.metadata?.when as number
 			return ` (${formatDistanceToNow(timestamp, { addSuffix: true, includeSeconds: true })})`
 		})
 		memoryTexts = memoryTexts.map((text, i) => text + memoryTimestamps[i])
-		return `## Context of things the Human said in the past: ${memoryTexts.join('\n - ')}`
+		return `## Context of things the Human said in the past:\n - ${memoryTexts.join('\n - ')}`
 	}
 
 	getDeclarativeMemoriesPrompt(docs: MemoryDocument[]) {
-		let memoryTexts = docs.map(d => d.pageContent.replace(/\n/gm, '. '))
+		let memoryTexts = docs.map(d => d.pageContent.replace(/\n$/gm, '. '))
 		if (memoryTexts.length === 0) return ''
 		const memorySources = docs.map(d => ` (extracted from ${d.metadata?.source})`)
 		memoryTexts = memoryTexts.map((text, i) => text + memorySources[i])
-		return `## Context of documents containing relevant information: ${memoryTexts.join('\n - ')}`
+		return `## Context of documents containing relevant information:\n - ${memoryTexts.join('\n - ')}`
 	}
 
-	getChatHistoryPrompt(history: MemoryMessage[]) {
-		return history.map(m => `\n - ${m.who}: ${m.what}`).join('')
+	stringifyChatHistory(history: MemoryMessage[]) {
+		return history.map(m => `\n - ${m.role}: ${m.what}`).join('')
+	}
+
+	getLangchainChatHistory(history: MemoryMessage[]) {
+		const chatHistory = new ChatMessageHistory()
+		history.forEach((m) => {
+			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: m.who, content: m.what }))
+			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: m.what }))
+		})
+		return chatHistory.getMessages()
 	}
 }

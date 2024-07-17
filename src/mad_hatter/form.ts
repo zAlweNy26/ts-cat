@@ -1,13 +1,13 @@
 import { z } from 'zod'
 import _Unset from 'lodash/unset.js'
 import _Merge from 'lodash/merge.js'
-import { safeDestr } from 'destr'
 import { LLMChain } from 'langchain/chains'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { kebabCase } from 'scule'
-import type { AgentFastReply, StrayCat } from '@lg'
+import type { StrayCat } from '@lg'
 import { log } from '@logger'
-import { parsedEnv } from '@utils'
+import { parseJson, parsedEnv } from '@utils'
+import type { AgentFastReply } from '@dto/agent.ts'
 
 export enum FormState {
 	/**
@@ -246,12 +246,11 @@ Updated JSON:
 		structure += '\n}'
 
 		const json = (await extractionChain.invoke({ structure, stop: ['```'] })).output
-
-		log.debug(`Form JSON after parser:\n${json}`)
-
 		let output: Record<string, any> = {}
+
 		try {
-			output = safeDestr(json)
+			output = parseJson(json, this.schema)
+			log.debug('Form JSON after parsing:\n', output)
 		}
 		catch (error) {
 			output = {}

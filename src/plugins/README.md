@@ -8,7 +8,7 @@ To let the Cheshire Cat detect your plugin, you need to create at least one `.ts
 
 To import `tool`, `hook`, `form` or `plugin` methods, you need to:
 
-```typescript
+```ts
 import { CatHook } from '@hook'
 import { CatTool } from '@tool'
 import { CatForm } from '@form'
@@ -17,7 +17,7 @@ import { CatPlugin } from '@plugin'
 
 And then you can use them like this:
 
-```typescript
+```ts
 CatHook.add('hookName', /* ... the other parameters */)
 
 CatTool.add('toolName', /* ... the other parameters */)
@@ -29,7 +29,7 @@ CatPlugin.on('eventName', /* ... the other parameters */)
 
 From inside any hook, tool or form, you can access the current plugin informations like this:
 
-```typescript
+```ts
 // For example, in a hook
 CatHook.add('agentPromptPrefix', (prefix, cat) => {
     const info = cat.getPluginInfo()
@@ -62,7 +62,7 @@ CatForm.add('myFormName', {
 
 For the plugin settings, you must use `zod`. Here is an example:
 
-```typescript
+```ts
 import { z } from 'zod'
 
 CatPlugin.settings({
@@ -72,7 +72,7 @@ CatPlugin.settings({
 
 If you need to use the internal logger, you can do:
 
-```typescript
+```ts
 import { log } from '@logger'
 
 log.info('Hello, world!')

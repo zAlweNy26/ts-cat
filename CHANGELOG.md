@@ -1,5 +1,73 @@
 # Changelog
 
+## v1.3.0
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.6...v1.3.0)
+
+### 🚀 Enhancements
+
+- Improve tool parser ([a79416a](https://github.com/zAlweNy26/ts-cat/commit/a79416a))
+- Update LLM and Embedder configs ([68a0e26](https://github.com/zAlweNy26/ts-cat/commit/68a0e26))
+- Add parseJson utils ([485ffc3](https://github.com/zAlweNy26/ts-cat/commit/485ffc3))
+- **RabbitHole:** Add 2 new hooks ([f167e10](https://github.com/zAlweNy26/ts-cat/commit/f167e10))
+- Update prompt template and output parser ([0beb14a](https://github.com/zAlweNy26/ts-cat/commit/0beb14a))
+- Update langchain to v0.2 ([52bef47](https://github.com/zAlweNy26/ts-cat/commit/52bef47))
+- Add WhiteRabbit (job scheduler) ([fb815ce](https://github.com/zAlweNy26/ts-cat/commit/fb815ce))
+- Improve plugin importing using Blobs ([49b9962](https://github.com/zAlweNy26/ts-cat/commit/49b9962))
+- Promisify specific hooks ([648b76f](https://github.com/zAlweNy26/ts-cat/commit/648b76f))
+
+### 🩹 Fixes
+
+- Small general fixes ([5170dfb](https://github.com/zAlweNy26/ts-cat/commit/5170dfb))
+- Improve AgentManager ([9015cdb](https://github.com/zAlweNy26/ts-cat/commit/9015cdb))
+- Fix multi-action agent with temp patch ([760da42](https://github.com/zAlweNy26/ts-cat/commit/760da42))
+- Require Bun v1.1.19+ to work ([30ce63d](https://github.com/zAlweNy26/ts-cat/commit/30ce63d))
+- Fix chat history saving ([45cc9c8](https://github.com/zAlweNy26/ts-cat/commit/45cc9c8))
+
+### 💅 Refactors
+
+- Update AgentManager with improvements ([523ce0b](https://github.com/zAlweNy26/ts-cat/commit/523ce0b))
+- Switch to Bun runtime ([635c6bc](https://github.com/zAlweNy26/ts-cat/commit/635c6bc))
+- Migrate from Fastify to Elysia ([6d2b0f9](https://github.com/zAlweNy26/ts-cat/commit/6d2b0f9))
+
+### 🌊 Types
+
+- Move types to separate folder ([472d4de](https://github.com/zAlweNy26/ts-cat/commit/472d4de))
+
+### 🏡 Chore
+
+- Update dependencies ([ee47e5e](https://github.com/zAlweNy26/ts-cat/commit/ee47e5e))
+- Update plugin importing ([eaaf447](https://github.com/zAlweNy26/ts-cat/commit/eaaf447))
+- Improve api zod schemas ([97c5a0c](https://github.com/zAlweNy26/ts-cat/commit/97c5a0c))
+- Update AgentManager ([b6a7e79](https://github.com/zAlweNy26/ts-cat/commit/b6a7e79))
+- Update deps and overall code ([3e1a9a0](https://github.com/zAlweNy26/ts-cat/commit/3e1a9a0))
+- Improve codebase ([5f32f25](https://github.com/zAlweNy26/ts-cat/commit/5f32f25))
+- Small tweaks and update deps ([48e846c](https://github.com/zAlweNy26/ts-cat/commit/48e846c))
+- Small updates ([9b25b1f](https://github.com/zAlweNy26/ts-cat/commit/9b25b1f))
+- Remove unused css ([4a31091](https://github.com/zAlweNy26/ts-cat/commit/4a31091))
+- Bun-related updates ([8b04e99](https://github.com/zAlweNy26/ts-cat/commit/8b04e99))
+- Update unauthorized error ([3726619](https://github.com/zAlweNy26/ts-cat/commit/3726619))
+- Add getters for WhiteRabbit and RabbitHole ([d2d6ff3](https://github.com/zAlweNy26/ts-cat/commit/d2d6ff3))
+- Small tweaks ([20705ea](https://github.com/zAlweNy26/ts-cat/commit/20705ea))
+
+### ✅ Tests
+
+- Temporary bypass bun tests ([0ae3cd5](https://github.com/zAlweNy26/ts-cat/commit/0ae3cd5))
+
+### 🎨 Styles
+
+- Fix readmes ([37720be](https://github.com/zAlweNy26/ts-cat/commit/37720be))
+
+### 🤖 CI
+
+- Add typecheck ([b76e69f](https://github.com/zAlweNy26/ts-cat/commit/b76e69f))
+- Update workflow ([3f1f039](https://github.com/zAlweNy26/ts-cat/commit/3f1f039))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+- ZAlweNy26 <zdanymc@gmail.com>
+
 ## v1.2.6
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.5...v1.2.6)

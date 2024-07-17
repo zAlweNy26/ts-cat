@@ -1,22 +1,12 @@
 import { join } from 'node:path'
-import { lstatSync, mkdirSync, renameSync, writeFileSync } from 'node:fs'
-import type { Schemas } from '@qdrant/js-client-rest'
+import { lstat, mkdir, rename } from 'node:fs/promises'
 import { randomUUID } from 'uncrypto'
 import { ofetch } from 'ofetch'
-import type { MemoryDocument } from '@lg'
 import { parsedEnv } from '@utils'
 import { log } from '@logger'
+import type { EmbeddedVector, Filter, FilterCondition, FilterMatch, PointData } from '@dto/vector-memory.ts'
+import type { MemoryDocument } from '@dto/message.ts'
 import { vectorDb } from './vector-memory.ts'
-
-export type Filter = Schemas['Filter']
-
-export type FilterCondition = Schemas['FieldCondition']
-
-export type FilterMatch = FilterCondition['match']
-
-export type PointData = Schemas['PointStruct']
-
-export type EmbeddedVector = Schemas['NamedVectorStruct']
 
 export class VectorMemoryCollection {
 	private constructor(public name: string, public embedderName: string, public embedderSize: number) {}
@@ -100,11 +90,11 @@ export class VectorMemoryCollection {
 			return
 		}
 		log.warn(`Saving "${this.name}" collection dump...`)
-		const stats = lstatSync(folder)
+		const stats = await lstat(folder)
 		if (stats.isDirectory()) log.info('Directory dormouse exists')
 		else {
 			log.warn('Creating dormouse directory...')
-			mkdirSync(folder)
+			await mkdir(folder)
 		}
 		const snapshot = await vectorDb.createSnapshot(this.name)
 		if (!snapshot) {
@@ -116,9 +106,9 @@ export class VectorMemoryCollection {
 		const collectionAlias = await vectorDb.getCollectionAliases(this.name)
 		const aliasName = collectionAlias.aliases[0]?.alias_name ?? `${this.embedderName}_${this.name}`
 		const res = await ofetch<string>(remoteSnap)
-		writeFileSync(dumpDir, res)
+		await Bun.write(dumpDir, res)
 		const newName = join(folder, aliasName.replaceAll('/', '_').concat('.snapshot'))
-		renameSync(dumpDir, newName)
+		await rename(dumpDir, newName)
 		const snapshots = await vectorDb.listSnapshots(this.name)
 		snapshots.forEach(async snap => vectorDb.deleteSnapshot(this.name, snap.name))
 		log.info(`Dump ${newName} saved successfully`)
@@ -146,18 +136,21 @@ export class VectorMemoryCollection {
 	 * @param args Optional arguments to pass.
 	 * @returns The id of the added point.
 	 */
-	addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = randomUUID(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
-		return vectorDb.upsert(this.name, {
-			points: [{
-				id: id ?? randomUUID(),
-				vector,
-				payload: {
-					pageContent: content,
-					metadata,
-				},
-			}],
+	async addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = randomUUID(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
+		const point: PointData = {
+			id: id ?? randomUUID(),
+			vector,
+			payload: {
+				pageContent: content,
+				metadata,
+			},
+		}
+		const res = await vectorDb.upsert(this.name, {
+			points: [point],
 			...args,
 		})
+		if (res.status === 'completed') return point
+		else return undefined
 	}
 
 	/**
@@ -165,8 +158,8 @@ export class VectorMemoryCollection {
 	 * @param points An array of {@link PointData} representing the points to be added.
 	 * @returns The result of the upsert operation.
 	 */
-	addPoints(points: PointData[]) {
-		return vectorDb.upsert(this.name, { points })
+	addPoints(points: PointData[], ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
+		return vectorDb.upsert(this.name, { points, ...args })
 	}
 
 	/**
@@ -221,7 +214,7 @@ export class VectorMemoryCollection {
 			documents.push({
 				id: memory.id.toString(),
 				score: memory.score,
-				vector: memory.vector as EmbeddedVector,
+				vector: memory.vector as number[],
 				pageContent: (memory.payload?.pageContent as string),
 				metadata: (memory.payload?.metadata as Record<string, any>),
 			})

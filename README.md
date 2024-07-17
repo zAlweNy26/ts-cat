@@ -26,6 +26,15 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 
 📃 To be sure to respect everything, please read the [code of conduct](./CODE_OF_CONDUCT.md) file.
 
+## Why use the cat?
+
+- ⚡️ API first, so you get a microservice to easily add a conversational layer to your app
+- 🐘 Remembers conversations and documents and uses them in conversation
+- 🚀 Extensible via plugins
+- 🏛️ Event callbacks, function calling (tools), conversational forms
+- 🌍 Supports any language model (works with OpenAI, Google, Ollama, HuggingFace, custom services)
+- 🐋 Production ready - 100% dockerized
+
 ## Features
 
 - [x] Granular plugins folder reload
@@ -33,19 +42,19 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] New built-in LLMs and Embedders
 - [x] Instant tool call hook
 - [x] Granular management of procedures (forms and tools)
+- [x] Supports cron jobs (without saving to memory)
 - [ ] Built-in CLI
 - [ ] Supports multimodality
 
 ## Pre-requisites
 
-- Node.js 18.x
-- pnpm 8.10.x
+- Bun (>= 1.1.19)
 
 ## Installation
 
 ```bash
 # (for development)
-pnpm install
+bun install
 rm -f .git/hooks/pre-commit && ln -s ../../pre-commit .git/hooks/pre-commit
 
 # (for production)
@@ -55,8 +64,10 @@ docker compose build --no-cache
 ## How to run
 
 ```bash
-# (for development)
-pnpm run dev
+# (for development, with watcher)
+bun run dev
+# (for development, without watcher)
+bun start
 
 # (for production)
 docker compose up
@@ -64,8 +75,10 @@ docker compose up
 
 ## How to test
 
-To run the tests, be sure to have the Docker compose up and running. Then you can do:
-
 ```bash
-docker exec -it ccat_ts pnpm test
+bun run test
 ```
+
+## License
+
+This project is licensed under the GPL-3.0 License - see the [LICENSE](./LICENSE) file for details.

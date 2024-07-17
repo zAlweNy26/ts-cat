@@ -1,0 +1,20 @@
+diff --git a/dist/agents/index.d.ts b/dist/agents/index.d.ts
+index f136611b5f08a3670edc3e6bda9fdb0878f9b0ee..fd85341804ac9f32f4dadc5e73dd6e7ff38e6d2c 100644
+--- a/dist/agents/index.d.ts
++++ b/dist/agents/index.d.ts
+@@ -1,4 +1,4 @@
+-export { Agent, type AgentArgs, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, type LLMSingleActionAgentInput, type OutputParserArgs, } from "./agent.js";
++export { Agent, type AgentArgs, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, type LLMSingleActionAgentInput, type OutputParserArgs, AgentRunnableSequence } from "./agent.js";
+ export { JsonToolkit, OpenApiToolkit, RequestsToolkit, type VectorStoreInfo, VectorStoreRouterToolkit, VectorStoreToolkit, createJsonAgent, createOpenApiAgent, createVectorStoreAgent, createVectorStoreRouterAgent, } from "./toolkits/index.js";
+ export { Toolkit } from "./toolkits/base.js";
+ export { ChatAgent, type ChatAgentInput, type ChatCreatePromptArgs, } from "./chat/index.js";
+diff --git a/dist/agents/index.js b/dist/agents/index.js
+index ca4a1ab41dabd8cf4f3874c24ad39a93279a6bd1..fa5a6ad1219d6421324e41af86ac604a2a507114 100644
+--- a/dist/agents/index.js
++++ b/dist/agents/index.js
+@@ -1,4 +1,4 @@
+-export { Agent, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, } from "./agent.js";
++export { Agent, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, AgentRunnableSequence } from "./agent.js";
+ export { JsonToolkit, OpenApiToolkit, RequestsToolkit, VectorStoreRouterToolkit, VectorStoreToolkit, createJsonAgent, createOpenApiAgent, createVectorStoreAgent, createVectorStoreRouterAgent, } from "./toolkits/index.js";
+ export { Toolkit } from "./toolkits/base.js";
+ export { ChatAgent, } from "./chat/index.js";

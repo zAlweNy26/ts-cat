@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { kebabCase } from 'scule'
+import _IsEmpty from 'lodash/isEmpty.js'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import type { RunnableConfig } from '@langchain/core/runnables'
-import type { Callbacks } from '@langchain/core/callbacks/manager'
 import type { StrayCat } from '@lg'
+import { parsedEnv } from '@utils'
 
 interface ToolOptions {
 	direct?: boolean
@@ -33,7 +34,13 @@ export const CatTool = Object.freeze({
 	},
 })
 
-export class Tool extends DynamicStructuredTool {
+const toolSchema = z.object({
+	text: z.string().nullable(),
+})
+
+type ToolSchema = z.infer<typeof toolSchema>
+
+export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 	private cat: StrayCat | undefined
 	public startExamples: string[]
 	active = true
@@ -48,24 +55,19 @@ export class Tool extends DynamicStructuredTool {
 				if (!this.cat) throw new Error('Cat not assigned to tool')
 				return fn(text, this.cat)
 			},
-			schema: z.object({
-				text: z.string().nullable(),
-			}),
+			schema: toolSchema,
 			returnDirect: direct,
+			verbose: parsedEnv.verbose,
 		})
 
 		this.startExamples = startExamples
 	}
 
-	call(arg: any, configArg?: RunnableConfig | Callbacks | undefined, tags?: string[] | undefined): Promise<string> {
-		const formatArg = {
-			text: arg,
+	invoke(input: string | { [x: string]: any }, config?: RunnableConfig | undefined): Promise<string> {
+		const arg: ToolSchema = {
+			text: typeof input === 'object' ? (_IsEmpty(input) ? null : JSON.stringify(input)) : `${input}`,
 		}
-		return super.call(formatArg, configArg, tags)
-	}
-
-	toString() {
-		return `Tool(name=${this.name}, direct=${this.returnDirect}, description=${this.description})`
+		return super.invoke(arg, config)
 	}
 
 	assignCat(cat: StrayCat) {

@@ -1,11 +1,11 @@
 import 'dotenv/config'
 import { join } from 'node:path'
-import { readFileSync, readdirSync } from 'node:fs'
+import { readdir } from 'node:fs/promises'
+import _SampleSize from 'lodash/sampleSize.js'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
-import { extendZodWithOpenApi } from 'zod-openapi'
-
-extendZodWithOpenApi(z)
+import { defu } from 'defu'
+import { safeDestr } from 'destr'
 
 export const LogLevel = ['error', 'warning', 'normal', 'info', 'debug'] as const
 
@@ -13,9 +13,9 @@ const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 
 type Literal = z.infer<typeof literalSchema>
 
-type Json = Literal | { [key: string]: Json } | Json[]
+export type Json = Literal | { [key: string]: Json } | Json[]
 
-type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
+export type Primitive = string | number | boolean | bigint | symbol | { [key: string]: Primitive }
 
 /**
  * A Zod schema for JSON objects.
@@ -34,7 +34,7 @@ export const zodPrimitive: z.ZodType<Primitive> = z.lazy(() =>
 /**
  * A Zod schema for fixing coercion of boolean value.
  */
-export const zodBoolean = z.string().transform(v => v === 'true').default('false').openapi({ type: 'boolean' })
+export const zodBoolean = z.string().transform(v => v === 'true').default('false')
 
 const envSchema = z.object({
 	CORE_HOST: z.string().default('localhost'),
@@ -68,6 +68,9 @@ const envSchema = z.object({
  */
 export const parsedEnv = envSchema.parse(process.env)
 
+/**
+ * Retrieves the base URL of the application.
+ */
 function getBaseUrl() {
 	const protocol = parsedEnv.secure ? 'https' : 'http'
 	const address = `${protocol}://${parsedEnv.host}${parsedEnv.port ? `:${parsedEnv.port}` : ''}`
@@ -103,13 +106,13 @@ export const catPaths = {
 /**
  * Logs a welcome message and prints important URLs.
  */
-export function logWelcome() {
-	const cat = readFileSync('src/welcome.txt', 'utf8')
+export async function logWelcome() {
+	const cat = await Bun.file('src/welcome.txt').text()
 	console.log(cat)
 	console.log('===================== ^._.^ =====================')
 	console.log(`WEBSOCKET: ${getBaseUrl().href.replace('http', 'ws')}ws`)
 	console.log(`REST API:  ${getBaseUrl().href}docs`)
-	console.log(`ADMIN:     ${getBaseUrl().href}admin`)
+	// console.log(`ADMIN:     ${getBaseUrl().href}admin`)
 	console.log('=================================================')
 }
 
@@ -118,8 +121,8 @@ export function logWelcome() {
  * @param path The path to search for files.
  * @returns An array of Dirent objects representing the files found.
  */
-export function getFilesRecursively(path: string) {
-	const dirents = readdirSync(path, { withFileTypes: true, recursive: true, encoding: 'utf-8' })
+export async function getFilesRecursively(path: string) {
+	const dirents = await readdir(path, { withFileTypes: true, recursive: true, encoding: 'utf-8' })
 	for (const dirent of dirents) dirent.path = join(dirent.path, dirent.name)
 	return dirents
 }
@@ -138,29 +141,35 @@ export async function compareStrings(input: string, prediction: string, criteria
 }
 
 /**
- * Pauses the execution for a specified number of milliseconds.
- * @param ms The number of milliseconds to wait.
+ * Checks if a directory exists.
+ * @param path The path to the directory to check.
  */
-export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
-
-export interface Message {
-	text: string
-	[key: string]: any
-}
+// TODO: Wait for a Bun internal method to be implemented
+export const existsDir = (path: string) => !!Array.from(new Bun.Glob(path).scanSync({ onlyFiles: false }))[0]
 
 /**
  * Generates a random string of the specified length.
  * @param length The length of the random string to generate.
  */
-export function generateRandomString(length: number) {
-	let result = ''
-	for (let i = 0; i < length; i++) {
-		const isUpperCase = Math.random() < 0.5
-		const base = isUpperCase ? 65 : 97
-		const letter = String.fromCharCode(base + Math.floor(Math.random() * 26))
-		result += letter
-	}
-	return result
+export function getRandomString(length: number) {
+	const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	return _SampleSize(letters, length).join('')
+}
+
+/**
+ * Parses a JSON string using the specified Zod schema.
+ * It also cleans a few common issues with generated JSON strings.
+ * @param text The JSON string to parse.
+ * @param schema The Zod schema to use for parsing.
+ * @param addDefaults Whether to add default values to the parsed object.
+ * @throws If the JSON string is invalid or does not match the schema.
+ */
+export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
+	text = text.replace(/^```(json)?|```$/g, '').trim()
+	text += text.endsWith('}') ? '' : '}'
+	text = text.replace(/^['"]|['"]$/g, '').replace('\_', '_').replace('\-', '-')
+	const merged = addDefaults ? defu(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
+	return await schema.parseAsync(merged) as z.infer<T>
 }
 
 /**
@@ -169,7 +178,12 @@ export function generateRandomString(length: number) {
  * @param discriminant The discriminant value for discriminated unions.
  */
 export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_input'] | undefined {
-	if (schema instanceof z.ZodDiscriminatedUnion) {
+	if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
+	else if (schema instanceof z.ZodEnum) return schema.options[0]
+	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
+	else if (schema instanceof z.ZodLiteral) return schema.value
+	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
+	else if (schema instanceof z.ZodDiscriminatedUnion) {
 		if (!discriminant) throw new Error('Discriminant value is required for discriminated unions')
 		for (const [key, val] of schema._def.optionsMap.entries())
 			if (key === discriminant) return getZodDefaults(val)
@@ -198,10 +212,5 @@ export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?:
 		}
 		return undefined
 	}
-	else if (schema instanceof z.ZodEnum) return schema.options[0]
-	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
-	else if (schema instanceof z.ZodLiteral) return schema.value
-	else if (schema instanceof z.ZodEffects) return getZodDefaults(schema.innerType())
-	else if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else return undefined
 }

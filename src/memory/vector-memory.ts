@@ -2,19 +2,8 @@ import { QdrantClient } from '@qdrant/js-client-rest'
 import { parsedEnv } from '@utils'
 import { madHatter } from '@mh'
 import { log } from '@logger'
+import type { VectorMemoryCollections, VectorMemoryConfig } from '@dto/vector-memory.ts'
 import { VectorMemoryCollection } from './vector-memory-collection.ts'
-
-export interface VectorMemoryConfig {
-	embedderName: string
-	embedderSize: number
-}
-
-export interface VectorMemoryCollections {
-	episodic: VectorMemoryCollection
-	declarative: VectorMemoryCollection
-	procedural: VectorMemoryCollection
-	[key: string]: VectorMemoryCollection
-}
 
 const { qdrantApiKey, qdrantHost, qdrantPort, secure } = parsedEnv
 
@@ -31,6 +20,7 @@ export class VectorMemory {
 	collections!: VectorMemoryCollections
 
 	private constructor() {
+		log.silent('Initializing the Vector Memory...')
 		this.vectorDb = vectorDb
 	}
 
@@ -39,10 +29,7 @@ export class VectorMemory {
 	 * @returns The Vector Memory class as a singleton
 	 */
 	static async getInstance(params: VectorMemoryConfig) {
-		if (!VectorMemory.instance) {
-			log.silent('Initializing the Vector Memory...')
-			VectorMemory.instance = new VectorMemory()
-		}
+		if (!VectorMemory.instance) VectorMemory.instance = new VectorMemory()
 		await VectorMemory.instance.initCollections(params)
 		return VectorMemory.instance
 	}
@@ -53,7 +40,7 @@ export class VectorMemory {
 			declarative: await VectorMemoryCollection.create('declarative', embedderName, embedderSize),
 			episodic: await VectorMemoryCollection.create('episodic', embedderName, embedderSize),
 			procedural: await VectorMemoryCollection.create('procedural', embedderName, embedderSize),
-			...madHatter.executeHook('memoryCollections', {}),
+			...await madHatter.executeHook('memoryCollections', {}),
 		}
 	}
 
