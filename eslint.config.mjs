@@ -8,7 +8,7 @@ export default antfu({
 	typescript: true,
 	yaml: true,
 	markdown: false, // TODO: Temporary fix until code blocks are correctly read
-	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/'],
+	ignores: ['package.json', 'dist/**', 'node_modules/**', 'data/**', 'test/mocks/**', 'src/plugins/**'],
 	rules: {
 		'unused-imports/no-unused-vars-ts': 'warn',
 		'style/max-statements-per-line': 'off',

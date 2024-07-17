@@ -55,7 +55,6 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 ```bash
 # (for development)
 bun install
-rm -f .git/hooks/pre-commit && ln -s ../../pre-commit .git/hooks/pre-commit
 
 # (for production)
 docker compose build --no-cache
@@ -76,7 +75,11 @@ docker compose up
 ## How to test
 
 ```bash
+# (for development)
 bun run test
+
+# (for production)
+docker exec -it ccat_ts bun run test
 ```
 
 ## License

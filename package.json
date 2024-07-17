@@ -41,7 +41,8 @@
 		"release": "bun run lint && bun run test && changelogen --release && git push --follow-tags",
 		"typecheck": "tsc --noEmit",
 		"dev": "WATCH=true bun --watch run start",
-		"start": "NODE_ENV=production bun run ./index.ts"
+		"start": "NODE_ENV=production bun run ./index.ts",
+		"prepare": "bun run .husky/install.mjs"
 	},
 	"dependencies": {
 		"@elysiajs/cors": "^1.0.2",
@@ -103,6 +104,7 @@
 		"@vitest/ui": "^1.6.0",
 		"changelogen": "^0.5.5",
 		"eslint": "^8.57.0",
+		"husky": "9.0.11",
 		"magicast": "^0.3.4",
 		"nodemon": "^3.1.0",
 		"typescript": "^5.4.5",
