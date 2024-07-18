@@ -85,6 +85,45 @@ export function fileIngestion(app: App) {
 				400: 'error',
 			},
 		})
+		.post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
+			const { files } = body, { sync, chunkOverlap, chunkSize } = query
+			try {
+				if (sync) {
+					for (const file of files)
+						await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
+				}
+				else {
+					for (const file of files)
+						rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+				}
+			}
+			catch (error) {
+				log.error('Error while ingesting files:', error)
+				throw HttpError.InternalServer('Error while ingesting the passed files')
+			}
+			return {
+				info: sync ? 'Files have been ingested successfully.' : 'Files are being ingested asynchronously...',
+			}
+		}, {
+			body: t.Object({
+				files: t.Files(),
+			}),
+			query: t.Object({
+				sync: t.BooleanString({ default: true }),
+				chunkSize: t.Numeric({ default: 256 }),
+				chunkOverlap: t.Numeric({ default: 64 }),
+			}),
+			detail: {
+				description: 'Upload a list of files whose contents will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
+				summary: 'Upload files',
+			},
+			response: {
+				200: t.Object({
+					info: t.String(),
+				}),
+				400: 'error',
+			},
+		})
 		.post('/memory', async ({ rh, body, query, log, HttpError }) => {
 			const { file } = body, { sync } = query
 			try {
