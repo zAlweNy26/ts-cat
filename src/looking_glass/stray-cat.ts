@@ -112,6 +112,7 @@ export class StrayCat {
 			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
 			this.wsQueue.push(msg)
 		}
+		madHatter.executeHook('afterSendMessage', msg, this)
 	}
 
 	/**

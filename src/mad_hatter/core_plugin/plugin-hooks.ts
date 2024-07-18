@@ -35,6 +35,8 @@ CatHook.add('beforeReadMessage', msg => msg)
 
 CatHook.add('beforeSendMessage', msg => msg)
 
+CatHook.add('afterSendMessage', msg => msg)
+
 CatHook.add('beforeStoreEpisodicMemory', doc => doc)
 
 CatHook.add('beforeRecallMemories', configs => configs)

@@ -5,7 +5,7 @@ import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'
 import type { FileParsers, WebParser } from '@rh'
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
-import type { MemoryMessage, MemoryRecallConfigs, Message } from '@/dtos/message.ts'
+import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage } from '@dto/message.ts'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
@@ -28,6 +28,7 @@ export interface HookTypes {
 	recallQuery: (query: string, stray: StrayCat) => MaybePromise<string>
 	beforeReadMessage: (msg: Message, stray: StrayCat) => MaybePromise<Message>
 	beforeSendMessage: (msg: MemoryMessage, stray: StrayCat) => MaybePromise<MemoryMessage>
+	afterSendMessage: (msg: WSMessage, stray: StrayCat) => MaybePromise<WSMessage>
 	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
 	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>
 	afterRecallMemories: (stray: StrayCat) => MaybePromise<void>
