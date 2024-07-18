@@ -110,7 +110,7 @@ export class RabbitHole {
 			return
 		}
 
-		await cheshireCat.currentMemory.collections.declarative.addPoints(declarativeMemories)
+		await cheshireCat.vectorMemory.collections.declarative.addPoints(declarativeMemories)
 	}
 
 	/**
@@ -208,7 +208,7 @@ export class RabbitHole {
 					log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 					continue
 				}
-				await cheshireCat.currentMemory.collections.declarative.addPoint(
+				await cheshireCat.vectorMemory.collections.declarative.addPoint(
 					doc.pageContent,
 					docEmbedding[0]!,
 					doc.metadata,

@@ -23,7 +23,7 @@ export class CheshireCat {
 	private llm: BaseLanguageModel
 	private embedder: Embeddings
 	private memory!: VectorMemory
-	private agentManager: AgentManager
+	private manager: AgentManager
 	private strays = new Map<string, StrayCat>()
 	private _embedderSize = 0
 
@@ -33,7 +33,7 @@ export class CheshireCat {
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
 		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
-		this.agentManager = new AgentManager()
+		this.manager = new AgentManager()
 		madHatter.executeHook('afterBootstrap', this)
 	}
 
@@ -58,11 +58,11 @@ export class CheshireCat {
 		return this.embedder
 	}
 
-	get currentAgentManager() {
-		return this.agentManager
+	get agentManager() {
+		return this.manager
 	}
 
-	get currentMemory() {
+	get vectorMemory() {
 		return this.memory
 	}
 

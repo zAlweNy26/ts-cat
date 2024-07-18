@@ -54,6 +54,14 @@ export class StrayCat {
 		return cheshireCat.currentEmbedder
 	}
 
+	get vectorMemory() {
+		return cheshireCat.vectorMemory
+	}
+
+	get agentManager() {
+		return cheshireCat.agentManager
+	}
+
 	get whiteRabbit() {
 		return cheshireCat.whiteRabbit
 	}
@@ -151,7 +159,7 @@ export class StrayCat {
 
 		let catMsg: AgentFastReply
 		try {
-			catMsg = await cheshireCat.currentAgentManager.executeAgent(this)
+			catMsg = await this.agentManager.executeAgent(this)
 		}
 		catch (error) {
 			log.error(error)
@@ -172,9 +180,9 @@ export class StrayCat {
 			},
 		})
 		doc = await madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
-		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
+		const docEmbedding = await this.currentEmbedder.embedDocuments([response.text])
 		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
-		await cheshireCat.currentMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
+		await this.vectorMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
 
 		let finalOutput: MemoryMessage = {
 			role: 'AI',
@@ -257,7 +265,7 @@ ${labelsList}${examplesList}
 		query = await madHatter.executeHook('recallQuery', query, this)
 		log.info(`Recall query: ${query}`)
 
-		const queryEmbedding = await cheshireCat.currentEmbedder.embedQuery(query)
+		const queryEmbedding = await this.currentEmbedder.embedQuery(query)
 		let recallConfigs: MemoryRecallConfigs = {
 			declarative: {
 				embedding: queryEmbedding,
@@ -283,7 +291,7 @@ ${labelsList}${examplesList}
 			...await madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
 		}
 		for (const [key, value] of Object.entries(recallConfigs)) {
-			const memories = await cheshireCat.currentMemory.collections[key]?.recallMemoriesFromEmbedding(
+			const memories = await this.vectorMemory.collections[key]?.recallMemoriesFromEmbedding(
 				value.embedding,
 				value.filter,
 				value.k,
