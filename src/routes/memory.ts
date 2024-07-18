@@ -14,7 +14,7 @@ export function memory(app: App) {
 			const queryEmbedding = await cat.currentEmbedder.embedQuery(text)
 			const recalled: Record<string, MemoryDocument[]> = {}
 
-			for (const collection of Object.values(cat.currentMemory.collections)) {
+			for (const collection of Object.values(cat.vectorMemory.collections)) {
 				recalled[collection.name] = []
 				let userFilter: Record<string, FilterMatch> | undefined
 				if (collection.name === 'episodic') userFilter = { source: { any: [userId] } }
@@ -95,10 +95,10 @@ export function memory(app: App) {
 			},
 		})
 		.get('/collections', async ({ cat }) => {
-			const collections = Object.keys(cat.currentMemory.collections)
+			const collections = Object.keys(cat.vectorMemory.collections)
 			const infos = []
 			for (const collection of collections) {
-				const info = await cat.currentMemory.db.getCollection(collection)
+				const info = await cat.vectorMemory.db.getCollection(collection)
 				infos.push({
 					name: collection,
 					size: info.vectors_count ?? 0,
@@ -141,8 +141,8 @@ export function memory(app: App) {
 		})
 		.delete('/collections', async ({ cat, mh, log, HttpError }) => {
 			try {
-				const collections = Object.keys(cat.currentMemory.collections)
-				for (const collection of collections) await cat.currentMemory.db.deleteCollection(collection)
+				const collections = Object.keys(cat.vectorMemory.collections)
+				for (const collection of collections) await cat.vectorMemory.db.deleteCollection(collection)
 				await cat.loadMemory()
 				await mh.findPlugins()
 			}
@@ -163,9 +163,9 @@ export function memory(app: App) {
 		.delete('/collections/:collectionId', async ({ cat, mh, params, log, HttpError }) => {
 			const id = params.collectionId
 			try {
-				const collections = Object.keys(cat.currentMemory.collections)
+				const collections = Object.keys(cat.vectorMemory.collections)
 				if (!collections.includes(id)) throw HttpError.NotFound('Collection not found.')
-				await cat.currentMemory.db.deleteCollection(id)
+				await cat.vectorMemory.db.deleteCollection(id)
 				await cat.loadMemory()
 				await mh.findPlugins()
 			}
@@ -190,9 +190,9 @@ export function memory(app: App) {
 		.post('/collections/:collectionId/documents', async ({ cat, params, query, body, log, HttpError }) => {
 			const id = params.collectionId, limit = query.k
 			try {
-				const collections = Object.keys(cat.currentMemory.collections)
+				const collections = Object.keys(cat.vectorMemory.collections)
 				if (!collections.includes(id)) throw HttpError.NotFound('Collection not found.')
-				const points = await cat.currentMemory.collections[id]!.getAllPoints(limit, body)
+				const points = await cat.vectorMemory.collections[id]!.getAllPoints(limit, body)
 				return {
 					documents: points.map(p => ({ ...p.payload as {
 						id: string
@@ -247,9 +247,9 @@ export function memory(app: App) {
 		.delete('/collections/:collectionId/documents', async ({ cat, params, body, log, HttpError }) => {
 			const id = params.collectionId
 			try {
-				const collections = Object.keys(cat.currentMemory.collections)
+				const collections = Object.keys(cat.vectorMemory.collections)
 				if (!collections.includes(id)) throw HttpError.NotFound('Collection not found.')
-				await cat.currentMemory.collections[id]!.deletePointsByMetadata(body)
+				await cat.vectorMemory.collections[id]!.deletePointsByMetadata(body)
 			}
 			catch (error) {
 				log.error(error)
@@ -281,11 +281,11 @@ export function memory(app: App) {
 		.delete('/collections/:collectionId/point/:pointId', async ({ cat, params, log, HttpError }) => {
 			const { collectionId, pointId } = params
 			try {
-				const collections = Object.keys(cat.currentMemory.collections)
+				const collections = Object.keys(cat.vectorMemory.collections)
 				if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
-				const points = await cat.currentMemory.db.retrieve(collectionId, { ids: [pointId] })
+				const points = await cat.vectorMemory.db.retrieve(collectionId, { ids: [pointId] })
 				if (points.length === 0) throw HttpError.NotFound('Point not found.')
-				await cat.currentMemory.collections[collectionId]?.deletePoints([pointId])
+				await cat.vectorMemory.collections[collectionId]?.deletePoints([pointId])
 			}
 			catch (error) {
 				log.error(error)
