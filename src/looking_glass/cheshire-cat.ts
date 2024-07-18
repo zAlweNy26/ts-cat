@@ -119,7 +119,8 @@ export class CheshireCat {
 			return llm.getModel(settings)
 		}
 		catch (error) {
-			log.error(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
+			log.error(error)
+			log.warn(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
 			return getLLM('DefaultLLM')!.getModel({})
 		}
 	}
@@ -137,7 +138,8 @@ export class CheshireCat {
 			return embedder.getModel(settings)
 		}
 		catch (error) {
-			log.error(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
+			log.error(error)
+			log.warn(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
 			return getEmbedder('FakeEmbedder')!.getModel({})
 		}
 	}

@@ -1,6 +1,6 @@
-import { type Elysia, t } from 'elysia'
+import { Elysia, t } from 'elysia'
+import { HttpError } from './errors'
 import { parsedEnv } from './utils'
-import { log } from './logger'
 
 export const swaggerTags = {
 	status: {
@@ -33,22 +33,13 @@ export const swaggerTags = {
 	},
 } as const
 
-export class UnauthorizedError extends Error {
-	code = 'UNAUTHORIZED'
-	status = 401
-
-	constructor(message?: string) {
-		super(message ?? 'UNAUTHORIZED')
-	}
-}
-
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
 export function authMiddleware(app: Elysia) {
 	return app.onBeforeHandle(({ headers }) => {
 		const apiKey = headers.token, realKey = parsedEnv.apiKey
 		if (realKey && realKey !== apiKey)
-			throw new UnauthorizedError('Invalid API key')
+			throw HttpError.Unauthorized('Invalid API key')
 	})
 }
 
@@ -59,7 +50,17 @@ export const modelInfo = t.Object({
 	link: t.Optional(t.String({ format: 'uri' })),
 	schema: t.Record(t.String(), t.Any()),
 	value: t.Record(t.String(), t.Any()),
-}, { $id: 'modelInfo' })
+}, {
+	$id: 'modelInfo',
+	examples: [{
+		name: 'OpenAILLM',
+		humanReadableName: 'OpenAI GPT',
+		description: 'More expensive but also more flexible model than ChatGPT',
+		link: 'https://platform.openai.com/docs/models/overview',
+		schema: {},
+		value: {},
+	}],
+})
 
 export const pluginManifest = t.Object({
 	name: t.String(),
@@ -70,7 +71,18 @@ export const pluginManifest = t.Object({
 	pluginUrl: t.Optional(t.String({ format: 'uri' })),
 	thumb: t.Optional(t.String({ format: 'uri' })),
 	tags: t.Array(t.String(), { default: ['miscellaneous', 'unknown'] }),
-}, { $id: 'pluginManifest' })
+}, {
+	$id: 'pluginManifest',
+	examples: [{
+		name: 'Core CCat',
+		description: 'The core Cat plugin used to define default hooks and tools. You don\'t see this plugin in the plugins folder, because it is an hidden plugin. It will be used to try out hooks and tools before they become available to other plugins. Written and delivered just for you, my furry friend.',
+		author_name: 'Cheshire Cat',
+		authorUrl: 'https://cheshirecat.ai',
+		pluginUrl: 'https://github.com/cheshire-cat-ai/core',
+		tags: ['core', 'cat', 'default', 'hidden'],
+		version: '0.0.1',
+	}],
+})
 
 export const pluginInfo = t.Object({
 	id: t.String(),
@@ -91,35 +103,38 @@ export const pluginInfo = t.Object({
 		name: t.String(),
 		priority: t.Number(),
 	})),
-}, { $id: 'pluginInfo' })
+}, {
+	$id: 'pluginInfo',
+	examples: [{
+		id: 'core_plugin',
+		active: true,
+		upgradable: false,
+		manifest: {},
+		forms: [],
+		tools: [],
+		hooks: [],
+	}],
+})
 
 export const pluginSettings = t.Object({
 	name: t.String(),
 	schema: t.Record(t.String(), t.Any()),
 	value: t.Record(t.String(), t.Any()),
-}, { $id: 'pluginSettings' })
+}, {
+	$id: 'pluginSettings',
+	examples: [{
+		name: 'Core CCat',
+		schema: {},
+		value: {},
+	}],
+})
 
-export function apiModels(app: Elysia) {
-	return app.onError(({ code, error }) => {
-		log.error(error)
-		return {
-			code,
-			message: error.message,
-			status: 'status' in error ? error.status : 400,
-		}
-	}).model({
-		error: t.Object({
-			code: t.String(),
-			message: t.String(),
-			status: t.Number(),
-		}, {
-			examples: [{
-				code: 'UNKNOWN',
-				message: 'The request was invalid.',
-				status: 400,
-			}],
+export function apiModels() {
+	return new Elysia({ name: 'api-models' }).model({
+		generic: t.Record(t.String(), t.Any(), {
+			examples: [{ key: 'value' }],
+			$id: 'GenericObject',
 		}),
-		generic: t.Record(t.String(), t.Any(), { examples: [{ key: 'value' }] }),
 		json: t.Union([jsonLiterals, t.Array(jsonLiterals), t.Record(t.String(), jsonLiterals)], {
 			examples: [
 				{ key: 'value' },
@@ -127,10 +142,14 @@ export function apiModels(app: Elysia) {
 				'example',
 				42,
 			],
+			$id: 'GenericJson',
 		}),
 		customSetting: t.Object({
 			name: t.String(),
 			value: t.Any(),
+		}, {
+			examples: [{ name: 'key', value: 'value' }],
+			$id: 'CustomSetting',
 		}),
 		modelInfo,
 		pluginManifest,

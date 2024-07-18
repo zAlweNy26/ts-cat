@@ -39,7 +39,8 @@ export class VectorMemoryCollection {
 			}
 		}
 		catch (error) {
-			log.error('Failed to connect to the Vector Memory Database')
+			log.error(error)
+			log.warn('Failed to connect to the Vector Memory Database')
 			process.exit()
 		}
 		return collection

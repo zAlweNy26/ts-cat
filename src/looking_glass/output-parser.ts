@@ -28,7 +28,8 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 			parsedOutput = await parseJson(output, agentOutputSchema)
 		}
 		catch (error) {
-			log.error(`Could not parse LLM output: ${output}`)
+			log.error(error)
+			log.warn(`Could not parse LLM output: ${output}`)
 			throw new OutputParserException(`Could not parse LLM output: ${output}`)
 		}
 

@@ -1,5 +1,5 @@
 import { getAllowedEmbedders, getEmbedder } from '@factory/embedder.ts'
-import { NotFoundError, ParseError, t } from 'elysia'
+import { t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { authMiddleware, modelInfo, swaggerTags } from '@/context'
 import type { App } from '@/main'
@@ -30,10 +30,10 @@ export function embedder(app: App) {
 				400: 'error',
 			},
 		})
-		.get('/settings/:embedderId', ({ db, params }) => {
+		.get('/settings/:embedderId', ({ db, params, HttpError }) => {
 			const id = params.embedderId
 			const emb = getEmbedder(id)
-			if (!emb) throw new NotFoundError(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
+			if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 			const value = db.getEmbedderSettings(id) ?? {}
 			return {
 				...emb,
@@ -52,12 +52,12 @@ export function embedder(app: App) {
 				404: 'error',
 			},
 		})
-		.put('/settings/:embedderId', async ({ cat, mh, db, params, body, log }) => {
+		.put('/settings/:embedderId', async ({ cat, mh, db, params, body, log, HttpError }) => {
 			const id = params.embedderId
 			const emb = getEmbedder(id)
-			if (!emb) throw new NotFoundError(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
+			if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 			const parsed = emb.config.safeParse(body)
-			if (!parsed.success) throw new ParseError(parsed.error.errors.map(e => e.message).join())
+			if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
 			cat.loadLanguageModel()
 			cat.loadLanguageEmbedder()
 			try {
@@ -66,7 +66,7 @@ export function embedder(app: App) {
 			}
 			catch (error) {
 				log.error('Failed to load memory', error)
-				throw new Error('Failed to load memory for the selected embedder')
+				throw HttpError.InternalServer('Failed to load memory for the selected embedder')
 			}
 			db.update((db) => {
 				db.selectedEmbedder = id
@@ -92,3 +92,5 @@ export function embedder(app: App) {
 			},
 		}))
 }
+
+export type EmbedderApp = ReturnType<typeof embedder>

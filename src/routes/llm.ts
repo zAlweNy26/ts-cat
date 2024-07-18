@@ -1,5 +1,5 @@
 import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
-import { NotFoundError, ParseError, t } from 'elysia'
+import { t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { authMiddleware, modelInfo, swaggerTags } from '@/context'
 import type { App } from '@/main'
@@ -30,10 +30,10 @@ export function llm(app: App) {
 				400: 'error',
 			},
 		})
-		.get('/settings/:llmId', ({ db, params }) => {
+		.get('/settings/:llmId', ({ db, params, HttpError }) => {
 			const id = params.llmId
 			const llm = getLLM(id)
-			if (!llm) throw new NotFoundError(`The passed LLM id '${id}' doesn't exist in the list of available LLMs.`)
+			if (!llm) throw HttpError.NotFound(`The passed LLM id '${id}' doesn't exist in the list of available LLMs.`)
 			const value = db.getLLMSettings(id) ?? {}
 			return {
 				...llm,
@@ -52,12 +52,12 @@ export function llm(app: App) {
 				404: 'error',
 			},
 		})
-		.put('/settings/:llmId', async ({ cat, mh, db, params, body, log }) => {
+		.put('/settings/:llmId', async ({ cat, mh, db, params, body, log, HttpError }) => {
 			const id = params.llmId
 			const llm = getLLM(id)
-			if (!llm) throw new NotFoundError(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
+			if (!llm) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 			const parsed = llm.config.safeParse(body)
-			if (!parsed.success) throw new ParseError(parsed.error.errors.map(e => e.message).join())
+			if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
 			cat.loadLanguageModel()
 			cat.loadLanguageEmbedder()
 			try {
@@ -66,7 +66,7 @@ export function llm(app: App) {
 			}
 			catch (error) {
 				log.error('Failed to load memory', error)
-				throw new Error('Failed to load memory for the selected embedder')
+				throw HttpError.InternalServer('Failed to load memory for the selected embedder')
 			}
 			db.update((db) => {
 				db.selectedLLM = id
@@ -112,3 +112,5 @@ export function llm(app: App) {
 			},
 		}))
 }
+
+export type LlmApp = ReturnType<typeof llm>

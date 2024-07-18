@@ -79,6 +79,7 @@
 		"js-tiktoken": "^1.0.12",
 		"langchain": "^0.2.10",
 		"lodash": "^4.17.21",
+		"logestic": "1.2.0",
 		"lowdb": "^7.0.1",
 		"mammoth": "^1.8.0",
 		"nodemon": "^3.1.0",

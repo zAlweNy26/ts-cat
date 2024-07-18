@@ -1,5 +1,5 @@
 import type { MemoryDocument } from '@dto/message.ts'
-import { InternalServerError, NotFoundError, t } from 'elysia'
+import { t } from 'elysia'
 import type { FilterMatch } from '@dto/vector-memory.ts'
 import { authMiddleware, swaggerTags } from '@/context'
 import type { App } from '@/main'
@@ -7,7 +7,7 @@ import type { App } from '@/main'
 export function memory(app: App) {
 	return app.group('/memory', { detail: { tags: [swaggerTags.memory.name] } }, i => i
 		.use(authMiddleware)
-		.get('/recall', async ({ cat, query, stray, log, db }) => {
+		.get('/recall', async ({ cat, query, stray, log, db, HttpError }) => {
 			const { text, k } = query
 			const userId = stray.userId
 
@@ -25,7 +25,7 @@ export function memory(app: App) {
 				catch (error) {
 					log.info('Error recalling memories from collection:', collection)
 					log.error(error)
-					throw new InternalServerError('Error recalling memories.')
+					throw HttpError.InternalServer('Error recalling memories.')
 				}
 			}
 
@@ -139,7 +139,7 @@ export function memory(app: App) {
 				500: 'error',
 			},
 		})
-		.delete('/collections', async ({ cat, mh, log }) => {
+		.delete('/collections', async ({ cat, mh, log, HttpError }) => {
 			try {
 				const collections = Object.keys(cat.currentMemory.collections)
 				for (const collection of collections) await cat.currentMemory.db.deleteCollection(collection)
@@ -148,7 +148,7 @@ export function memory(app: App) {
 			}
 			catch (error) {
 				log.error(error)
-				throw new InternalServerError('Error while wiping collections.')
+				throw HttpError.InternalServer('Error while wiping collections.')
 			}
 		}, {
 			detail: {
@@ -160,18 +160,18 @@ export function memory(app: App) {
 				500: 'error',
 			},
 		})
-		.delete('/collections/:collectionId', async ({ cat, mh, params, log }) => {
+		.delete('/collections/:collectionId', async ({ cat, mh, params, log, HttpError }) => {
 			const id = params.collectionId
 			try {
 				const collections = Object.keys(cat.currentMemory.collections)
-				if (!collections.includes(id)) throw new NotFoundError('Collection not found.')
+				if (!collections.includes(id)) throw HttpError.NotFound('Collection not found.')
 				await cat.currentMemory.db.deleteCollection(id)
 				await cat.loadMemory()
 				await mh.findPlugins()
 			}
 			catch (error) {
 				log.error(error)
-				throw new InternalServerError(`Error while wiping "${id}" collection.`)
+				throw HttpError.InternalServer(`Error while wiping "${id}" collection.`)
 			}
 		}, {
 			detail: {
@@ -187,11 +187,11 @@ export function memory(app: App) {
 				500: 'error',
 			},
 		})
-		.post('/collections/:collectionId/documents', async ({ cat, params, query, body, log }) => {
+		.post('/collections/:collectionId/documents', async ({ cat, params, query, body, log, HttpError }) => {
 			const id = params.collectionId, limit = query.k
 			try {
 				const collections = Object.keys(cat.currentMemory.collections)
-				if (!collections.includes(id)) throw new NotFoundError('Collection not found.')
+				if (!collections.includes(id)) throw HttpError.NotFound('Collection not found.')
 				const points = await cat.currentMemory.collections[id]!.getAllPoints(limit, body)
 				return {
 					documents: points.map(p => ({ ...p.payload as {
@@ -203,7 +203,7 @@ export function memory(app: App) {
 			}
 			catch (error) {
 				log.error(error)
-				throw new InternalServerError(`Error while retrieving "${id}" collection's documents.`)
+				throw HttpError.InternalServer(`Error while retrieving "${id}" collection's documents.`)
 			}
 		}, {
 			detail: {
@@ -244,16 +244,16 @@ export function memory(app: App) {
 				500: 'error',
 			},
 		})
-		.delete('/collections/:collectionId/documents', async ({ cat, params, body, log }) => {
+		.delete('/collections/:collectionId/documents', async ({ cat, params, body, log, HttpError }) => {
 			const id = params.collectionId
 			try {
 				const collections = Object.keys(cat.currentMemory.collections)
-				if (!collections.includes(id)) throw new NotFoundError('Collection not found.')
+				if (!collections.includes(id)) throw HttpError.NotFound('Collection not found.')
 				await cat.currentMemory.collections[id]!.deletePointsByMetadata(body)
 			}
 			catch (error) {
 				log.error(error)
-				throw new InternalServerError(`Error while wiping "${id}" collection's documents.`)
+				throw HttpError.InternalServer(`Error while wiping "${id}" collection's documents.`)
 			}
 		}, {
 			detail: {
@@ -278,18 +278,18 @@ export function memory(app: App) {
 				500: 'error',
 			},
 		})
-		.delete('/collections/:collectionId/point/:pointId', async ({ cat, params, log }) => {
+		.delete('/collections/:collectionId/point/:pointId', async ({ cat, params, log, HttpError }) => {
 			const { collectionId, pointId } = params
 			try {
 				const collections = Object.keys(cat.currentMemory.collections)
-				if (!collections.includes(collectionId)) throw new NotFoundError('Collection not found.')
+				if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
 				const points = await cat.currentMemory.db.retrieve(collectionId, { ids: [pointId] })
-				if (points.length === 0) throw new NotFoundError('Point not found.')
+				if (points.length === 0) throw HttpError.NotFound('Point not found.')
 				await cat.currentMemory.collections[collectionId]?.deletePoints([pointId])
 			}
 			catch (error) {
 				log.error(error)
-				throw new InternalServerError(`Error while wiping "${collectionId}" collection's point ${pointId}.`)
+				throw HttpError.InternalServer(`Error while wiping "${collectionId}" collection's point ${pointId}.`)
 			}
 		}, {
 			detail: {
@@ -346,3 +346,5 @@ export function memory(app: App) {
 			},
 		}))
 }
+
+export type MemoryApp = ReturnType<typeof memory>
