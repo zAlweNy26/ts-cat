@@ -5,14 +5,14 @@ import { Document } from '@langchain/core/documents'
 import { madHatter } from '@mh'
 import { log } from '@logger'
 import { rabbitHole } from '@rh'
-import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage, WorkingMemory } from '@dto/message.ts'
+import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WSMessage, WorkingMemory } from '@dto/message.ts'
 import type { AgentFastReply } from '@dto/agent.ts'
 import type { ServerWebSocket } from 'bun'
 import type { TSchema } from 'elysia'
 import type { TypeCheck } from 'elysia/type-system'
 import type { ElysiaWS } from 'elysia/ws'
 import { cheshireCat } from './cheshire-cat.ts'
-import { NewTokenHandler } from './callbacks.ts'
+import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
 
 export type WS = ElysiaWS<
 	ServerWebSocket<{
@@ -27,6 +27,7 @@ export type WS = ElysiaWS<
  */
 export class StrayCat {
 	private chatHistory: MemoryMessage[] = []
+	private modelsInteractions: ModelInteraction[] = []
 	private userMessage!: Message
 	public wsQueue: WSMessage[] = []
 	public activeForm?: string
@@ -52,6 +53,14 @@ export class StrayCat {
 
 	get currentEmbedder() {
 		return cheshireCat.currentEmbedder
+	}
+
+	get vectorMemory() {
+		return cheshireCat.vectorMemory
+	}
+
+	get agentManager() {
+		return cheshireCat.agentManager
 	}
 
 	get whiteRabbit() {
@@ -112,6 +121,7 @@ export class StrayCat {
 			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
 			this.wsQueue.push(msg)
 		}
+		madHatter.executeHook('afterSendMessage', msg, this)
 	}
 
 	/**
@@ -150,7 +160,7 @@ export class StrayCat {
 
 		let catMsg: AgentFastReply
 		try {
-			catMsg = await cheshireCat.currentAgentManager.executeAgent(this)
+			catMsg = await this.agentManager.executeAgent(this)
 		}
 		catch (error) {
 			log.error(error)
@@ -171,11 +181,11 @@ export class StrayCat {
 			},
 		})
 		doc = await madHatter.executeHook('beforeStoreEpisodicMemory', doc, this)
-		const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([response.text])
+		const docEmbedding = await this.currentEmbedder.embedDocuments([response.text])
 		if (docEmbedding.length === 0) throw new Error('Could not embed the document.')
-		await cheshireCat.currentMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
+		await this.vectorMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
 
-		let finalOutput: MemoryMessage = {
+		const finalOutput = await madHatter.executeHook('beforeSendMessage', {
 			role: 'AI',
 			what: catMsg.output,
 			who: this.userId,
@@ -184,12 +194,13 @@ export class StrayCat {
 				input: response.text,
 				intermediateSteps: catMsg.intermediateSteps ?? [],
 				memory: this.workingMemory,
+				interactions: this.modelsInteractions,
 			},
-		}
-
-		finalOutput = await madHatter.executeHook('beforeSendMessage', finalOutput, this)
+		}, this)
 
 		if (save) this.chatHistory.push(finalOutput)
+
+		this.modelsInteractions = []
 
 		return {
 			type: 'chat',
@@ -229,8 +240,8 @@ ${labelsList}${examplesList}
 	}
 
 	/**
-	 * If passed a number k, retrieves the last k messages in the working memory.
-	 * Otherwise, retrieves all messages in the working memory.
+	 * If passed a number k, retrieves the last k messages in the chat history.
+	 * Otherwise, retrieves all messages in the chat history.
 	 * @param k the number of messages to retrieve
 	 * @returns the messages present in the chat history
 	 */
@@ -246,6 +257,25 @@ ${labelsList}${examplesList}
 	}
 
 	/**
+	 * Adds an interaction to the working memory.
+	 * @param interaction the interaction to add
+	 */
+	addInteraction(interaction: ModelInteraction) {
+		this.modelsInteractions.push(interaction)
+		madHatter.executeHook('afterModelInteraction', interaction, this)
+	}
+
+	/**
+	 * If passed a number k, retrieves the last k interactions in the working memory.
+	 * Otherwise, retrieves all interactions in the working memory.
+	 * @param k the number of interactions to retrieve
+	 * @returns the interactions present in the working memory
+	 */
+	getInteraction(k?: number) {
+		return k ? this.modelsInteractions.slice(-k) : [...this.modelsInteractions]
+	}
+
+	/**
 	 * Recalls relevant memories based on the given query.
 	 * If no query is provided, it uses the last user's message text as the query.
 	 * @param query The query string to search for relevant memories.
@@ -253,10 +283,24 @@ ${labelsList}${examplesList}
 	async recallRelevantMemories(query?: string) {
 		if (!query) query = this.userMessage.text
 
+		const interaction: EmbedderInteraction = {
+			model: 'embedder',
+			source: 'RecallQuery',
+			prompt: query,
+			reply: [],
+			outputTokens: 0,
+			startedAt: Date.now(),
+			endedAt: Date.now(),
+		}
+
 		query = await madHatter.executeHook('recallQuery', query, this)
 		log.info(`Recall query: ${query}`)
 
-		const queryEmbedding = await cheshireCat.currentEmbedder.embedQuery(query)
+		interaction.prompt = query
+		interaction.outputTokens = await this.rabbitHole.textSplitter.lengthFunction(query)
+
+		const queryEmbedding = await this.currentEmbedder.embedQuery(query)
+
 		let recallConfigs: MemoryRecallConfigs = {
 			declarative: {
 				embedding: queryEmbedding,
@@ -282,7 +326,7 @@ ${labelsList}${examplesList}
 			...await madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
 		}
 		for (const [key, value] of Object.entries(recallConfigs)) {
-			const memories = await cheshireCat.currentMemory.collections[key]?.recallMemoriesFromEmbedding(
+			const memories = await this.vectorMemory.collections[key]?.recallMemoriesFromEmbedding(
 				value.embedding,
 				value.filter,
 				value.k,
@@ -292,6 +336,10 @@ ${labelsList}${examplesList}
 			this.workingMemory[key] = memories
 		}
 		madHatter.executeHook('afterRecallMemories', this)
+
+		interaction.reply = queryEmbedding
+		interaction.endedAt = Date.now()
+		this.addInteraction(interaction)
 	}
 
 	/**
@@ -302,6 +350,7 @@ ${labelsList}${examplesList}
 	llm(prompt: string, stream = false): Promise<string> {
 		const callbacks: BaseCallbackHandler[] = []
 		if (stream) callbacks.push(new NewTokenHandler(this))
+		callbacks.push(new ModelInteractionHandler(this, 'StrayCat'))
 		return this.currentLLM.invoke(prompt, { callbacks })
 	}
 }

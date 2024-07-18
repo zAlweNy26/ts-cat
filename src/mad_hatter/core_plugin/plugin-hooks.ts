@@ -35,6 +35,8 @@ CatHook.add('beforeReadMessage', msg => msg)
 
 CatHook.add('beforeSendMessage', msg => msg)
 
+CatHook.add('afterSendMessage', msg => msg)
+
 CatHook.add('beforeStoreEpisodicMemory', doc => doc)
 
 CatHook.add('beforeRecallMemories', configs => configs)
@@ -46,6 +48,8 @@ CatHook.add('instantToolTrigger', input => input)
 CatHook.add('afterMemoryChain', output => output)
 
 CatHook.add('afterProceduresChain', output => output)
+
+CatHook.add('afterModelInteraction', interaction => interaction)
 
 // Vector Memory hooks
 

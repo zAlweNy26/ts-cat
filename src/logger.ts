@@ -2,7 +2,11 @@ import { createConsola } from 'consola'
 import { Table } from 'console-table-printer'
 import type { ColorName } from 'consola/utils'
 import { getColor } from 'consola/utils'
-import { LogLevel, parsedEnv } from './utils.ts'
+import chalk from 'chalk'
+import { format } from 'date-fns'
+import { Logestic, type LogesticOptions } from 'logestic'
+import { LogLevel, catPaths, parsedEnv } from './utils.ts'
+import type { HttpError } from './errors.ts'
 
 const logger = createConsola({
 	level: LogLevel.indexOf(parsedEnv.logLevel),
@@ -98,3 +102,25 @@ export const log = Object.freeze({
 	 */
 	debug: logger.debug,
 })
+
+export function httpLogger(options?: LogesticOptions) {
+	return new Logestic({
+		showLevel: true,
+		...options,
+	}).use(['time', 'method', 'path', 'duration']).format({
+		onSuccess({ time, method, path, duration }) {
+			const dateTime = chalk.gray(format(time, 'dd/MM/yyyy HH:mm:ss'))
+			const methodPath = chalk.cyan(`${method} ${decodeURIComponent(path)}`)
+			return `${dateTime} ${methodPath} ${Number(duration) / 1000}ms`
+		},
+		onFailure({ request, datetime, error }) {
+			const { method, url } = request
+			const err = error as HttpError
+			const baseUrl = url.substring(catPaths.baseUrl.length - 1)
+			const dateTime = chalk.gray(format(datetime, 'dd/MM/yyyy HH:mm:ss'))
+			const methodPath = chalk.red(`${method} ${decodeURIComponent(baseUrl)}`)
+			const errorCode = chalk.red(`${err.status} - ${err.message} - ${err.cause}`)
+			return `${dateTime} ${methodPath} ${errorCode}`
+		},
+	})
+}

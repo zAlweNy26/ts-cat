@@ -15,7 +15,7 @@ import { AIMessage, HumanMessage } from '@langchain/core/messages'
 import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.ts'
 import type { StrayCat } from './stray-cat.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
-import { NewTokenHandler } from './callbacks.ts'
+import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
 
 /**
  * Manager of Langchain Agent.
@@ -99,7 +99,9 @@ export class AgentManager {
 			verbose: parsedEnv.verbose,
 		})
 
-		let result = await agentExecutor.invoke(agentInput)
+		let result = await agentExecutor.invoke(agentInput, {
+			callbacks: [new ModelInteractionHandler(stray, 'ProceduresChain')],
+		})
 
 		result.returnDirect = false
 		const intermediateSteps: IntermediateStep[] = []
@@ -143,7 +145,7 @@ export class AgentManager {
 
 		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new StringOutputParser())
 
-		return await chain.invoke(input, { callbacks: [new NewTokenHandler(stray)] })
+		return await chain.invoke(input, { callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain')] })
 	}
 
 	async executeFormAgent(stray: StrayCat) {

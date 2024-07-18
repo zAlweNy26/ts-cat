@@ -1,7 +1,7 @@
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { mkdir, readdir } from 'node:fs/promises'
-import { NotFoundError, t } from 'elysia'
+import { t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { authMiddleware, pluginInfo, pluginSettings, swaggerTags } from '@/context'
 import type { App } from '@/main'
@@ -27,10 +27,10 @@ export function plugins(app: App) {
 				}),
 			},
 		})
-		.get('/:pluginId', ({ mh, params }) => {
+		.get('/:pluginId', ({ mh, params, HttpError }) => {
 			const id = params.pluginId
 			const p = mh.getPlugin(id)
-			if (!p) throw new NotFoundError('Plugin not found')
+			if (!p) throw HttpError.NotFound('Plugin not found')
 			return p.info
 		}, {
 			detail: {
@@ -43,17 +43,17 @@ export function plugins(app: App) {
 				404: 'error',
 			},
 		})
-		.delete('/:pluginId', async ({ mh, params, log }) => {
+		.delete('/:pluginId', async ({ mh, params, log, HttpError }) => {
 			const id = params.pluginId
 			const p = mh.getPlugin(id)
-			if (!p) throw new NotFoundError('Plugin not found')
-			if (p.id === 'core_plugin') throw new Error('Cannot delete core plugin')
+			if (!p) throw HttpError.NotFound('Plugin not found')
+			if (p.id === 'core_plugin') throw HttpError.InternalServer('Cannot delete core plugin')
 			try {
 				await mh.removePlugin(id)
 			}
 			catch (error) {
 				log.error(error)
-				throw new Error('Unable to remove the plugin')
+				throw HttpError.InternalServer('Unable to remove the plugin')
 			}
 		}, {
 			detail: {
@@ -67,10 +67,10 @@ export function plugins(app: App) {
 				400: 'error',
 			},
 		})
-		.post('/upload', async ({ body, log, mh }) => {
+		.post('/upload', async ({ body, log, mh, HttpError }) => {
 			const { file } = body
 			const allowedTypes = ['application/zip', 'application/x-zip-compressed', 'application/x-tar', 'application/x-gzip', 'application/x-bzip2']
-			if (!allowedTypes.includes(file.type)) throw new Error('Invalid file type. It must be one of the following: zip, tar, gzip, bzip2')
+			if (!allowedTypes.includes(file.type)) throw HttpError.BadRequest('Invalid file type. It must be one of the following: zip, tar, gzip, bzip2')
 			log.info(`Uploading plugin ${file.type}`)
 
 			const extractDir = join(tmpdir(), 'ccat-plugin-extract')
@@ -83,7 +83,7 @@ export function plugins(app: App) {
 			const tsFiles = files.filter(f => f.endsWith('.ts'))
 			if (tsFiles.length === 0) {
 				log.error('No .ts files found in the extracted plugin folder')
-				throw new Error('No .ts files found in the extracted plugin folder')
+				throw HttpError.InternalServer('No .ts files found in the extracted plugin folder')
 			}
 			try {
 				const plugin = await mh.installPlugin(tempFilePath)
@@ -135,10 +135,10 @@ export function plugins(app: App) {
 				400: 'error',
 			},
 		})
-		.patch('/toggle/:pluginId', async ({ body, params, mh }) => {
+		.patch('/toggle/:pluginId', async ({ body, params, mh, HttpError }) => {
 			const id = params.pluginId
 			const p = mh.getPlugin(id)
-			if (!p) throw new NotFoundError('Plugin not found')
+			if (!p) throw HttpError.NotFound('Plugin not found')
 			const { active } = body
 			if (active) await mh.togglePlugin(id)
 			return {
@@ -157,13 +157,13 @@ export function plugins(app: App) {
 				400: 'error',
 			},
 		})
-		.patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, mh, db }) => {
+		.patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, mh, db, HttpError }) => {
 			const { pluginId, procedureName } = params
 			const p = mh.getPlugin(pluginId)
-			if (!p) throw new NotFoundError('Plugin not found')
+			if (!p) throw HttpError.NotFound('Plugin not found')
 			const tool = p.tools.find(t => t.name === procedureName)
 			const form = p.forms.find(f => f.name === procedureName)
-			if (!tool && !form) throw new NotFoundError('Procedure not found')
+			if (!tool && !form) throw HttpError.NotFound('Procedure not found')
 			if (tool) tool.active = !tool.active
 			if (form) form.active = !form.active
 			db.update((db) => {
@@ -214,10 +214,10 @@ export function plugins(app: App) {
 				}),
 			},
 		})
-		.get('/settings/:pluginId', ({ mh, params }) => {
+		.get('/settings/:pluginId', ({ mh, params, HttpError }) => {
 			const id = params.pluginId
 			const p = mh.getPlugin(id)
-			if (!p) throw new NotFoundError('Plugin not found')
+			if (!p) throw HttpError.NotFound('Plugin not found')
 			return {
 				name: id,
 				schema: zodToJsonSchema(p.schema),
@@ -234,12 +234,12 @@ export function plugins(app: App) {
 				404: 'error',
 			},
 		})
-		.put('/settings/:pluginId', ({ body, params, mh }) => {
+		.put('/settings/:pluginId', ({ body, params, mh, HttpError }) => {
 			const id = params.pluginId
 			const p = mh.getPlugin(id)
-			if (!p) throw new NotFoundError('Plugin not found')
+			if (!p) throw HttpError.NotFound('Plugin not found')
 			const parsed = p.schema.safeParse(body)
-			if (!parsed.success) throw new Error(parsed.error.errors.map(e => e.message).join())
+			if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
 			p.settings = parsed.data
 			return {
 				name: id,
@@ -259,3 +259,5 @@ export function plugins(app: App) {
 			},
 		}))
 }
+
+export type PluginsApp = ReturnType<typeof plugins>

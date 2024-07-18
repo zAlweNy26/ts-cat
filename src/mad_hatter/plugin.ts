@@ -176,7 +176,8 @@ export class Plugin<
 		if (callback) {
 			const timeStart = performance.now()
 			// TODO: Improve this check
-			event === 'installed' || event === 'removed' ? callback(this.manifest) : callback(this.settings as any)
+			if (event === 'installed' || event === 'removed') callback(this.manifest)
+			else callback(this.settings as TODO)
 			const timeEnd = performance.now()
 			const eventTime = (timeEnd - timeStart).toFixed(2)
 			log.tag('bgCyanBright', 'PLUGIN', event, `event of ${this.id} executed in ${eventTime}ms`)

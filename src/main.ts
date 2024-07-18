@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { checkPort } from 'get-port-please'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
+import type { EmbedderApp, LlmApp, MemoryApp, PluginsApp, RabbitHoleApp, SettingsApp } from '@routes'
 import { embedder, fileIngestion, llm, memory, plugins, settings } from '@routes'
 import isDocker from 'is-docker'
 import { Elysia, t } from 'elysia'
@@ -9,19 +10,15 @@ import { serverTiming } from '@elysiajs/server-timing'
 import { cors } from '@elysiajs/cors'
 import { staticPlugin } from '@elysiajs/static'
 import { madHatter } from '@mh/mad-hatter.ts'
+import { httpError } from './errors.ts'
 import { db } from './database.ts'
 import { logWelcome, parsedEnv } from './utils.ts'
 import { apiModels, swaggerTags } from './context.ts'
-import { log } from './logger.ts'
+import { httpLogger, log } from './logger.ts'
 import { rabbitHole } from './rabbit-hole.ts'
 import pkg from '~/package.json'
 
 const app = new Elysia()
-	.trace(async ({ handle, context }) => {
-		const { time: start, end } = await handle
-		const time = ((await end) - start).toFixed(2)
-		log.tag('bgMagenta', 'TRACE', `[${context.request.method}] ${context.path} in ${time}ms`)
-	})
 	.decorate({
 		cat: cheshireCat,
 		mh: madHatter,
@@ -33,6 +30,8 @@ const app = new Elysia()
 		const user = headers.user || 'user'
 		return { stray: cat.getStray(user) || cat.addStray(user) }
 	})
+	.use(httpLogger())
+	.use(httpError())
 	.use(serverTiming())
 	.use(cors({
 		origin: parsedEnv.corsAllowedOrigins,
@@ -80,7 +79,7 @@ const app = new Elysia()
 			},
 		},
 	}))
-	.use(apiModels)
+	.use(apiModels())
 	.get('/', () => ({
 		status: 'We\'re all mad here, dear!',
 		version: pkg.version,
@@ -147,11 +146,8 @@ app.use(memory)
 app.use(fileIngestion)
 app.use(plugins)
 
-export type FullApp = typeof app & ReturnType<typeof plugins> &
-	ReturnType<typeof embedder> &
-	ReturnType<typeof fileIngestion> &
-	ReturnType<typeof memory> &
-	ReturnType<typeof llm> & ReturnType<typeof settings>
+export type FullApp = typeof app & SettingsApp & LlmApp &
+	EmbedderApp & MemoryApp & PluginsApp & RabbitHoleApp
 
 const inDocker = isDocker()
 
@@ -165,7 +161,8 @@ try {
 	})
 	await logWelcome()
 }
-catch (err) {
+catch (error) {
+	log.error(error)
 	await app.stop()
 	process.exit(1)
 }

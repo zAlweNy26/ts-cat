@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.3.1
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.3.0...v1.3.1)
+
+### 🚀 Enhancements
+
+- Improve HTTP errors ([9205a66](https://github.com/zAlweNy26/ts-cat/commit/9205a66))
+- Add `afterSendMessage` hook ([7d54491](https://github.com/zAlweNy26/ts-cat/commit/7d54491))
+- Add batch files uploading endpoint ([e5f6074](https://github.com/zAlweNy26/ts-cat/commit/e5f6074))
+- Add models interactions and update hooks ([4f73bc0](https://github.com/zAlweNy26/ts-cat/commit/4f73bc0))
+
+### 🩹 Fixes
+
+- Update deps, docker compose and some fixes ([c61cd24](https://github.com/zAlweNy26/ts-cat/commit/c61cd24))
+
+### 🌊 Types
+
+- Fix typechecks ([f188791](https://github.com/zAlweNy26/ts-cat/commit/f188791))
+
+### 🏡 Chore
+
+- Export AgentManager and VectorMemory ([4d2b0bd](https://github.com/zAlweNy26/ts-cat/commit/4d2b0bd))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.3.0
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.2.6...v1.3.0)

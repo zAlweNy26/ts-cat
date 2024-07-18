@@ -23,7 +23,7 @@ export class CheshireCat {
 	private llm: BaseLanguageModel
 	private embedder: Embeddings
 	private memory!: VectorMemory
-	private agentManager: AgentManager
+	private manager: AgentManager
 	private strays = new Map<string, StrayCat>()
 	private _embedderSize = 0
 
@@ -33,7 +33,7 @@ export class CheshireCat {
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
 		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
-		this.agentManager = new AgentManager()
+		this.manager = new AgentManager()
 		madHatter.executeHook('afterBootstrap', this)
 	}
 
@@ -58,11 +58,11 @@ export class CheshireCat {
 		return this.embedder
 	}
 
-	get currentAgentManager() {
-		return this.agentManager
+	get agentManager() {
+		return this.manager
 	}
 
-	get currentMemory() {
+	get vectorMemory() {
 		return this.memory
 	}
 
@@ -119,7 +119,8 @@ export class CheshireCat {
 			return llm.getModel(settings)
 		}
 		catch (error) {
-			log.error(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
+			log.error(error)
+			log.warn(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
 			return getLLM('DefaultLLM')!.getModel({})
 		}
 	}
@@ -137,7 +138,8 @@ export class CheshireCat {
 			return embedder.getModel(settings)
 		}
 		catch (error) {
-			log.error(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
+			log.error(error)
+			log.warn(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
 			return getEmbedder('FakeEmbedder')!.getModel({})
 		}
 	}

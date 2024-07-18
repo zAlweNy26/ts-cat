@@ -20,7 +20,7 @@ export function fileIngestion(app: App) {
 				}),
 			},
 		})
-		.post('/chunk', async ({ rh, body, query, stray, log }) => {
+		.post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
 			const { sync, source } = query
 			try {
 				if (sync) await rh.ingestContent(stray, body.chunk, source)
@@ -28,7 +28,7 @@ export function fileIngestion(app: App) {
 			}
 			catch (error) {
 				log.error('Error while ingesting chunk:', error)
-				throw new Error('Error while ingesting the passed chunk')
+				throw HttpError.InternalServer('Error while ingesting the passed chunk')
 			}
 			return {
 				info: sync ? 'Chunk has been ingested successfully.' : 'Chunk is being ingested asynchronously...',
@@ -52,7 +52,7 @@ export function fileIngestion(app: App) {
 				400: 'error',
 			},
 		})
-		.post('/file', async ({ rh, body, query, stray, log }) => {
+		.post('/file', async ({ rh, body, query, stray, log, HttpError }) => {
 			const { file } = body, { sync, chunkOverlap, chunkSize } = query
 			try {
 				if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
@@ -60,7 +60,7 @@ export function fileIngestion(app: App) {
 			}
 			catch (error) {
 				log.error('Error while ingesting file:', error)
-				throw new Error('Error while ingesting the passed file')
+				throw HttpError.InternalServer('Error while ingesting the passed file')
 			}
 			return {
 				info: sync ? 'File has been ingested successfully.' : 'File is being ingested asynchronously...',
@@ -85,7 +85,46 @@ export function fileIngestion(app: App) {
 				400: 'error',
 			},
 		})
-		.post('/memory', async ({ rh, body, query, log }) => {
+		.post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
+			const { files } = body, { sync, chunkOverlap, chunkSize } = query
+			try {
+				if (sync) {
+					for (const file of files)
+						await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
+				}
+				else {
+					for (const file of files)
+						rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+				}
+			}
+			catch (error) {
+				log.error('Error while ingesting files:', error)
+				throw HttpError.InternalServer('Error while ingesting the passed files')
+			}
+			return {
+				info: sync ? 'Files have been ingested successfully.' : 'Files are being ingested asynchronously...',
+			}
+		}, {
+			body: t.Object({
+				files: t.Files(),
+			}),
+			query: t.Object({
+				sync: t.BooleanString({ default: true }),
+				chunkSize: t.Numeric({ default: 256 }),
+				chunkOverlap: t.Numeric({ default: 64 }),
+			}),
+			detail: {
+				description: 'Upload a list of files whose contents will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
+				summary: 'Upload files',
+			},
+			response: {
+				200: t.Object({
+					info: t.String(),
+				}),
+				400: 'error',
+			},
+		})
+		.post('/memory', async ({ rh, body, query, log, HttpError }) => {
 			const { file } = body, { sync } = query
 			try {
 				if (sync) await rh.ingestMemory(file)
@@ -93,7 +132,7 @@ export function fileIngestion(app: App) {
 			}
 			catch (error) {
 				log.error('Error while ingesting memory file:', error)
-				throw new Error('Error while ingesting the passed memory file')
+				throw HttpError.InternalServer('Error while ingesting the passed memory file')
 			}
 			return {
 				info: sync ? 'Memory file has been ingested successfully.' : 'Memory file is being ingested asynchronously...',
@@ -116,7 +155,7 @@ export function fileIngestion(app: App) {
 				400: 'error',
 			},
 		})
-		.post('/web', async ({ rh, body, query, stray, log }) => {
+		.post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
 			const { webUrl } = body, { sync, chunkOverlap, chunkSize } = query
 			try {
 				if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap)
@@ -124,7 +163,7 @@ export function fileIngestion(app: App) {
 			}
 			catch (error) {
 				log.error('Error while ingesting web url:', error)
-				throw new Error('Error while ingesting the passed url')
+				throw HttpError.InternalServer('Error while ingesting the passed url')
 			}
 			return {
 				info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
@@ -154,3 +193,5 @@ export function fileIngestion(app: App) {
 			},
 		}))
 }
+
+export type RabbitHoleApp = ReturnType<typeof fileIngestion>
