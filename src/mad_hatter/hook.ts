@@ -5,7 +5,7 @@ import type { EmbedderSettings, LLMSettings } from '@factory'
 import type { VectorMemoryCollection } from '@memory'
 import type { FileParsers, WebParser } from '@rh'
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
-import type { MemoryMessage, MemoryRecallConfigs, Message, WSMessage } from '@dto/message.ts'
+import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WSMessage } from '@dto/message.ts'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
@@ -32,6 +32,7 @@ export interface HookTypes {
 	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
 	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>
 	afterRecallMemories: (stray: StrayCat) => MaybePromise<void>
+	afterModelInteraction: (interaction: ModelInteraction, stray: StrayCat) => ModelInteraction
 	// Vector Memory hooks
 	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => MaybePromise<Record<string, VectorMemoryCollection>>
 	// Rabbit Hole hooks
@@ -41,7 +42,7 @@ export interface HookTypes {
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	afterStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
-	afterInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
+	afterInsertInMemory: (doc: Document, interaction: EmbedderInteraction, stray: StrayCat) => MaybePromise<Document>
 	beforeSplitDocs: (texts: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	afterSplitDocs: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 }

@@ -41,6 +41,27 @@ export interface WorkingMemory {
 	[key: string]: MemoryDocument[]
 }
 
+export interface Interaction {
+	source: string
+	prompt: string
+	outputTokens: number
+	startedAt: number
+	endedAt: number
+}
+
+export type LLMInteraction = Interaction & {
+	model: 'llm'
+	inputTokens: number
+	reply: string
+}
+
+export type EmbedderInteraction = Interaction & {
+	model: 'embedder'
+	reply: number[]
+}
+
+export type ModelInteraction = LLMInteraction | EmbedderInteraction
+
 /**
  * The content of a memory message.
  */
@@ -53,6 +74,7 @@ export interface MemoryMessage {
 		input: string
 		intermediateSteps: IntermediateStep[]
 		memory?: WorkingMemory
+		interactions?: ModelInteraction[]
 	}
 }
 

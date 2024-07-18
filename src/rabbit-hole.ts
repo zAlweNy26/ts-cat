@@ -18,6 +18,7 @@ import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { log } from '@logger'
 import type { MemoryJson } from '@dto/vector-memory.ts'
+import type { EmbedderInteraction } from '@dto/message.ts'
 import { db } from './database.ts'
 
 export type WebParser = [RegExp, new (url: string) => BaseDocumentLoader]
@@ -74,6 +75,10 @@ export class RabbitHole {
 	 */
 	get webParsers() {
 		return [...this.webHandlers]
+	}
+
+	get textSplitter() {
+		return this.splitter
 	}
 
 	/**
@@ -202,21 +207,29 @@ export class RabbitHole {
 			doc.metadata.source = source
 			doc.metadata.when = Date.now()
 			doc = await madHatter.executeHook('beforeInsertInMemory', doc, stray)
-			if (doc.pageContent) {
+			const interaction: EmbedderInteraction = {
+				model: 'embedder',
+				reply: [],
+				source: 'DocumentEmbed',
+				prompt: doc.pageContent,
+				outputTokens: 0,
+				startedAt: Date.now(),
+				endedAt: Date.now(),
+			}
+			if (doc.pageContent.trim().length > 0) {
 				const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([doc.pageContent])
-				if (docEmbedding.length === 0) {
-					log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
-					continue
-				}
 				await cheshireCat.vectorMemory.collections.declarative.addPoint(
 					doc.pageContent,
 					docEmbedding[0]!,
 					doc.metadata,
 				)
+				interaction.reply = docEmbedding[0]!
+				interaction.outputTokens = await this.splitter.lengthFunction(doc.pageContent)
+				interaction.endedAt = Date.now()
+				doc = await madHatter.executeHook('afterInsertInMemory', doc, interaction, stray)
+				await Bun.sleep(500) // Avoid spamming requests (maybe find another way to do this?)
 			}
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
-			doc = await madHatter.executeHook('afterInsertInMemory', doc, stray)
-			await Bun.sleep(500)
 		}
 		docs = await madHatter.executeHook('afterStoreDocuments', docs, stray)
 		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })

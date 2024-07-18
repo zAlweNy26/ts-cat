@@ -49,6 +49,8 @@ CatHook.add('afterMemoryChain', output => output)
 
 CatHook.add('afterProceduresChain', output => output)
 
+CatHook.add('afterModelInteraction', interaction => interaction)
+
 // Vector Memory hooks
 
 CatHook.add('memoryCollections', collections => collections)
