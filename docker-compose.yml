@@ -20,10 +20,10 @@ services:
       - ${CORE_PORT:-1865}:80
     volumes:
       - ./:/app
-    command: pnpm dev
+    command: bun run start
     restart: unless-stopped
   ccat-ts-vector-memory:
-    image: qdrant/qdrant:v1.8.2
+    image: qdrant/qdrant:v1.10.0
     container_name: ccat_ts_vector_memory
     environment:
       - QDRANT__LOG_LEVEL=INFO

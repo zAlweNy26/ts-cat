@@ -10,7 +10,7 @@ export default antfu({
 	markdown: false, // TODO: Temporary fix until code blocks are correctly read
 	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/'],
 	rules: {
-		'unused-imports/no-unused-vars-ts': 'warn',
+		'unused-imports/no-unused-vars': 'warn',
 		'style/max-statements-per-line': 'off',
 		'regexp/no-unused-capturing-group': 'warn',
 		'regexp/optimal-quantifier-concatenation': 'warn',
