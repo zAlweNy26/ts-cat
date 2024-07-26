@@ -1,11 +1,11 @@
 import type { Embeddings } from '@langchain/core/embeddings'
-import type { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { getEmbedder, getLLM } from '@factory'
 import { type Form, type Tool, isForm, isTool, madHatter } from '@mh'
 import { type VectorMemory, getVectorMemory } from '@memory'
 import { db } from '@db'
 import { log } from '@logger'
 import type { PointData } from '@dto/vector-memory.ts'
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat, type WS } from './stray-cat.ts'
 import { whiteRabbit } from './white-rabbit.ts'
@@ -20,7 +20,7 @@ type ProcedureHash = Record<string, {
 
 export class CheshireCat {
 	private static instance: CheshireCat
-	private llm: BaseLanguageModel
+	private llm: BaseChatModel
 	private embedder: Embeddings
 	private memory!: VectorMemory
 	private manager: AgentManager

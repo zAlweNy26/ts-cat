@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { join } from 'node:path'
 import { readdir } from 'node:fs/promises'
 import _SampleSize from 'lodash/sampleSize.js'
+import type { BaseMessageChunk } from '@langchain/core/messages'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import { z } from 'zod'
 import { defu } from 'defu'
@@ -138,6 +139,12 @@ export async function compareStrings(input: string, prediction: string, criteria
 	const evaluator = await loadEvaluator('embedding_distance', { distanceMetric: 'cosine', criteria })
 	const res = await evaluator.evaluateStrings({ input, prediction })
 	return (res.score as number) ?? 1
+}
+
+export function normalizeMessageChunks(chunk: BaseMessageChunk) {
+	const { content } = chunk
+	if (typeof content === 'string') return content
+	else return content.reduce((acc, c) => c.type === 'text' ? acc + c.text : acc, '')
 }
 
 /**

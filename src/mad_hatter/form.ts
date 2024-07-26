@@ -275,7 +275,7 @@ JSON:
 {
     "confirm": `
 
-		const res = await this.cat.llm(confirmPrompt, true)
+		const res = await this.cat.llm(confirmPrompt)
 
 		return JSON.stringify(res).toLowerCase().includes('true')
 	}
@@ -303,7 +303,7 @@ JSON:
 {
 	"exit": `
 
-		const res = await this.cat.llm(checkExitPrompt, true)
+		const res = await this.cat.llm(checkExitPrompt)
 
 		return JSON.stringify(res).toLowerCase().includes('true')
 	}

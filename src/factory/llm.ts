@@ -1,16 +1,14 @@
 import { z } from 'zod'
-import { HuggingFaceInference } from '@langchain/community/llms/hf'
-import { Ollama } from '@langchain/community/llms/ollama'
-import { AzureChatOpenAI, AzureOpenAI, ChatOpenAI, OpenAI } from '@langchain/openai'
+import { AzureChatOpenAI, ChatOpenAI } from '@langchain/openai'
 import { ChatAnthropic } from '@langchain/anthropic'
-import { Cohere } from '@langchain/cohere'
+import { ChatCohere } from '@langchain/cohere'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
-import type { BaseLanguageModel } from '@langchain/core/language_models/base'
-import { zodJson } from '@utils'
+import { ChatOllama } from '@langchain/community/chat_models/ollama'
 import { madHatter } from '@mh'
 import { db } from '@db'
-import { CustomLLM, CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
 
 export interface LLMSettings {
 	name: string
@@ -18,7 +16,7 @@ export interface LLMSettings {
 	description: string
 	link?: string
 	config: z.ZodEffects<z.AnyZodObject> | z.AnyZodObject
-	getModel: (params: z.input<this['config']>) => BaseLanguageModel
+	getModel: (params: z.input<this['config']>) => BaseChatModel
 }
 
 const defaultLLMConfig: Readonly<LLMSettings> = Object.freeze({
@@ -27,21 +25,6 @@ const defaultLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	description: 'A dumb LLM just telling that the Cat is not configured. There will be a nice LLM here once consumer hardware allows it.',
 	config: z.object({}),
 	getModel: () => new DefaultLLM(),
-})
-
-const customLLMConfig: Readonly<LLMSettings> = Object.freeze({
-	name: 'CustomLLM',
-	humanReadableName: 'Custom Language Model',
-	description: 'Configuration for custom language model',
-	config: z.object({
-		authKey: z.string().optional(),
-		url: z.string().url(),
-		options: zodJson,
-	}),
-	getModel(params: z.input<typeof customLLMConfig.config>) {
-		const args = this.config.parse(params)
-		return new CustomLLM(args)
-	},
 })
 
 const customOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
@@ -87,23 +70,6 @@ const chatOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	},
 })
 
-const openAILLMConfig: Readonly<LLMSettings> = Object.freeze({
-	name: 'OpenAILLM',
-	humanReadableName: 'OpenAI GPT',
-	description: 'More expensive but also more flexible model than ChatGPT',
-	link: 'https://platform.openai.com/docs/models/overview',
-	config: z.object({
-		apiKey: z.string(),
-		model: z.string().default('gpt-3.5-turbo-instruct'),
-		temperature: z.number().gte(0).lte(1).default(0.7),
-		streaming: z.boolean().default(false),
-	}),
-	getModel(params: z.input<typeof openAILLMConfig.config>) {
-		const { apiKey, model, temperature, streaming } = this.config.parse(params)
-		return new OpenAI({ apiKey, model, temperature, streaming })
-	},
-})
-
 const azureChatOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	name: 'AzureChatOpenAILLM',
 	humanReadableName: 'Azure OpenAI Chat model',
@@ -132,34 +98,6 @@ const azureChatOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
 	},
 })
 
-const azureOpenAILLMConfig: Readonly<LLMSettings> = Object.freeze({
-	name: 'AzureOpenAILLM',
-	humanReadableName: 'Azure OpenAI Completion model',
-	description: 'Configuration for Cognitive Services Azure OpenAI',
-	link: 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
-	config: z.object({
-		apiKey: z.string(),
-		base: z.string(),
-		deployment: z.string(),
-		model: z.string().default('gpt-35-turbo-instruct'),
-		maxTokens: z.number().int().gte(1).default(2048),
-		version: z.string().default('2023-05-15'),
-		streaming: z.boolean().default(false),
-	}),
-	getModel(params: z.input<typeof azureOpenAILLMConfig.config>) {
-		const { apiKey, model, streaming, base, deployment, version, maxTokens } = this.config.parse(params)
-		return new AzureOpenAI({
-			model,
-			streaming,
-			azureOpenAIBasePath: base,
-			azureOpenAIApiKey: apiKey,
-			azureOpenAIApiDeploymentName: deployment,
-			azureOpenAIApiVersion: version,
-			maxTokens,
-		})
-	},
-})
-
 const cohereLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	name: 'CohereLLM',
 	humanReadableName: 'Cohere',
@@ -172,7 +110,7 @@ const cohereLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof cohereLLMConfig.config>) {
 		const { apiKey, model, temperature } = this.config.parse(params)
-		return new Cohere({ model, apiKey, temperature })
+		return new ChatCohere({ model, apiKey, temperature })
 	},
 })
 
@@ -213,34 +151,6 @@ const anthropicLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	},
 })
 
-const hfTextGenInferenceLLMConfig: Readonly<LLMSettings> = Object.freeze({
-	name: 'HuggingFaceTextGenInferenceLLM',
-	humanReadableName: 'Hugging Face Text Generation Inference',
-	description: 'Configuration for Hugging Face Text Generation Inference',
-	link: 'https://huggingface.co/text-generation-inference',
-	config: z.object({
-		apiKey: z.string(),
-		serverUrl: z.string().url(),
-		maxTokens: z.number().int().gte(1).default(512),
-		topK: z.number().int().gte(1).default(10),
-		topP: z.number().gte(0).lte(1).default(0.95),
-		temperature: z.number().gte(0).lte(1).default(0.1),
-		repeatPenalty: z.number().gte(-2).lte(2).default(1.05),
-	}),
-	getModel(params: z.input<typeof hfTextGenInferenceLLMConfig.config>) {
-		const { apiKey, serverUrl, maxTokens, repeatPenalty, temperature, topK, topP } = this.config.parse(params)
-		return new HuggingFaceInference({
-			endpointUrl: serverUrl,
-			frequencyPenalty: repeatPenalty,
-			apiKey,
-			maxTokens,
-			temperature,
-			topK,
-			topP,
-		})
-	},
-})
-
 const ollamaLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	name: 'OllamaLLM',
 	humanReadableName: 'Ollama',
@@ -256,7 +166,7 @@ const ollamaLLMConfig: Readonly<LLMSettings> = Object.freeze({
 	}),
 	getModel(params: z.input<typeof ollamaLLMConfig.config>) {
 		const { baseUrl, model, numCtx, repeatLastN, repeatPenalty, temperature } = this.config.parse(params)
-		return new Ollama({ baseUrl, model, numCtx, repeatLastN, repeatPenalty, temperature })
+		return new ChatOllama({ baseUrl, model, numCtx, repeatLastN, repeatPenalty, temperature })
 	},
 })
 
@@ -282,15 +192,11 @@ const geminiChatLLMConfig: Readonly<LLMSettings> = Object.freeze({
 export function getAllowedLLMs() {
 	const allowedLLMsModels = [
 		defaultLLMConfig,
-		customLLMConfig,
 		customOpenAILLMConfig,
 		chatOpenAILLMConfig,
-		openAILLMConfig,
 		azureChatOpenAILLMConfig,
-		azureOpenAILLMConfig,
 		mistralAILLMConfig,
 		cohereLLMConfig,
-		hfTextGenInferenceLLMConfig,
 		ollamaLLMConfig,
 		geminiChatLLMConfig,
 		anthropicLLMConfig,

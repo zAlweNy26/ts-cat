@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { CatForm } from '@form'
 import { CatTool } from '@tool'
+import { normalizeMessageChunks } from '@utils'
 
 CatTool.add('GetTime', 'Useful to get the current time when asked. Input is always null.', async () => {
 	return new Date().toLocaleString()
@@ -10,7 +11,7 @@ CatTool.add('GetTime', 'Useful to get the current time when asked. Input is alwa
 })
 
 CatTool.add('GenerateName', 'Useful to generate a random name when asked. Input is the country origin of the name.', async (input, cat) => {
-	return cat.llm(`Give me a name that is from ${input}`)
+	return normalizeMessageChunks(await cat.llm(`Give me a name that is from ${input}`))
 }, {
 	startExamples: ['I want an african name', 'Generate an italian name'],
 })

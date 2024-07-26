@@ -11,6 +11,10 @@ import type { ServerWebSocket } from 'bun'
 import type { TSchema } from 'elysia'
 import type { TypeCheck } from 'elysia/type-system'
 import type { ElysiaWS } from 'elysia/ws'
+import type { BaseLanguageModelInput } from '@langchain/core/language_models/base'
+import type { BaseMessageChunk } from '@langchain/core/messages'
+import type { IterableReadableStream } from '@langchain/core/utils/stream'
+import { normalizeMessageChunks } from '@utils'
 import { cheshireCat } from './cheshire-cat.ts'
 import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
 
@@ -231,7 +235,7 @@ ${labelsList}${examplesList}
 
 "${sentence}" -> `
 
-		const response = await this.llm(prompt)
+		const response = normalizeMessageChunks(await this.llm(prompt))
 		log.info(`Classified sentence: ${response}`)
 
 		const label = labels.find(w => response.includes(w))
@@ -344,13 +348,16 @@ ${labelsList}${examplesList}
 
 	/**
 	 * Executes the LLM with the given prompt and returns the response.
-	 * @param prompt The prompt to be passed to the LLM.
+	 * @param prompt The prompt or messages to be passed to the LLM.
 	 * @param stream Optional parameter to enable streaming mode.
 	 */
-	llm(prompt: string, stream = false): Promise<string> {
+	async llm(prompt: BaseLanguageModelInput, stream?: false): Promise<BaseMessageChunk>
+	async llm(prompt: BaseLanguageModelInput, stream?: true): Promise<IterableReadableStream<BaseMessageChunk>>
+	async llm(prompt: BaseLanguageModelInput, stream = false): Promise<BaseMessageChunk | IterableReadableStream<BaseMessageChunk>> {
 		const callbacks: BaseCallbackHandler[] = []
 		if (stream) callbacks.push(new NewTokenHandler(this))
 		callbacks.push(new ModelInteractionHandler(this, 'StrayCat'))
+		if (stream) return this.currentLLM.stream(prompt, { callbacks })
 		return this.currentLLM.invoke(prompt, { callbacks })
 	}
 }

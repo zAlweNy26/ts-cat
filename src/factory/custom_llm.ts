@@ -1,60 +1,34 @@
 import { join } from 'node:path'
-import { type BaseLLMParams, LLM } from '@langchain/core/language_models/llms'
-import { OpenAI } from '@langchain/openai'
-import { ofetch } from 'ofetch'
-import type { Json } from '@utils'
+import type { BaseLLMParams } from '@langchain/core/language_models/llms'
+import { ChatOpenAI } from '@langchain/openai'
+import { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import type { BaseMessage } from '@langchain/core/messages'
+import type { ChatResult } from '@langchain/core/outputs'
 
-export class DefaultLLM extends LLM {
+export class DefaultLLM extends BaseChatModel {
 	constructor(params?: BaseLLMParams) {
 		super(params ?? {})
 	}
 
-	_llmType(): string {
-		return 'unset'
-	}
-
-	_call(): Promise<string> {
-		return Promise.resolve('You did not configure a Language Model. Do it in the settings!')
-	}
-}
-
-export class CustomLLM extends LLM {
-	authKey: string | undefined
-	url: string
-	options: Json | undefined
-
-	constructor(params: Partial<BaseLLMParams> & { authKey?: string, url: string, options?: Json }) {
-		super(params)
-		this.authKey = params.authKey
-		this.url = params.url
-		this.options = params.options
-	}
-
-	_llmType(): string {
-		return 'custom'
-	}
-
-	async _call(prompt: string) {
-		const res = await ofetch<{ text: string }>(this.url, {
-			method: 'POST',
-			body: {
-				text: prompt,
-				auth_key: this.authKey,
-				options: this.options,
-			},
-			headers: {
-				'Content-Type': 'application/json',
-			},
+	_generate(messages: BaseMessage[]): Promise<ChatResult> {
+		return Promise.resolve({
+			generations: messages.map(message => ({
+				text: 'You did not configure a Language Model. Do it in the settings!',
+				message,
+			})),
 		})
-		return res.text
+	}
+
+	_llmType(): string {
+		return 'default'
 	}
 }
 
-export class CustomOpenAILLM extends OpenAI {
+export class CustomOpenAILLM extends ChatOpenAI {
 	public url = ''
 	public openAIApiBase = ''
 
-	constructor(params?: ConstructorParameters<typeof OpenAI>[0]) {
+	constructor(params?: ConstructorParameters<typeof ChatOpenAI>[0]) {
 		const modelKwargs = {
 			repeatPenalty: params?.modelKwargs?.repeatPenalty ?? 1.0,
 			topK: params?.modelKwargs?.topK ?? 40,
