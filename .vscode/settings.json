@@ -29,5 +29,6 @@
 		"markdown",
 		"json",
 		"yaml"
-	]
+	],
+	"typescript.tsdk": "node_modules/typescript/lib"
 }

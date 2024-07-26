@@ -71,34 +71,32 @@ export class HttpError extends Error {
 	}
 }
 
-export function httpError() {
-	return new Elysia({ name: 'http-error' })
-		.decorate('HttpError', HttpError)
-		.error({ HTTP_ERROR: HttpError })
-		.model({
-			error: t.Object({
-				code: t.String(),
-				status: t.Number(),
-				message: t.String(),
-				data: t.Optional(t.Any()),
-			}, {
-				examples: [{
-					code: 'Bad Request',
-					status: 400,
-					message: 'The request was invalid',
-				}],
-				$id: 'GenericError',
-			}),
-		})
-		.onError({ as: 'global' }, ({ code, error, set }) => {
-			if (code === 'HTTP_ERROR') {
-				set.status = error.status
-				return {
-					code: error.message,
-					status: error.status,
-					message: error.cause,
-					data: error.data,
-				}
+export const httpError = new Elysia({ name: 'http-error' })
+	.decorate('HttpError', HttpError)
+	.error({ HTTP_ERROR: HttpError })
+	.model({
+		error: t.Object({
+			code: t.String(),
+			status: t.Number(),
+			message: t.String(),
+			data: t.Optional(t.Any()),
+		}, {
+			examples: [{
+				code: 'Bad Request',
+				status: 400,
+				message: 'The request was invalid',
+			}],
+			$id: 'GenericError',
+		}),
+	})
+	.onError(({ code, error, set }) => {
+		if (code === 'HTTP_ERROR') {
+			set.status = error.status
+			return {
+				code: error.message,
+				status: error.status,
+				message: error.cause,
+				data: error.data,
 			}
-		})
-}
+		}
+	})

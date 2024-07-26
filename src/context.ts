@@ -1,11 +1,16 @@
 import { Elysia, t } from 'elysia'
-import { HttpError } from './errors'
+import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
+import { madHatter } from '@mh/mad-hatter.ts'
+import { httpError } from './errors'
 import { parsedEnv } from './utils'
+import { db } from './database.ts'
+import { log } from './logger.ts'
+import { rabbitHole } from './rabbit-hole.ts'
 
 export const swaggerTags = {
-	status: {
-		name: 'Status',
-		description: 'Server status',
+	general: {
+		name: 'General',
+		description: 'Base cat utilities',
 	},
 	settings: {
 		name: 'Settings',
@@ -34,14 +39,6 @@ export const swaggerTags = {
 } as const
 
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
-
-export function authMiddleware(app: Elysia) {
-	return app.onBeforeHandle(({ headers }) => {
-		const apiKey = headers.token, realKey = parsedEnv.apiKey
-		if (realKey && realKey !== apiKey)
-			throw HttpError.Unauthorized('Invalid API key')
-	})
-}
 
 export const modelInfo = t.Object({
 	name: t.String(),
@@ -129,8 +126,21 @@ export const pluginSettings = t.Object({
 	}],
 })
 
-export function apiModels() {
-	return new Elysia({ name: 'api-models' }).model({
+export const serverContext = new Elysia({ name: 'server-context' }).use(httpError)
+	.decorate({
+		// cat: cheshireCat, // TODO: Fix RangeError: Maximum call stack size exceeded.
+		mh: madHatter,
+		rh: rabbitHole,
+		log,
+		db,
+	}).onBeforeHandle(({ headers, HttpError }) => {
+		const apiKey = headers.token, realKey = parsedEnv.apiKey
+		if (realKey && realKey !== apiKey)
+			throw HttpError.Unauthorized('Invalid API key')
+	}).derive({ as: 'global' }, ({ headers }) => {
+		const user = headers.user || 'user'
+		return { stray: cat.getStray(user) || cat.addStray(user) }
+	}).model({
 		generic: t.Record(t.String(), t.Any(), {
 			examples: [{ key: 'value' }],
 			$id: 'GenericObject',
@@ -156,4 +166,3 @@ export function apiModels() {
 		pluginInfo,
 		pluginSettings,
 	})
-}

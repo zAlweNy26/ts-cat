@@ -9,12 +9,12 @@ index f136611b5f08a3670edc3e6bda9fdb0878f9b0ee..58caf958f3397804764961a212614fcd
  export { Toolkit } from "./toolkits/base.js";
  export { ChatAgent, type ChatAgentInput, type ChatCreatePromptArgs, } from "./chat/index.js";
 diff --git a/dist/agents/index.js b/dist/agents/index.js
-index ca4a1ab41dabd8cf4f3874c24ad39a93279a6bd1..fa5a6ad1219d6421324e41af86ac604a2a507114 100644
+index ca4a1ab41dabd8cf4f3874c24ad39a93279a6bd1..d9aa05269ee3ef8c46f7e44b5742deb6f7f3f439 100644
 --- a/dist/agents/index.js
 +++ b/dist/agents/index.js
 @@ -1,4 +1,4 @@
 -export { Agent, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, } from "./agent.js";
-+export { Agent, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, AgentRunnableSequence } from "./agent.js";
++export { Agent, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, AgentRunnableSequence, } from "./agent.js";
  export { JsonToolkit, OpenApiToolkit, RequestsToolkit, VectorStoreRouterToolkit, VectorStoreToolkit, createJsonAgent, createOpenApiAgent, createVectorStoreAgent, createVectorStoreRouterAgent, } from "./toolkits/index.js";
  export { Toolkit } from "./toolkits/base.js";
  export { ChatAgent, } from "./chat/index.js";
