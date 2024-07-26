@@ -81,4 +81,26 @@ export const generalRoutes = new Elysia({
 			200: t.Record(t.String(), t.Any()),
 			400: 'error',
 		},
+	}).post('/pure', async function* ({ stray, body, query }) {
+		const { stream } = query
+		if (stream) {
+			const res = await stray.llm(body.messages, stream)
+			for await (const chunk of res) yield normalizeMessageChunks(chunk)
+		}
+		return normalizeMessageChunks(await stray.llm(body.messages))
+	}, {
+		body: t.Object({
+			messages: t.Array(t.String(), { default: ['Hello world'] }),
+		}),
+		query: t.Object({
+			stream: t.Boolean({ default: true }),
+		}),
+		detail: {
+			summary: 'Pure call',
+			description: 'Get a pure LLM response from the Cheshire Cat.',
+		},
+		response: {
+			200: t.Record(t.String(), t.Any()),
+			400: 'error',
+		},
 	})
