@@ -119,8 +119,9 @@ export function httpLogger(options?: LogesticOptions) {
 			const baseUrl = url.substring(catPaths.baseUrl.length - 1)
 			const dateTime = chalk.gray(format(datetime, 'dd/MM/yyyy HH:mm:ss'))
 			const methodPath = chalk.red(`${method} ${decodeURIComponent(baseUrl)}`)
-			const errorCode = chalk.red(`${err.status} - ${err.message} - ${err.cause}`)
-			return `${dateTime} ${methodPath} ${errorCode}`
+			const errorCode = chalk.bgRed(`[${err.status} - ${err.message}]`)
+			const errorText = `${errorCode} ${chalk.red(err.cause)}`
+			return `${dateTime} ${methodPath}\n${errorText}`
 		},
 	})
 }
