@@ -18,3 +18,11 @@ index ca4a1ab41dabd8cf4f3874c24ad39a93279a6bd1..d9aa05269ee3ef8c46f7e44b5742deb6
  export { JsonToolkit, OpenApiToolkit, RequestsToolkit, VectorStoreRouterToolkit, VectorStoreToolkit, createJsonAgent, createOpenApiAgent, createVectorStoreAgent, createVectorStoreRouterAgent, } from "./toolkits/index.js";
  export { Toolkit } from "./toolkits/base.js";
  export { ChatAgent, } from "./chat/index.js";
+diff --git a/dist/chains/sql_db/index.d.ts b/dist/chains/sql_db/index.d.ts
+index 1e80d04027f2d5d86a987d27432906c0af5f7ef3..61e6df2ae320993c799038a84d9d633ad22a827c 100644
+--- a/dist/chains/sql_db/index.d.ts
++++ b/dist/chains/sql_db/index.d.ts
+@@ -1,2 +1,2 @@
+ export { SqlDatabaseChain, type SqlDatabaseChainInput, type CreateSqlQueryChainFields, createSqlQueryChain, } from "./sql_db_chain.js";
+-export { DEFAULT_SQL_DATABASE_PROMPT, SQL_POSTGRES_PROMPT, SQL_SQLITE_PROMPT, SQL_MSSQL_PROMPT, SQL_MYSQL_PROMPT, SQL_SAP_HANA_PROMPT, SQL_PROMPTS_MAP, } from "./sql_db_prompt.js";
++export { DEFAULT_SQL_DATABASE_PROMPT, SQL_POSTGRES_PROMPT, SQL_SQLITE_PROMPT, SQL_MSSQL_PROMPT, SQL_MYSQL_PROMPT, SQL_SAP_HANA_PROMPT, SQL_PROMPTS_MAP, SqlDialect } from "./sql_db_prompt.js";

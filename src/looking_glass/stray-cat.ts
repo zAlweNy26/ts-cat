@@ -15,8 +15,15 @@ import type { BaseLanguageModelInput } from '@langchain/core/language_models/bas
 import type { BaseMessageChunk } from '@langchain/core/messages'
 import type { IterableReadableStream } from '@langchain/core/utils/stream'
 import { normalizeMessageChunks } from '@utils'
-import { cheshireCat } from './cheshire-cat.ts'
+import { type SqlDialect, createSqlQueryChain } from 'langchain/chains/sql_db'
+import { SqlDatabase } from 'langchain/sql_db'
+import { DataSource, type DataSourceOptions } from 'typeorm'
+import { QuerySqlTool } from 'langchain/tools/sql'
+import { StringOutputParser } from '@langchain/core/output_parsers'
+import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables'
+import { PromptTemplate } from '@langchain/core/prompts'
 import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
+import { cheshireCat } from './cheshire-cat.ts'
 
 export type WS = ElysiaWS<
 	ServerWebSocket<{
@@ -41,7 +48,7 @@ export class StrayCat {
 		procedural: [],
 	}
 
-	constructor(public userId: string, private ws?: WS) {}
+	constructor(public userId: string, private ws?: WS) { }
 
 	get lastUserMessage() {
 		return this.userMessage
@@ -130,9 +137,9 @@ export class StrayCat {
 
 	/**
 	 * Processes the user message and returns the response.
-	 * @param msg The message to send
+	 * @param msg The message to send.
 	 * @param save Whether to save the message or not in the chat history (default: true).
-	 * @returns The response message
+	 * @returns The response message.
 	 */
 	async run(msg: Message, save = true): Promise<WSMessage> {
 		log.info(`Received message from user "${this.userId}":`)
@@ -213,11 +220,11 @@ export class StrayCat {
 	}
 
 	/**
-	 * Classifies the given sentence into one of the provided labels.
-	 * @param sentence The sentence to classify
-	 * @param labels The labels to classify the sentence into
-	 * @param examples Optional examples to help the LLM classify the sentence
-	 * @returns The label of the sentence or null if it could not be classified
+	 * @experimental Classifies the given sentence into one of the provided labels.
+	 * @param sentence The sentence to classify.
+	 * @param labels The labels to classify the sentence into.
+	 * @param examples Optional examples to help the LLM classify the sentence.
+	 * @returns The label of the sentence or null if it could not be classified.
 	 */
 	async classify<S extends string, T extends [S, ...S[]]>(sentence: string, labels: T, examples?: { [key in T[number]]: S[] }) {
 		let examplesList = ''
@@ -241,6 +248,47 @@ ${labelsList}${examplesList}
 		const label = labels.find(w => response.includes(w))
 		if (label) return label
 		else return null
+	}
+
+	/**
+	 * @experimental Executes a SQL query based on a natural language question.
+	 * @param question The user question.
+	 * @param type The SQL dialect to use.
+	 * @param source The data source to execute the query on.
+	 * @returns The result of the SQL query in natural language.
+	 */
+	async queryDb<T extends Exclude<SqlDialect, 'sap hana'>>(
+		question: string,
+		type: T,
+		source: Omit<Extract<DataSourceOptions, { type: T }>, 'type'>, // TODO: Fix type inference for `mysql`
+	) {
+		const appDataSource = new DataSource({ type, ...source } as DataSourceOptions)
+		const db = await SqlDatabase.fromDataSourceParams({ appDataSource })
+
+		const executeQuery = new QuerySqlTool(db)
+		const writeQuery = await createSqlQueryChain({
+			llm: this.currentLLM,
+			db,
+			dialect: type,
+		})
+
+		const answerPrompt = PromptTemplate.fromTemplate(
+			`Given the following user question, corresponding SQL query, and SQL result, answer the user question.
+			Question: {question}
+			SQL Query: {query}
+			SQL Result: {result}
+			Answer: `,
+		)
+
+		const answerChain = answerPrompt.pipe(this.currentLLM).pipe(new StringOutputParser())
+
+		const chain = RunnableSequence.from([
+			RunnablePassthrough.assign({ query: writeQuery }).assign({
+				result: (i: { query: string }) => executeQuery.invoke(i.query),
+			}),
+			answerChain,
+		])
+		return await chain.invoke({ question })
 	}
 
 	/**
