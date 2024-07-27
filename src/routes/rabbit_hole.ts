@@ -1,5 +1,12 @@
 import { Elysia, t } from 'elysia'
+import { Piscina } from 'piscina'
+import type { WorkerData, WorkerResult } from '../worker'
 import { serverContext, swaggerTags } from '@/context'
+
+const worker = new Piscina<WorkerData, WorkerResult>({
+	filename: new URL('../worker.ts', import.meta.url).href,
+	recordTiming: false, // Disabled until Bun implements `node:perf_hooks` createHistogram() method
+})
 
 export const rabbitHoleRoutes = new Elysia({
 	name: 'rabbithole',
@@ -25,7 +32,10 @@ export const rabbitHoleRoutes = new Elysia({
 		const { sync, source } = query
 		try {
 			if (sync) await rh.ingestContent(stray, body.chunk, source)
-			else rh.ingestContent(stray, body.chunk).catch(log.error)
+			else {
+				const res = await worker.run({ content: body.chunk, kind: 'text', stray, source })
+				if (!res.result) throw new Error(res.error)
+			}
 		}
 		catch (error) {
 			log.error('Error while ingesting chunk:', error)
@@ -57,7 +67,10 @@ export const rabbitHoleRoutes = new Elysia({
 		const { file } = body, { sync, chunkOverlap, chunkSize } = query
 		try {
 			if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
-			else rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+			else {
+				const res = await worker.run({ content: file, kind: 'file', stray, chunkSize, chunkOverlap })
+				if (!res.result) throw new Error(res.error)
+			}
 		}
 		catch (error) {
 			log.error('Error while ingesting file:', error)
@@ -94,8 +107,10 @@ export const rabbitHoleRoutes = new Elysia({
 					await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
 			}
 			else {
-				for (const file of files)
-					rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+				for (const file of files) {
+					const res = await worker.run({ content: file, kind: 'file', stray, chunkSize, chunkOverlap })
+					if (!res.result) throw new Error(res.error)
+				}
 			}
 		}
 		catch (error) {
@@ -125,11 +140,14 @@ export const rabbitHoleRoutes = new Elysia({
 			400: 'error',
 		},
 	})
-	.post('/memory', async ({ rh, body, query, log, HttpError }) => {
+	.post('/memory', async ({ rh, body, stray, query, log, HttpError }) => {
 		const { file } = body, { sync } = query
 		try {
 			if (sync) await rh.ingestMemory(file)
-			else rh.ingestMemory(file).catch(log.error)
+			else {
+				const res = await worker.run({ content: file, kind: 'memory', stray })
+				if (!res.result) throw new Error(res.error)
+			}
 		}
 		catch (error) {
 			log.error('Error while ingesting memory file:', error)
@@ -160,7 +178,10 @@ export const rabbitHoleRoutes = new Elysia({
 		const { webUrl } = body, { sync, chunkOverlap, chunkSize } = query
 		try {
 			if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap)
-			else rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
+			else {
+				const res = await worker.run({ content: webUrl, kind: 'url', stray, chunkSize, chunkOverlap })
+				if (!res.result) throw new Error(res.error)
+			}
 		}
 		catch (error) {
 			log.error('Error while ingesting web url:', error)
