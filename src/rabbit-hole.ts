@@ -123,13 +123,14 @@ export class RabbitHole {
 	 * @param stray The StrayCat instance.
 	 * @param content The textual content to ingest.
 	 * @param source The source of the content (default: 'unknown').
+	 * @param metadata Additional metadata to store with the content.
 	 */
-	async ingestContent(stray: StrayCat, content: string | string[], source = 'unknown') {
+	async ingestContent(stray: StrayCat, content: string | string[], source = 'unknown', metadata?: Record<string, any>) {
 		log.info('Ingesting textual content...')
 		content = Array.isArray(content) ? content : [content]
 		let docs = content.map(c => new Document({ pageContent: c }))
 		docs = await this.splitDocs(stray, docs)
-		await this.storeDocuments(stray, docs, source)
+		await this.storeDocuments(stray, docs, source, metadata)
 	}
 
 	/**
@@ -138,9 +139,10 @@ export class RabbitHole {
 	 * @param file The file to ingest.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
+	 * @param metadata Additional metadata to store with the content.
 	 * @throws An error if the file type is not supported.
 	 */
-	async ingestFile(stray: StrayCat, file: File, chunkSize?: number, chunkOverlap?: number) {
+	async ingestFile(stray: StrayCat, file: File, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
 		const mime = file.type as keyof typeof this.fileHandlers
 		if (!Object.keys(this.fileHandlers).includes(mime))
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
@@ -151,7 +153,7 @@ export class RabbitHole {
 		const content = await loader.load()
 		stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
 		const docs = await this.splitDocs(stray, content, chunkSize, chunkOverlap)
-		await this.storeDocuments(stray, docs, file.name)
+		await this.storeDocuments(stray, docs, file.name, metadata)
 	}
 
 	/**
@@ -162,9 +164,10 @@ export class RabbitHole {
 	 * @param path The path or URL to ingest.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
+	 * @param metadata Additional metadata to store with the content.
 	 * @throws If the URL doesn't match any web handler or the path doesn't exist.
 	 */
-	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize?: number, chunkOverlap?: number) {
+	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
 		try {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
@@ -175,7 +178,7 @@ export class RabbitHole {
 			const content = await loader.load()
 			stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
 			const docs = await this.splitDocs(stray, content, chunkSize, chunkOverlap)
-			await this.storeDocuments(stray, docs, url.href)
+			await this.storeDocuments(stray, docs, url.href, metadata)
 		}
 		catch (error) {
 			if (error instanceof TypeError) log.info('The string is not a valid URL, trying with a file-system path...')
@@ -183,7 +186,7 @@ export class RabbitHole {
 			if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
 			const data = await Bun.file(resolve(path)).text()
 			const file = new File([data], basename(path), { type: extname(path) })
-			await this.ingestFile(stray, file, chunkSize, chunkOverlap)
+			await this.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
 		}
 	}
 
@@ -194,8 +197,9 @@ export class RabbitHole {
 	 * @param stray The StrayCat instance.
 	 * @param docs An array of documents to store.
 	 * @param source The source of the documents.
+	 * @param metadata Additional metadata to store with the content.
 	 */
-	async storeDocuments(stray: StrayCat, docs: Document[], source: string) {
+	async storeDocuments(stray: StrayCat, docs: Document[], source: string, metadata?: Record<string, any>) {
 		log.info(`Preparing to store ${docs.length} documents`)
 		docs = await madHatter.executeHook('beforeStoreDocuments', docs, stray)
 		for (let [i, doc] of docs.entries()) {
@@ -204,8 +208,11 @@ export class RabbitHole {
 			const readMsg = `Read ${percRead}% of ${source}`
 			stray.send({ type: 'notification', content: readMsg })
 			log.info(readMsg)
-			doc.metadata.source = source
-			doc.metadata.when = Date.now()
+			doc.metadata = {
+				...metadata,
+				source,
+				when: Date.now(),
+			}
 			doc = await madHatter.executeHook('beforeInsertInMemory', doc, stray)
 			const interaction: EmbedderInteraction = {
 				model: 'embedder',

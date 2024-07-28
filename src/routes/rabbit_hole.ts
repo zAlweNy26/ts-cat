@@ -22,10 +22,10 @@ export const rabbitHoleRoutes = new Elysia({
 		},
 	})
 	.post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
-		const { sync, source } = query
+		const { sync, source } = query, { chunk, metadata } = body
 		try {
-			if (sync) await rh.ingestContent(stray, body.chunk, source)
-			else rh.ingestContent(stray, body.chunk).catch(log.error)
+			if (sync) await rh.ingestContent(stray, chunk, source, metadata)
+			else rh.ingestContent(stray, chunk, source, metadata).catch(log.error)
 		}
 		catch (error) {
 			log.error('Error while ingesting chunk:', error)
@@ -37,6 +37,7 @@ export const rabbitHoleRoutes = new Elysia({
 	}, {
 		body: t.Object({
 			chunk: t.Union([t.String(), t.Array(t.String())]),
+			metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 		}),
 		query: t.Object({
 			sync: t.Boolean({ default: true }),
@@ -54,10 +55,10 @@ export const rabbitHoleRoutes = new Elysia({
 		},
 	})
 	.post('/file', async ({ rh, body, query, stray, log, HttpError }) => {
-		const { file } = body, { sync, chunkOverlap, chunkSize } = query
+		const { file, metadata } = body, { sync, chunkOverlap, chunkSize } = query
 		try {
-			if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
-			else rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+			if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
+			else rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
 		}
 		catch (error) {
 			log.error('Error while ingesting file:', error)
@@ -69,6 +70,7 @@ export const rabbitHoleRoutes = new Elysia({
 	}, {
 		body: t.Object({
 			file: t.File(),
+			metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 		}),
 		query: t.Object({
 			sync: t.Boolean({ default: true }),
@@ -87,15 +89,15 @@ export const rabbitHoleRoutes = new Elysia({
 		},
 	})
 	.post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
-		const { files } = body, { sync, chunkOverlap, chunkSize } = query
+		const { content } = body, { sync, chunkOverlap, chunkSize } = query
 		try {
 			if (sync) {
-				for (const file of files)
-					await rh.ingestFile(stray, file, chunkSize, chunkOverlap)
+				for (const { file, metadata } of content)
+					await rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
 			}
 			else {
-				for (const file of files)
-					rh.ingestFile(stray, file, chunkSize, chunkOverlap).catch(log.error)
+				for (const { file, metadata } of content)
+					rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
 			}
 		}
 		catch (error) {
@@ -107,7 +109,10 @@ export const rabbitHoleRoutes = new Elysia({
 		}
 	}, {
 		body: t.Object({
-			files: t.Files(),
+			content: t.Array(t.Object({
+				file: t.File(),
+				metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
+			})),
 		}),
 		query: t.Object({
 			sync: t.Boolean({ default: true }),
@@ -117,6 +122,44 @@ export const rabbitHoleRoutes = new Elysia({
 		detail: {
 			description: 'Upload a list of files whose contents will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
 			summary: 'Upload files',
+		},
+		response: {
+			200: t.Object({
+				info: t.String(),
+			}),
+			400: 'error',
+		},
+	})
+	.post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
+		const { webUrl, metadata } = body, { sync, chunkOverlap, chunkSize } = query
+		try {
+			if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap, metadata)
+			else rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap, metadata).catch(log.error)
+		}
+		catch (error) {
+			log.error('Error while ingesting web url:', error)
+			throw HttpError.InternalServer('Error while ingesting the passed url')
+		}
+		return {
+			info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
+		}
+	}, {
+		body: t.Object({
+			webUrl: t.String({
+				format: 'uri',
+				default: 'https://example.com',
+				description: 'URL of the website or the path of the file to ingest.',
+			}),
+			metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
+		}),
+		query: t.Object({
+			sync: t.Boolean({ default: true }),
+			chunkSize: t.Number({ default: 256 }),
+			chunkOverlap: t.Number({ default: 64 }),
+		}),
+		detail: {
+			description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
+			summary: 'Upload URL',
 		},
 		response: {
 			200: t.Object({
@@ -140,7 +183,7 @@ export const rabbitHoleRoutes = new Elysia({
 		}
 	}, {
 		body: t.Object({
-			file: t.File(),
+			file: t.File({ description: 'Memory file to ingest. It must be a JSON.' }),
 		}),
 		query: t.Object({
 			sync: t.Boolean({ default: true }),
@@ -148,43 +191,6 @@ export const rabbitHoleRoutes = new Elysia({
 		detail: {
 			description: 'Upload a memory json file to the cat memory.',
 			summary: 'Upload memory',
-		},
-		response: {
-			200: t.Object({
-				info: t.String(),
-			}),
-			400: 'error',
-		},
-	})
-	.post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
-		const { webUrl } = body, { sync, chunkOverlap, chunkSize } = query
-		try {
-			if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap)
-			else rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap).catch(log.error)
-		}
-		catch (error) {
-			log.error('Error while ingesting web url:', error)
-			throw HttpError.InternalServer('Error while ingesting the passed url')
-		}
-		return {
-			info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
-		}
-	}, {
-		body: t.Object({
-			webUrl: t.String({
-				format: 'uri',
-				default: 'https://example.com',
-				description: 'URL of the website or the path of the file to ingest.',
-			}),
-		}),
-		query: t.Object({
-			sync: t.Boolean({ default: true }),
-			chunkSize: t.Number({ default: 256 }),
-			chunkOverlap: t.Number({ default: 64 }),
-		}),
-		detail: {
-			description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
-			summary: 'Upload URL',
 		},
 		response: {
 			200: t.Object({
