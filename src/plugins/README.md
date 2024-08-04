@@ -32,31 +32,34 @@ From inside any hook, tool or form, you can access the current plugin informatio
 ```ts
 // For example, in a hook
 CatHook.add('agentPromptPrefix', (prefix, cat) => {
-    const info = cat.getPluginInfo()
-    if (!info) return prefix
-    return info.settings.prefix
+	const info = cat.getPluginInfo()
+	if (!info) return prefix
+	return info.settings.prefix
 })
 
 // For example, in a tool
 CatTool.add('myToolName', 'myToolDescription', async (input, cat) => {
-    const info = cat.getPluginInfo()
-    // ...
+	const info = cat.getPluginInfo()
+	console.log(info)
+	// ...
 }, {
-    direct: true,
-    startExamples: ['startExample1', 'startExample2'],
+	direct: true,
+	startExamples: ['startExample1', 'startExample2'],
 })
 
 // For example, in a form
 CatForm.add('myFormName', {
-    myKey1: z.string().describe('myKey1Description'),
-    myKey2: z.number().describe('myKey2Description'),
+	myKey1: z.string().describe('myKey1Description'),
+	myKey2: z.number().describe('myKey2Description'),
 }, {
-    description: 'myFormDescription',
-    startExamples: ['myFormExample1', 'myFormExample2'],
-    async onSubmit({ myKey1, myKey2 }, cat) {
-        const info = cat.getPluginInfo()
-        // ...
-    }
+	description: 'myFormDescription',
+	startExamples: ['myFormExample1', 'myFormExample2'],
+	async onSubmit({ myKey1, myKey2 }, cat) {
+		console.log(myKey1, myKey2)
+		const info = cat.getPluginInfo()
+		console.log(info)
+		// ...
+	}
 })
 ```
 
@@ -66,7 +69,7 @@ For the plugin settings, you must use `zod`. Here is an example:
 import { z } from 'zod'
 
 CatPlugin.settings({
-    mySetting: z.string().default('default value')
+	mySetting: z.string().default('default value')
 })
 ```
 

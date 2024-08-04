@@ -4,7 +4,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
-		name: 'src',
+		name: 'CheshireCat',
 		environment: 'node',
 		setupFiles: ['./test/env-mock.ts'],
 	},

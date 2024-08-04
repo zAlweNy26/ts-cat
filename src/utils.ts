@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { join } from 'node:path'
 import { readdir } from 'node:fs/promises'
 import _SampleSize from 'lodash/sampleSize.js'

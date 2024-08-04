@@ -73,12 +73,9 @@ const inDocker = isDocker()
 
 try {
 	const port = inDocker ? 80 : parsedEnv.port
-	const host = inDocker ? '0.0.0.0' : parsedEnv.host
-	await checkPort(port, host)
-	app.listen({
-		hostname: parsedEnv.host,
-		port: parsedEnv.port,
-	})
+	const hostname = inDocker ? '0.0.0.0' : parsedEnv.host
+	await checkPort(port, hostname)
+	app.listen({ hostname, port })
 	await logWelcome()
 }
 catch (error) {

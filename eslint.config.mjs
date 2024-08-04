@@ -7,7 +7,7 @@ export default antfu({
 	},
 	typescript: true,
 	yaml: true,
-	markdown: false, // TODO: Temporary fix until code blocks are correctly read
+	markdown: true,
 	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/'],
 	rules: {
 		'unused-imports/no-unused-vars': 'warn',
