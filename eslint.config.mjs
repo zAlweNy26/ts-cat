@@ -18,6 +18,7 @@ export default antfu({
 		'node/prefer-global/process': 'off',
 		'curly': ['warn', 'multi-or-nest'],
 		'antfu/curly': 'off',
+		'antfu/no-top-level-await': 'off',
 		'antfu/if-newline': 'off',
 		'brace-style': 'off',
 		'no-console': 'off',
