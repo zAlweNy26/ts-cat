@@ -308,6 +308,40 @@ export const memoryRoutes = new Elysia({
 			500: 'error',
 		},
 	})
+	.get('/collections/:collectionId/point/:pointId', async ({ params, log, HttpError }) => {
+		const { collectionId, pointId } = params
+		try {
+			const points = await cat.vectorMemory.collections[collectionId]!.getPoints([pointId])
+			if (points.length === 0) throw HttpError.NotFound('Point not found.')
+			return {
+				id: points[0]!.id.toString(),
+				vector: points[0]!.vector as number[] ?? [],
+				payload: points[0]!.payload ?? {},
+			}
+		}
+		catch (error) {
+			log.error(error)
+			throw HttpError.InternalServer(`Error while retrieving point ${pointId}.`)
+		}
+	}, {
+		detail: {
+			description: 'Get a specific point in memory.',
+			summary: 'Get memory point',
+		},
+		params: t.Object({
+			collectionId: t.String(),
+			pointId: t.String(),
+		}),
+		response: {
+			200: t.Object({
+				id: t.String(),
+				vector: t.Array(t.Number()),
+				payload: t.Record(t.String(), t.Any()),
+			}),
+			404: 'error',
+			500: 'error',
+		},
+	})
 	.get('/history', ({ stray }) => {
 		return {
 			history: stray.getHistory(),
@@ -331,6 +365,7 @@ export const memoryRoutes = new Elysia({
 							observation: t.String(),
 						})),
 						memory: t.Optional(t.Record(t.String(), t.Any())),
+						interactions: t.Optional(t.Record(t.String(), t.Any())),
 					})),
 				})),
 			}),
@@ -343,6 +378,23 @@ export const memoryRoutes = new Elysia({
 			description: 'Delete the specified user\'s conversation history from working memory.',
 			summary: 'Wipe conversation history',
 		},
+		response: {
+			204: t.Void(),
+		},
+	})
+	.put('/history', ({ stray, body }) => {
+		stray.addHistory(body)
+	}, {
+		detail: {
+			description: 'Add conversation history messages to the specified user\'s working memory.',
+			summary: 'Add conversation history messages',
+		},
+		body: t.Array(t.Object({
+			role: t.Union([t.Literal('AI'), t.Literal('User')]),
+			what: t.String(),
+			who: t.String(),
+			when: t.Number(),
+		})),
 		response: {
 			204: t.Void(),
 		},
