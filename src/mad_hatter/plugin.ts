@@ -1,16 +1,16 @@
-import { basename, extname, join, relative } from 'node:path'
 import type { Dirent } from 'node:fs'
 import { existsSync, statSync } from 'node:fs'
+import { basename, extname, join, relative } from 'node:path'
+import { log } from '@logger'
+import { getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
 import { defu } from 'defu'
-import { z } from 'zod'
 import { destr } from 'destr'
 import { titleCase } from 'scule'
-import { getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
-import { log } from '@logger'
-import { type Hook, isHook } from './hook.ts'
-import { type Tool, isTool } from './tool.ts'
-import { type Form, isForm } from './form.ts'
+import { z } from 'zod'
 import pkg from '~/package.json'
+import { type Form, isForm } from './form.ts'
+import { type Hook, isHook } from './hook.ts'
+import { isTool, type Tool } from './tool.ts'
 
 const pluginManifestSchema = z.object({
 	name: z.string().min(1).trim(),

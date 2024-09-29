@@ -1,8 +1,8 @@
 import type { PromptTemplateInput, TypedPromptInputValues } from '@langchain/core/prompts'
-import { PromptTemplate } from '@langchain/core/prompts'
 import type { InputValues } from '@langchain/core/utils/types'
-import type { AgentStep } from 'langchain/agents'
 import type { Form, Tool } from '@mh'
+import type { AgentStep } from 'langchain/agents'
+import { PromptTemplate } from '@langchain/core/prompts'
 import _Random from 'lodash/random.js'
 
 export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVariableName extends string = any>

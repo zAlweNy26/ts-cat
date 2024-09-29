@@ -1,7 +1,7 @@
-import { z } from 'zod'
 import { CatForm } from '@form'
 import { CatTool } from '@tool'
 import { normalizeMessageChunks } from '@utils'
+import { z } from 'zod'
 
 CatTool.add('GetTime', 'Useful to get the current time when asked. Input is always null.', async () => {
 	return new Date().toLocaleString()

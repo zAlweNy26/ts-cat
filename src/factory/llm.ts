@@ -1,13 +1,13 @@
-import { z } from 'zod'
-import { AzureChatOpenAI, ChatOpenAI } from '@langchain/openai'
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { db } from '@db'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatCohere } from '@langchain/cohere'
+import { ChatOllama } from '@langchain/community/chat_models/ollama'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
-import { ChatOllama } from '@langchain/community/chat_models/ollama'
+import { AzureChatOpenAI, ChatOpenAI } from '@langchain/openai'
 import { madHatter } from '@mh'
-import { db } from '@db'
-import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { z } from 'zod'
 import { CustomOpenAILLM, DefaultLLM } from './custom_llm.ts'
 
 export interface LLMSettings {

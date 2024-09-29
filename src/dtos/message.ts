@@ -1,6 +1,6 @@
 import type { DocumentInput } from '@langchain/core/documents'
-import type { FilterMatch } from './vector-memory.ts'
 import type { IntermediateStep } from './agent.ts'
+import type { FilterMatch } from './vector-memory.ts'
 
 /**
  * The configuration for memory recall.

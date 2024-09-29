@@ -1,21 +1,21 @@
-import { AgentExecutor, AgentRunnableSequence, type AgentStep } from 'langchain/agents'
-import { ChatPromptTemplate, SystemMessagePromptTemplate, interpolateFString } from '@langchain/core/prompts'
-import { formatDistanceToNow } from 'date-fns'
-import { type Form, FormState, type Tool, isTool, madHatter } from '@mh'
-import { parsedEnv } from '@utils'
-import { log } from '@logger'
-import { db } from '@db'
-import { StringOutputParser } from '@langchain/core/output_parsers'
-import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
 import type { AgentFastReply, ContextInput, IntermediateStep } from '@dto/agent.ts'
-import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
-import _Random from 'lodash/random.js'
-import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
-import { AIMessage, HumanMessage } from '@langchain/core/messages'
-import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.ts'
+import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
 import type { StrayCat } from './stray-cat.ts'
-import { ProceduresOutputParser } from './output-parser.ts'
+import { db } from '@db'
+import { AIMessage, HumanMessage } from '@langchain/core/messages'
+import { StringOutputParser } from '@langchain/core/output_parsers'
+import { ChatPromptTemplate, interpolateFString, SystemMessagePromptTemplate } from '@langchain/core/prompts'
+import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
+import { log } from '@logger'
+import { type Form, FormState, isTool, madHatter, type Tool } from '@mh'
+import { parsedEnv } from '@utils'
+import { formatDistanceToNow } from 'date-fns'
+import { AgentExecutor, AgentRunnableSequence, type AgentStep } from 'langchain/agents'
+import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
+import _Random from 'lodash/random.js'
 import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
+import { ProceduresOutputParser } from './output-parser.ts'
+import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.ts'
 
 /**
  * Manager of Langchain Agent.
@@ -73,17 +73,13 @@ export class AgentManager {
 			examples,
 		})
 
-		const generatedScratchpad = (steps: AgentStep[]) => {
-			return steps.reduce((acc, { action, observation }) => {
-				let thought = `${action.log}\n`
-				thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
-				return acc + thought
-			}, '')
-		}
-
 		const agent = AgentRunnableSequence.fromRunnables([
 			RunnablePassthrough.assign({
-				agent_scratchpad: x => generatedScratchpad((x.intermediateSteps ?? []) as AgentStep[]),
+				agent_scratchpad: x => ((x.intermediateSteps ?? []) as AgentStep[]).reduce((acc, { action, observation }) => {
+					let thought = `${action.log}\n`
+					thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
+					return acc + thought
+				}, ''),
 			}),
 			prompt,
 			this.verboseRunnable,

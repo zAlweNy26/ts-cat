@@ -1,12 +1,12 @@
-import { createConsola } from 'consola'
-import { Table } from 'console-table-printer'
 import type { ColorName } from 'consola/utils'
-import { getColor } from 'consola/utils'
+import type { HttpError } from './errors.ts'
 import chalk from 'chalk'
+import { createConsola } from 'consola'
+import { getColor } from 'consola/utils'
+import { Table } from 'console-table-printer'
 import { format } from 'date-fns'
 import { Logestic, type LogesticOptions } from 'logestic'
-import { LogLevel, catPaths, parsedEnv } from './utils.ts'
-import type { HttpError } from './errors.ts'
+import { catPaths, LogLevel, parsedEnv } from './utils.ts'
 
 const logger = createConsola({
 	level: LogLevel.indexOf(parsedEnv.logLevel),

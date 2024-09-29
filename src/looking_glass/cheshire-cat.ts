@@ -1,15 +1,15 @@
-import type { Embeddings } from '@langchain/core/embeddings'
-import { getEmbedder, getLLM } from '@factory'
-import { type Form, type Tool, isForm, isTool, madHatter } from '@mh'
-import { type VectorMemory, getVectorMemory } from '@memory'
-import { db } from '@db'
-import { log } from '@logger'
 import type { PointData } from '@dto/vector-memory.ts'
+import type { Embeddings } from '@langchain/core/embeddings'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { rabbitHole } from '@/rabbit-hole.ts'
+import { db } from '@db'
+import { getEmbedder, getLLM } from '@factory'
+import { log } from '@logger'
+import { getVectorMemory, type VectorMemory } from '@memory'
+import { type Form, isForm, isTool, madHatter, type Tool } from '@mh'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat, type WS } from './stray-cat.ts'
 import { whiteRabbit } from './white-rabbit.ts'
-import { rabbitHole } from '@/rabbit-hole.ts'
 
 type ProcedureHash = Record<string, {
 	name: string

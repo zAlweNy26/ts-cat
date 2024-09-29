@@ -1,8 +1,8 @@
+import type { VectorMemoryCollections, VectorMemoryConfig } from '@dto/vector-memory.ts'
+import { log } from '@logger'
+import { madHatter } from '@mh'
 import { QdrantClient } from '@qdrant/js-client-rest'
 import { parsedEnv } from '@utils'
-import { madHatter } from '@mh'
-import { log } from '@logger'
-import type { VectorMemoryCollections, VectorMemoryConfig } from '@dto/vector-memory.ts'
 import { VectorMemoryCollection } from './vector-memory-collection.ts'
 
 const { qdrantApiKey, qdrantHost, qdrantPort, secure } = parsedEnv

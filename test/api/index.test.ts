@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'bun:test'
+import app from '@/main.ts'
 import { treaty } from '@elysiajs/eden'
 import { parsedEnv } from '@utils'
+import { describe, expect, it } from 'bun:test'
 import pkg from '~/package.json'
-import app from '@/main.ts'
 
 const api = treaty(app)
 

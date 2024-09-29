@@ -1,13 +1,13 @@
+import type { Form } from './form.ts'
+import type { HookNames, Hooks, HookTypes } from './hook.ts'
+import type { Tool } from './tool.ts'
 import { mkdir, readdir, rm } from 'node:fs/promises'
 import { basename, join, sep } from 'node:path'
-import chokidar from 'chokidar'
-import { catPaths, existsDir } from '@utils'
 import { db } from '@db'
 import { log } from '@logger'
-import type { HookNames, HookTypes, Hooks } from './hook.ts'
+import { catPaths, existsDir } from '@utils'
+import chokidar from 'chokidar'
 import { Plugin } from './plugin.ts'
-import type { Tool } from './tool.ts'
-import type { Form } from './form.ts'
 
 const { basePath, pluginsPath } = catPaths
 
@@ -221,7 +221,7 @@ export class MadHatter {
 export const madHatter = await MadHatter.getInstance()
 
 chokidar.watch('src/plugins', {
-	ignored: ['**/settings.json'],
+	ignored: file => file.endsWith('settings.json'),
 	ignoreInitial: true,
 	persistent: true,
 }).on('all', async (event, path) => {

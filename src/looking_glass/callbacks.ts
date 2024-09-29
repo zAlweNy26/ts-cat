@@ -1,10 +1,10 @@
-import type { BaseCallbackHandlerInput } from '@langchain/core/callbacks/base'
-import { BaseCallbackHandler } from '@langchain/core/callbacks/base'
-import type { Serialized } from '@langchain/core/load/serializable'
-import { rabbitHole } from '@rh'
 import type { LLMInteraction } from '@dto/message.ts'
+import type { BaseCallbackHandlerInput } from '@langchain/core/callbacks/base'
+import type { Serialized } from '@langchain/core/load/serializable'
 import type { LLMResult } from '@langchain/core/outputs'
 import type { StrayCat } from './stray-cat.ts'
+import { BaseCallbackHandler } from '@langchain/core/callbacks/base'
+import { rabbitHole } from '@rh'
 
 export class NewTokenHandler extends BaseCallbackHandler {
 	name = 'NewToken'

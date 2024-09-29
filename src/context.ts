@@ -1,11 +1,11 @@
-import { Elysia, t } from 'elysia'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
-import { httpError } from './errors'
-import { parsedEnv } from './utils'
+import { Elysia, t } from 'elysia'
 import { db } from './database.ts'
+import { httpError } from './errors'
 import { log } from './logger.ts'
 import { rabbitHole } from './rabbit-hole.ts'
+import { parsedEnv } from './utils'
 
 export const swaggerTags = {
 	general: {
@@ -126,43 +126,42 @@ export const pluginSettings = t.Object({
 	}],
 })
 
-export const serverContext = new Elysia({ name: 'server-context' }).use(httpError)
-	.decorate({
-		// cat: cheshireCat, // TODO: Fix RangeError: Maximum call stack size exceeded.
-		mh: madHatter,
-		rh: rabbitHole,
-		log,
-		db,
-	}).onBeforeHandle(({ headers, HttpError }) => {
-		const apiKey = headers.token, realKey = parsedEnv.apiKey
-		if (realKey && realKey !== apiKey)
-			throw HttpError.Unauthorized('Invalid API key')
-	}).derive({ as: 'global' }, ({ headers }) => {
-		const user = headers.user || 'user'
-		return { stray: cat.getStray(user) || cat.addStray(user) }
-	}).model({
-		generic: t.Record(t.String(), t.Any(), {
-			examples: [{ key: 'value' }],
-			$id: 'GenericObject',
-		}),
-		json: t.Union([jsonLiterals, t.Array(jsonLiterals), t.Record(t.String(), jsonLiterals)], {
-			examples: [
-				{ key: 'value' },
-				['value'],
-				'example',
-				42,
-			],
-			$id: 'GenericJson',
-		}),
-		customSetting: t.Object({
-			name: t.String(),
-			value: t.Any(),
-		}, {
-			examples: [{ name: 'key', value: 'value' }],
-			$id: 'CustomSetting',
-		}),
-		modelInfo,
-		pluginManifest,
-		pluginInfo,
-		pluginSettings,
-	})
+export const serverContext = new Elysia({ name: 'server-context' }).use(httpError).decorate({
+	// cat: cheshireCat, // TODO: Fix RangeError: Maximum call stack size exceeded.
+	mh: madHatter,
+	rh: rabbitHole,
+	log,
+	db,
+}).onBeforeHandle(({ headers, HttpError }) => {
+	const apiKey = headers.token, realKey = parsedEnv.apiKey
+	if (realKey && realKey !== apiKey)
+		throw HttpError.Unauthorized('Invalid API key')
+}).derive({ as: 'global' }, ({ headers }) => {
+	const user = headers.user || 'user'
+	return { stray: cat.getStray(user) || cat.addStray(user) }
+}).model({
+	generic: t.Record(t.String(), t.Any(), {
+		examples: [{ key: 'value' }],
+		$id: 'GenericObject',
+	}),
+	json: t.Union([jsonLiterals, t.Array(jsonLiterals), t.Record(t.String(), jsonLiterals)], {
+		examples: [
+			{ key: 'value' },
+			['value'],
+			'example',
+			42,
+		],
+		$id: 'GenericJson',
+	}),
+	customSetting: t.Object({
+		name: t.String(),
+		value: t.Any(),
+	}, {
+		examples: [{ name: 'key', value: 'value' }],
+		$id: 'CustomSetting',
+	}),
+	modelInfo,
+	pluginManifest,
+	pluginInfo,
+	pluginSettings,
+})

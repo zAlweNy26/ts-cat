@@ -1,5 +1,5 @@
-import { expect, it } from 'vitest'
 import { catPaths, zodJson } from '@utils'
+import { expect, it } from 'vitest'
 
 const isGithubAction = process.env.GITHUB_ACTIONS === 'true'
 

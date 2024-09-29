@@ -1,11 +1,11 @@
-import type { Document } from '@langchain/core/documents'
-import type { TextSplitter } from 'langchain/text_splitter'
-import type { CheshireCat, StrayCat } from '@lg'
-import type { EmbedderSettings, LLMSettings } from '@factory'
-import type { VectorMemoryCollection } from '@memory'
-import type { FileParsers, WebParser } from '@rh'
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WSMessage } from '@dto/message.ts'
+import type { EmbedderSettings, LLMSettings } from '@factory'
+import type { Document } from '@langchain/core/documents'
+import type { CheshireCat, StrayCat } from '@lg'
+import type { VectorMemoryCollection } from '@memory'
+import type { FileParsers, WebParser } from '@rh'
+import type { TextSplitter } from 'langchain/text_splitter'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
