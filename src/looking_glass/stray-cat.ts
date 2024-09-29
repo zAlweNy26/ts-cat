@@ -309,6 +309,14 @@ ${labelsList}${examplesList}
 	}
 
 	/**
+	 * Adds messages to the chat history.
+	 * @param message the messages to add
+	 */
+	addHistory(message: MemoryMessage[]) {
+		this.chatHistory.push(...message)
+	}
+
+	/**
 	 * Adds an interaction to the working memory.
 	 * @param interaction the interaction to add
 	 */
