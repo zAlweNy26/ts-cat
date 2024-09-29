@@ -186,6 +186,19 @@ export class VectorMemoryCollection {
 	}
 
 	/**
+	 * Retrieves points from the vector memory collection based on their IDs.
+	 * @param ids The IDs of the points to retrieve.
+	 * @returns An array of {@link PointData}.
+	 */
+	async getPoints(ids: string[]): Promise<PointData[]> {
+		return (await vectorDb.retrieve(this.name, { ids })).map(p => ({
+			id: p.id.toString(),
+			vector: p.vector as number[],
+			payload: p.payload,
+		}))
+	}
+
+	/**
 	 * Retrieves memories from the vector database based on an embedded vector.
 	 * @param embedding The embedding vector to search for.
 	 * @param filter Optional filter to apply to the search.
