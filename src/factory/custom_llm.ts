@@ -1,12 +1,13 @@
-import type { BaseLLMParams } from '@langchain/core/language_models/llms'
+import type { CallbackManagerForLLMRun } from '@langchain/core/callbacks/manager'
 import type { BaseMessage } from '@langchain/core/messages'
 import type { ChatResult } from '@langchain/core/outputs'
-import { join } from 'node:path'
-import { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { BaseChatModel, type BaseChatModelParams } from '@langchain/core/language_models/chat_models'
+import { ChatOllama } from '@langchain/ollama'
 import { ChatOpenAI } from '@langchain/openai'
+import { ofetch } from 'ofetch'
 
 export class DefaultLLM extends BaseChatModel {
-	constructor(params?: BaseLLMParams) {
+	constructor(params?: BaseChatModelParams) {
 		super(params ?? {})
 	}
 
@@ -24,24 +25,66 @@ export class DefaultLLM extends BaseChatModel {
 	}
 }
 
-export class CustomOpenAILLM extends ChatOpenAI {
-	public url = ''
-	public openAIApiBase = ''
+export class CustomLLM extends BaseChatModel {
+	private url!: string
+	private apiKey: string | undefined
+	private options: Record<string, any> = {}
 
-	constructor(params?: ConstructorParameters<typeof ChatOpenAI>[0]) {
-		const modelKwargs = {
-			repeatPenalty: params?.modelKwargs?.repeatPenalty ?? 1.0,
-			topK: params?.modelKwargs?.topK ?? 40,
-			stop: params?.modelKwargs?.stop ?? [],
-		}
+	constructor(params: BaseChatModelParams & { baseURL: string, apiKey?: string, options?: Record<string, any> }) {
+		const { baseURL, apiKey, options, ...rest } = params
+		super(rest)
+		this.url = baseURL
+		this.apiKey = apiKey
+		this.options = options ?? {}
+	}
 
-		super({
-			openAIApiKey: ' ',
-			modelKwargs,
-			...params,
+	async _generate(messages: BaseMessage[], _options: this['ParsedCallOptions'], _runManager?: CallbackManagerForLLMRun): Promise<ChatResult> {
+		const res = await ofetch<ChatResult>(this.url, {
+			method: 'POST',
+			body: {
+				messages,
+				apiKey: this.apiKey,
+				options: this.options,
+			},
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+			},
 		})
 
-		this.url = params?.modelKwargs?.url as string ?? ''
-		this.openAIApiBase = join(this.url, 'v1')
+		return res
+	}
+
+	_llmType(): string {
+		return 'custom'
+	}
+
+	_identifyingParams(): Record<string, any> {
+		return {
+			url: this.url,
+			apiKey: this.apiKey,
+			options: this.options,
+		}
+	}
+}
+
+export class CustomOpenAILLM extends ChatOpenAI {
+	constructor(params: ConstructorParameters<typeof ChatOpenAI>[0] & { baseURL: string }) {
+		const { baseURL, ...args } = params
+		super(args, { baseURL })
+	}
+
+	_llmType(): string {
+		return 'custom'
+	}
+}
+
+export class CustomOllamaLLM extends ChatOllama {
+	constructor(params: Omit<NonNullable<ConstructorParameters<typeof ChatOllama>[0]>, 'baseUrl'> & { baseURL: string }) {
+		const { baseURL, ...args } = params
+		super({
+			...args,
+			baseUrl: baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL,
+		})
 	}
 }
