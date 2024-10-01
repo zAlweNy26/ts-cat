@@ -43,6 +43,9 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Instant tool call hook
 - [x] Granular management of procedures (forms and tools)
 - [x] Supports cron jobs (without saving to memory)
+- [x] Rate limiter
+- [x] Database query executor
+- [x] Supports streaming both in WebSocket and HTTP
 - [ ] Built-in CLI
 - [ ] Supports multimodality
 

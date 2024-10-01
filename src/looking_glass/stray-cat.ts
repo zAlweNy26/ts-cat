@@ -266,11 +266,7 @@ ${labelsList}${examplesList}
 		const db = await SqlDatabase.fromDataSourceParams({ appDataSource })
 
 		const executeQuery = new QuerySqlTool(db)
-		const writeQuery = await createSqlQueryChain({
-			llm: this.currentLLM,
-			db,
-			dialect: type,
-		})
+		const writeQuery = await createSqlQueryChain({ llm: this.currentLLM, db, dialect: type })
 
 		const answerPrompt = PromptTemplate.fromTemplate(
 			`Given the following user question, corresponding SQL query, and SQL result, answer the user question.
@@ -288,6 +284,7 @@ ${labelsList}${examplesList}
 			}),
 			answerChain,
 		])
+
 		return await chain.invoke({ question })
 	}
 
