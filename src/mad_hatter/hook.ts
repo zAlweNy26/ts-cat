@@ -1,3 +1,4 @@
+import type { DatabaseConfig } from '@db'
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WSMessage } from '@dto/message.ts'
 import type { addChatModel, addEmbeddings, ChatModelConfig, EmbedderConfig } from '@factory'
@@ -9,11 +10,11 @@ import type { TextSplitter } from 'langchain/text_splitter'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
-	beforeBootstrap: (cat: CheshireCat) => void
-	afterBootstrap: (cat: CheshireCat) => void
+	beforeBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => DatabaseConfig
+	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => DatabaseConfig
 	// Mad Hatter hooks
-	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => EmbedderConfig<any>[]
-	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => ChatModelConfig<any>[]
+	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => EmbedderConfig<TODO>[]
+	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => ChatModelConfig<TODO>[]
 	// Agent Manager hooks
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
 	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>

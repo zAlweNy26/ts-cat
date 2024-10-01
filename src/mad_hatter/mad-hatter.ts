@@ -51,8 +51,7 @@ export class MadHatter {
 		// First argument is the pipeable one
 		let teaCup = args[0]
 		for (const h of hook) {
-			// TODO: Find a way to type these any properly
-			const teaSpoon = (h.fn as any)(teaCup, ...args.slice(1))
+			const teaSpoon = (h.fn as (...args: any) => any)(teaCup, ...args.slice(1))
 			teaCup = teaSpoon || teaCup
 		}
 		const timeEnd = performance.now()

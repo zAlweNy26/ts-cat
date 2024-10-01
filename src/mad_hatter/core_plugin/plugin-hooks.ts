@@ -3,9 +3,9 @@ import { CatPlugin } from '@plugin'
 
 // Cheshire Cat hooks
 
-CatHook.add('beforeBootstrap', () => {})
+CatHook.add('beforeBootstrap', db => db)
 
-CatHook.add('afterBootstrap', () => {})
+CatHook.add('afterBootstrap', db => db)
 
 // Mad Hatter hooks
 

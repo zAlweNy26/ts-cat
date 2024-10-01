@@ -29,12 +29,12 @@ export class CheshireCat {
 
 	private constructor() {
 		log.silent('Initializing the Cheshire Cat...')
-		madHatter.executeHook('beforeBootstrap', this)
+		db.update(db => madHatter.executeHook('beforeBootstrap', db, this))
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
 		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
 		this.manager = new AgentManager()
-		madHatter.executeHook('afterBootstrap', this)
+		db.update(db => madHatter.executeHook('afterBootstrap', db, this))
 	}
 
 	/**
@@ -111,17 +111,18 @@ export class CheshireCat {
 	 * @returns The found LLM settings from db or the default LLM settings
 	 */
 	loadLanguageModel() {
-		const selected = db.data.selectedLLM, settings = db.getLLMSettings()
+		const selected = db.data.selectedLLM
 		try {
 			const llm = getLLM(selected)
 			if (!llm) throw new Error('LLM not found')
+			const settings = db.getLLMSettings(selected)
 			if (!settings) throw new Error('LLM settings not found')
 			return llm.initModel(settings)
 		}
 		catch (error) {
 			log.error(error)
 			log.warn(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
-			return getLLM('DefaultLLM')!.initModel({})
+			return getLLM('FakeChat')!.initModel({})
 		}
 	}
 
@@ -130,17 +131,18 @@ export class CheshireCat {
 	 * @returns The found Embedder settings from db or the default LLM settings
 	 */
 	loadLanguageEmbedder() {
-		const selected = db.data.selectedEmbedder, settings = db.getEmbedderSettings()
+		const selected = db.data.selectedEmbedder
 		try {
 			const embedder = getEmbedder(selected)
 			if (!embedder) throw new Error('Embedder not found')
+			const settings = db.getEmbedderSettings(selected)
 			if (!settings) throw new Error('Embedder settings not found')
 			return embedder.initModel(settings)
 		}
 		catch (error) {
 			log.error(error)
 			log.warn(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
-			return getEmbedder('FakeEmbedder')!.initModel({})
+			return getEmbedder('FakeEmbeddings')!.initModel({})
 		}
 	}
 

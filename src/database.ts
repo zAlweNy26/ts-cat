@@ -24,7 +24,7 @@ const dbConfig = defaultDbKeys.refine(({ llms, embedders, selectedEmbedder, sele
 	return llms.some(l => l.name === selectedLLM) && embedders.some(e => e.name === selectedEmbedder)
 })
 
-type DatabaseConfig = z.infer<typeof dbConfig>
+export type DatabaseConfig = z.infer<typeof dbConfig>
 
 export class Database {
 	private static instance: Database
@@ -33,15 +33,15 @@ export class Database {
 	private constructor(path: string) {
 		this._db = JSONFileSyncPreset<DatabaseConfig>(path, {
 			instantTool: true,
-			selectedLLM: 'DefaultLLM',
-			selectedEmbedder: 'FakeEmbedder',
+			selectedLLM: 'FakeChat',
+			selectedEmbedder: 'FakeEmbeddings',
 			chunkSize: 256,
 			chunkOverlap: 64,
 			llms: [
-				{ name: 'DefaultLLM', value: {} },
+				{ name: 'FakeChat', value: {} },
 			],
 			embedders: [
-				{ name: 'FakeEmbedder', value: {} },
+				{ name: 'FakeEmbeddings', value: {} },
 			],
 			activeTools: [],
 			activeForms: [],

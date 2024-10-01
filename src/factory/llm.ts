@@ -193,7 +193,7 @@ const geminiChatLLMConfig = addChatModel({
 })
 
 export function getAllowedLLMs() {
-	const allowedLLMs: ChatModelConfig<any>[] = [
+	const allowedLLMs: ChatModelConfig<TODO>[] = [
 		fakeLLMConfig,
 		customLLMConfig,
 		customOllamaLLMConfig,

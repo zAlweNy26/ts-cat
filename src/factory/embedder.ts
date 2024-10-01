@@ -198,7 +198,7 @@ const googleEmbedderSettings = addEmbeddings({
 })
 
 export function getAllowedEmbedders() {
-	const allowedEmbeddersModels: EmbedderConfig<any>[] = [
+	const allowedEmbeddersModels: EmbedderConfig<TODO>[] = [
 		fakeEmbedderConfig,
 		openAIEmbedderConfig,
 		azureOpenAIEmbedderConfig,
