@@ -1,5 +1,55 @@
 # Changelog
 
+## v1.4.0
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.3.1...v1.4.0)
+
+### 🚀 Enhancements
+
+- Add streaming http endpoint ([e9c97df](https://github.com/zAlweNy26/ts-cat/commit/e9c97df))
+- Add `queryDb` method to StrayCat ([d855225](https://github.com/zAlweNy26/ts-cat/commit/d855225))
+- **RabbitHole:** Add metadata in endpoints ([f3d2eb4](https://github.com/zAlweNy26/ts-cat/commit/f3d2eb4))
+- Add `addHistory` method to StrayCat ([64cd2be](https://github.com/zAlweNy26/ts-cat/commit/64cd2be))
+- Add `getPoints` method in VectorMemoryCollection ([aa20ce5](https://github.com/zAlweNy26/ts-cat/commit/aa20ce5))
+- Add new endpoints for collection points and chat history ([6107112](https://github.com/zAlweNy26/ts-cat/commit/6107112))
+- Update custom custom chat models classes ([8d03872](https://github.com/zAlweNy26/ts-cat/commit/8d03872))
+- ⚠️  Add db in before/after bootstrap hooks ([b2bea4b](https://github.com/zAlweNy26/ts-cat/commit/b2bea4b))
+- Add rate limit handler ([4c21d50](https://github.com/zAlweNy26/ts-cat/commit/4c21d50))
+
+### 🔥 Performance
+
+- ⚠️  Correct setup of elysia routes ([8e2543f](https://github.com/zAlweNy26/ts-cat/commit/8e2543f))
+
+### 💅 Refactors
+
+- ⚠️  Use only chat models ([a144df2](https://github.com/zAlweNy26/ts-cat/commit/a144df2))
+- ⚠️  Refactor Embedders and LLMs factory classes ([c383d75](https://github.com/zAlweNy26/ts-cat/commit/c383d75))
+
+### 📖 Documentation
+
+- Update README ([fd09364](https://github.com/zAlweNy26/ts-cat/commit/fd09364))
+
+### 🏡 Chore
+
+- Change http error log format ([20f2f12](https://github.com/zAlweNy26/ts-cat/commit/20f2f12))
+- Small tweaks ([d3bdc05](https://github.com/zAlweNy26/ts-cat/commit/d3bdc05))
+- Update dependencies ([327c71f](https://github.com/zAlweNy26/ts-cat/commit/327c71f))
+
+### 🎨 Styles
+
+- Fix linting ([c2bbee5](https://github.com/zAlweNy26/ts-cat/commit/c2bbee5))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Add db in before/after bootstrap hooks ([b2bea4b](https://github.com/zAlweNy26/ts-cat/commit/b2bea4b))
+- ⚠️  Correct setup of elysia routes ([8e2543f](https://github.com/zAlweNy26/ts-cat/commit/8e2543f))
+- ⚠️  Use only chat models ([a144df2](https://github.com/zAlweNy26/ts-cat/commit/a144df2))
+- ⚠️  Refactor Embedders and LLMs factory classes ([c383d75](https://github.com/zAlweNy26/ts-cat/commit/c383d75))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.3.1
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.3.0...v1.3.1)
