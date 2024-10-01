@@ -13,7 +13,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { AgentExecutor, AgentRunnableSequence, type AgentStep } from 'langchain/agents'
 import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
 import _Random from 'lodash/random.js'
-import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
+import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
 import { ProceduresOutputParser } from './output-parser.ts'
 import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.ts'
 
@@ -141,7 +141,9 @@ export class AgentManager {
 
 		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new StringOutputParser())
 
-		return await chain.invoke(input, { callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain')] })
+		return await chain.invoke(input, {
+			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
+		})
 	}
 
 	async executeFormAgent(stray: StrayCat) {

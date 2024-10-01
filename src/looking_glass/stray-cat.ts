@@ -22,7 +22,7 @@ import { createSqlQueryChain, type SqlDialect } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
 import { QuerySqlTool } from 'langchain/tools/sql'
 import { DataSource, type DataSourceOptions } from 'typeorm'
-import { ModelInteractionHandler, NewTokenHandler } from './callbacks.ts'
+import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
 import { cheshireCat } from './cheshire-cat.ts'
 
 export type WS = ElysiaWS<
@@ -412,7 +412,7 @@ ${labelsList}${examplesList}
 	async llm(prompt: BaseLanguageModelInput, stream = false): Promise<BaseMessageChunk | IterableReadableStream<BaseMessageChunk>> {
 		const callbacks: BaseCallbackHandler[] = []
 		if (stream) callbacks.push(new NewTokenHandler(this))
-		callbacks.push(new ModelInteractionHandler(this, 'StrayCat'))
+		callbacks.push(new ModelInteractionHandler(this, 'StrayCat'), new RateLimitHandler())
 		if (stream) return this.currentLLM.stream(prompt, { callbacks })
 		return this.currentLLM.invoke(prompt, { callbacks })
 	}

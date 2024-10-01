@@ -7,6 +7,12 @@ const defaultDbKeys = z.object({
 	selectedEmbedder: z.string(),
 	chunkSize: z.number(),
 	chunkOverlap: z.number(),
+	rateLimiter: z.object({
+		enabled: z.boolean(),
+		tokensPerSecond: z.number(),
+		checkInterval: z.number(),
+		maxBucketSize: z.number(),
+	}).partial(),
 	llms: z.array(z.object({
 		name: z.string(),
 		value: z.record(z.any()),
@@ -37,6 +43,12 @@ export class Database {
 			selectedEmbedder: 'FakeEmbeddings',
 			chunkSize: 256,
 			chunkOverlap: 64,
+			rateLimiter: {
+				enabled: false,
+				tokensPerSecond: 1000,
+				checkInterval: 0.1,
+				maxBucketSize: 1000,
+			},
 			llms: [
 				{ name: 'FakeChat', value: {} },
 			],

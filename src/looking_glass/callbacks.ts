@@ -3,13 +3,14 @@ import type { BaseCallbackHandlerInput } from '@langchain/core/callbacks/base'
 import type { Serialized } from '@langchain/core/load/serializable'
 import type { LLMResult } from '@langchain/core/outputs'
 import type { StrayCat } from './stray-cat.ts'
+import { type DatabaseConfig, db } from '@db'
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import { rabbitHole } from '@rh'
 
 export class NewTokenHandler extends BaseCallbackHandler {
 	name = 'NewToken'
 
-	constructor(public stray: StrayCat, input?: BaseCallbackHandlerInput) {
+	constructor(private stray: StrayCat, input?: BaseCallbackHandlerInput) {
 		super(input)
 	}
 
@@ -25,7 +26,7 @@ export class ModelInteractionHandler extends BaseCallbackHandler {
 	name = 'ModelInteraction'
 	private lastInteraction: LLMInteraction
 
-	constructor(public stray: StrayCat, public source: string, input?: BaseCallbackHandlerInput) {
+	constructor(private stray: StrayCat, source: string, input?: BaseCallbackHandlerInput) {
 		super(input)
 		this.lastInteraction = {
 			model: 'llm',
@@ -56,5 +57,65 @@ export class ModelInteractionHandler extends BaseCallbackHandler {
 		this.lastInteraction.outputTokens = await this.countTokens(this.lastInteraction.reply)
 		this.lastInteraction.endedAt = Date.now()
 		this.stray.addInteraction(this.lastInteraction)
+	}
+}
+
+type RateLimitHandlerParams = Required<DatabaseConfig['rateLimiter']>
+
+export class RateLimitHandler extends BaseCallbackHandler implements RateLimitHandlerParams {
+	name = 'RateLimit'
+	private checked = false
+	availableTokens = 0
+	lastRequest = 0
+	tokensPerSecond: number
+	checkInterval: number
+	maxBucketSize: number
+	enabled = false
+
+	constructor(input?: BaseCallbackHandlerInput) {
+		super(input)
+		const { checkInterval, enabled, maxBucketSize, tokensPerSecond } = db.data.rateLimiter
+		this.enabled = enabled ?? false
+		this.checkInterval = checkInterval ?? 1
+		this.maxBucketSize = maxBucketSize ?? 1000
+		this.tokensPerSecond = tokensPerSecond ?? 1000
+	}
+
+	consume() {
+		const now = Date.now()
+		const timePassed = (now - this.lastRequest)
+
+		if (timePassed * (this.tokensPerSecond / 1000) >= 1) {
+			this.availableTokens += timePassed * (this.tokensPerSecond / 1000)
+			this.lastRequest = now
+		}
+
+		this.availableTokens = Math.min(this.availableTokens, this.maxBucketSize)
+
+		if (this.availableTokens >= 1) {
+			this.availableTokens -= 1
+			return true
+		}
+
+		return false
+	}
+
+	async acquire(blocking = true) {
+		if (blocking) await Bun.sleep(this.checkInterval * 1000)
+		return this.consume()
+	}
+
+	async handleChainStart() {
+		if (!this.checked && this.enabled) {
+			const result = await this.acquire()
+			if (!result) throw new Error('Rate limit exceeded')
+			this.checked = true
+		}
+	}
+
+	async handleLLMStart() {
+		if (!this.enabled) return
+		const result = this.consume()
+		if (!result) throw new Error('Rate limit exceeded')
 	}
 }
