@@ -95,11 +95,26 @@ export const generalRoutes = new Elysia({
 		stream: t.Boolean({ default: true }),
 	}),
 	detail: {
-		summary: 'Pure call',
+		summary: 'Pure llm',
 		description: 'Get a pure LLM response from the Cheshire Cat.',
 	},
 	response: {
 		200: t.Record(t.String(), t.Any()),
+		400: 'error',
+	},
+}).post('/embed', async ({ stray, body }) => {
+	const res = await stray.currentEmbedder.embedQuery(body.text)
+	return res
+}, {
+	body: t.Object({
+		text: t.String({ default: 'Hello world' }),
+	}),
+	detail: {
+		summary: 'Pure embed',
+		description: 'Get a pure Embedder response from the Cheshire Cat.',
+	},
+	response: {
+		200: t.Array(t.Number()),
 		400: 'error',
 	},
 })
