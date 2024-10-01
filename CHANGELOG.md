@@ -12,7 +12,7 @@
 - Add `addHistory` method to StrayCat ([64cd2be](https://github.com/zAlweNy26/ts-cat/commit/64cd2be))
 - Add `getPoints` method in VectorMemoryCollection ([aa20ce5](https://github.com/zAlweNy26/ts-cat/commit/aa20ce5))
 - Add new endpoints for collection points and chat history ([6107112](https://github.com/zAlweNy26/ts-cat/commit/6107112))
-- Update custom custom chat models classes ([8d03872](https://github.com/zAlweNy26/ts-cat/commit/8d03872))
+- Update custom chat models classes ([8d03872](https://github.com/zAlweNy26/ts-cat/commit/8d03872))
 - ⚠️  Add db in before/after bootstrap hooks ([b2bea4b](https://github.com/zAlweNy26/ts-cat/commit/b2bea4b))
 - Add rate limit handler ([4c21d50](https://github.com/zAlweNy26/ts-cat/commit/4c21d50))
 
