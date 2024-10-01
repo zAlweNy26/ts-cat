@@ -10,10 +10,10 @@ export const embedderRoutes = new Elysia({
 	detail: { tags: [swaggerTags.embedder.name] },
 }).use(serverContext).get('/settings', ({ db }) => {
 	const allowedEmbedders = getAllowedEmbedders()
-	const options = allowedEmbedders.map(({ config, ...args }) => ({
-		...args,
+	const options = allowedEmbedders.map(({ config, info }) => ({
+		...info,
 		schema: zodToJsonSchema(config),
-		value: db.data.embedders.filter(l => l.name === args.name)[0]?.value ?? {},
+		value: db.data.embedders.filter(l => l.name === info.id)[0]?.value ?? {},
 	}))
 	return {
 		selected: db.data.selectedEmbedder,
@@ -37,7 +37,7 @@ export const embedderRoutes = new Elysia({
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const value = db.getEmbedderSettings(id) ?? {}
 	return {
-		...emb,
+		...emb.info,
 		schema: zodToJsonSchema(emb.config),
 		value,
 	}

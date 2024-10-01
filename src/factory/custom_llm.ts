@@ -6,7 +6,7 @@ import { ChatOllama } from '@langchain/ollama'
 import { ChatOpenAI } from '@langchain/openai'
 import { ofetch } from 'ofetch'
 
-export class DefaultLLM extends BaseChatModel {
+export class FakeChat extends BaseChatModel {
 	constructor(params?: BaseChatModelParams) {
 		super(params ?? {})
 	}
@@ -25,15 +25,15 @@ export class DefaultLLM extends BaseChatModel {
 	}
 }
 
-export class CustomLLM extends BaseChatModel {
+export class CustomChat extends BaseChatModel {
 	private url!: string
 	private apiKey: string | undefined
 	private options: Record<string, any> = {}
 
-	constructor(params: BaseChatModelParams & { baseURL: string, apiKey?: string, options?: Record<string, any> }) {
-		const { baseURL, apiKey, options, ...rest } = params
+	constructor(params: BaseChatModelParams & { baseUrl: string, apiKey?: string, options?: Record<string, any> }) {
+		const { baseUrl, apiKey, options, ...rest } = params
 		super(rest)
-		this.url = baseURL
+		this.url = baseUrl
 		this.apiKey = apiKey
 		this.options = options ?? {}
 	}
@@ -68,10 +68,10 @@ export class CustomLLM extends BaseChatModel {
 	}
 }
 
-export class CustomOpenAILLM extends ChatOpenAI {
-	constructor(params: ConstructorParameters<typeof ChatOpenAI>[0] & { baseURL: string }) {
-		const { baseURL, ...args } = params
-		super(args, { baseURL })
+export class CustomChatOpenAI extends ChatOpenAI {
+	constructor(params: ConstructorParameters<typeof ChatOpenAI>[0] & { baseUrl: string }) {
+		const { baseUrl, ...args } = params
+		super(args, { baseURL: baseUrl })
 	}
 
 	_llmType(): string {
@@ -79,12 +79,12 @@ export class CustomOpenAILLM extends ChatOpenAI {
 	}
 }
 
-export class CustomOllamaLLM extends ChatOllama {
-	constructor(params: Omit<NonNullable<ConstructorParameters<typeof ChatOllama>[0]>, 'baseUrl'> & { baseURL: string }) {
-		const { baseURL, ...args } = params
+export class CustomChatOllama extends ChatOllama {
+	constructor(params: NonNullable<ConstructorParameters<typeof ChatOllama>[0]> & { baseUrl: string }) {
+		const { baseUrl, ...args } = params
 		super({
 			...args,
-			baseUrl: baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL,
+			baseUrl: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
 		})
 	}
 }

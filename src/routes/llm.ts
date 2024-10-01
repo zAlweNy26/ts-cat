@@ -10,10 +10,10 @@ export const llmRoutes = new Elysia({
 	detail: { tags: [swaggerTags.llm.name] },
 }).use(serverContext).get('/settings', ({ db }) => {
 	const allowedLlms = getAllowedLLMs()
-	const options = allowedLlms.map(({ config, ...args }) => ({
-		...args,
+	const options = allowedLlms.map(({ config, info }) => ({
+		...info,
 		schema: zodToJsonSchema(config),
-		value: db.data.llms.filter(l => l.name === args.name)[0]?.value ?? {},
+		value: db.data.llms.filter(l => l.name === info.id)[0]?.value ?? {},
 	}))
 	return {
 		selected: db.data.selectedLLM,
@@ -37,7 +37,7 @@ export const llmRoutes = new Elysia({
 	if (!llm) throw HttpError.NotFound(`The passed LLM id '${id}' doesn't exist in the list of available LLMs.`)
 	const value = db.getLLMSettings(id) ?? {}
 	return {
-		...llm,
+		...llm.info,
 		schema: zodToJsonSchema(llm.config),
 		value,
 	}

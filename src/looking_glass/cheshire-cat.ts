@@ -116,12 +116,12 @@ export class CheshireCat {
 			const llm = getLLM(selected)
 			if (!llm) throw new Error('LLM not found')
 			if (!settings) throw new Error('LLM settings not found')
-			return llm.getModel(settings)
+			return llm.initModel(settings)
 		}
 		catch (error) {
 			log.error(error)
 			log.warn(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
-			return getLLM('DefaultLLM')!.getModel({})
+			return getLLM('DefaultLLM')!.initModel({})
 		}
 	}
 
@@ -135,12 +135,12 @@ export class CheshireCat {
 			const embedder = getEmbedder(selected)
 			if (!embedder) throw new Error('Embedder not found')
 			if (!settings) throw new Error('Embedder settings not found')
-			return embedder.getModel(settings)
+			return embedder.initModel(settings)
 		}
 		catch (error) {
 			log.error(error)
 			log.warn(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
-			return getEmbedder('FakeEmbedder')!.getModel({})
+			return getEmbedder('FakeEmbedder')!.initModel({})
 		}
 	}
 

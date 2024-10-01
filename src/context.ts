@@ -41,8 +41,8 @@ export const swaggerTags = {
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
 export const modelInfo = t.Object({
+	id: t.String(),
 	name: t.String(),
-	humanReadableName: t.String(),
 	description: t.String(),
 	link: t.Optional(t.String({ format: 'uri' })),
 	schema: t.Record(t.String(), t.Any()),
@@ -50,8 +50,8 @@ export const modelInfo = t.Object({
 }, {
 	$id: 'modelInfo',
 	examples: [{
-		name: 'OpenAILLM',
-		humanReadableName: 'OpenAI GPT',
+		id: 'ChatOpenAI',
+		name: 'OpenAI GPT',
 		description: 'More expensive but also more flexible model than ChatGPT',
 		link: 'https://platform.openai.com/docs/models/overview',
 		schema: {},

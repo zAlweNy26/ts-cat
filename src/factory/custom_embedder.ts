@@ -10,10 +10,10 @@ import { ofetch } from 'ofetch'
 export class CustomOpenAIEmbeddings extends Embeddings {
 	private url = ''
 
-	constructor(params: EmbeddingsParams & { url: string }) {
-		const { url, ...args } = params
+	constructor(params: EmbeddingsParams & { baseUrl: string }) {
+		const { baseUrl, ...args } = params
 		super(args)
-		this.url = join(url, 'v1/embeddings')
+		this.url = join(baseUrl, 'v1/embeddings')
 	}
 
 	async embedDocuments(documents: string[]): Promise<number[][]> {

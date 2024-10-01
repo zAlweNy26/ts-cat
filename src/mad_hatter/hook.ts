@@ -1,6 +1,6 @@
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WSMessage } from '@dto/message.ts'
-import type { EmbedderSettings, LLMSettings } from '@factory'
+import type { addChatModel, addEmbeddings, ChatModelConfig, EmbedderConfig } from '@factory'
 import type { Document } from '@langchain/core/documents'
 import type { CheshireCat, StrayCat } from '@lg'
 import type { VectorMemoryCollection } from '@memory'
@@ -12,8 +12,8 @@ export interface HookTypes {
 	beforeBootstrap: (cat: CheshireCat) => void
 	afterBootstrap: (cat: CheshireCat) => void
 	// Mad Hatter hooks
-	allowedEmbedders: (embedders: EmbedderSettings[]) => EmbedderSettings[]
-	allowedLLMs: (llms: LLMSettings[]) => LLMSettings[]
+	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => EmbedderConfig<any>[]
+	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => ChatModelConfig<any>[]
 	// Agent Manager hooks
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
 	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>
