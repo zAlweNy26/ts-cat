@@ -12,6 +12,7 @@ services:
       - CORE_USE_SECURE_PROTOCOLS=${CORE_USE_SECURE_PROTOCOLS:-}
       - QDRANT_HOST=${QDRANT_HOST:-ccat_ts_vector_memory}
       - QDRANT_PORT=${QDRANT_PORT:-6333}
+      - TZ=${TIMEZONE:-UTC}
       - API_KEY=${API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - DEBUG=${DEBUG:-true}
