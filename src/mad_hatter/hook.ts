@@ -10,9 +10,9 @@ import type { TextSplitter } from 'langchain/text_splitter'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
-	beforeBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => DatabaseConfig
 	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => DatabaseConfig
 	// Mad Hatter hooks
+	beforeBootstrap: (db: Readonly<DatabaseConfig>) => DatabaseConfig
 	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => EmbedderConfig<TODO>[]
 	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => ChatModelConfig<TODO>[]
 	// Agent Manager hooks

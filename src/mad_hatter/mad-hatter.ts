@@ -22,6 +22,7 @@ export class MadHatter {
 
 	private constructor() {
 		log.silent('Initializing the Mad Hatter...')
+		db.update(db => this.executeHook('beforeBootstrap', db))
 		this.activePlugins = db.data.activePlugins
 	}
 

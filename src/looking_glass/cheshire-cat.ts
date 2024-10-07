@@ -29,12 +29,10 @@ export class CheshireCat {
 
 	private constructor() {
 		log.silent('Initializing the Cheshire Cat...')
-		db.update(db => madHatter.executeHook('beforeBootstrap', db, this))
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
 		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
 		this.manager = new AgentManager()
-		db.update(db => madHatter.executeHook('afterBootstrap', db, this))
 	}
 
 	/**
@@ -46,6 +44,7 @@ export class CheshireCat {
 			CheshireCat.instance = new CheshireCat()
 			await CheshireCat.instance.loadMemory()
 			await CheshireCat.instance.embedProcedures()
+			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
 		}
 		return CheshireCat.instance
 	}
