@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.4.1
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.4.0...v1.4.1)
+
+### 🚀 Enhancements
+
+- Add pure embed endpoint ([9de3be8](https://github.com/zAlweNy26/ts-cat/commit/9de3be8))
+
+### 🩹 Fixes
+
+- Correct bootstrap hooks call position ([5ef2ffc](https://github.com/zAlweNy26/ts-cat/commit/5ef2ffc))
+
+### 📖 Documentation
+
+- Update CHANGELOG ([e3c27c6](https://github.com/zAlweNy26/ts-cat/commit/e3c27c6))
+
+### 🏡 Chore
+
+- Add timezone env in docker ([e2cb89c](https://github.com/zAlweNy26/ts-cat/commit/e2cb89c))
+- Update dependencies ([b292666](https://github.com/zAlweNy26/ts-cat/commit/b292666))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.4.0
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.3.1...v1.4.0)
