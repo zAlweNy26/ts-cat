@@ -18,6 +18,7 @@ import { madHatter } from '@mh'
 import { rabbitHole } from '@rh'
 import { normalizeMessageChunks } from '@utils'
 import callsites from 'callsites'
+import { defu } from 'defu'
 import { createSqlQueryChain, type SqlDialect } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
 import { QuerySqlTool } from 'langchain/tools/sql'
@@ -378,10 +379,7 @@ ${labelsList}${examplesList}
 				threshold: 0.7,
 			},
 		}
-		recallConfigs = {
-			...recallConfigs,
-			...await madHatter.executeHook('beforeRecallMemories', recallConfigs, this),
-		}
+		recallConfigs = defu(await madHatter.executeHook('beforeRecallMemories', recallConfigs, this), recallConfigs)
 		for (const [key, value] of Object.entries(recallConfigs)) {
 			const memories = await this.vectorMemory.collections[key]?.recallMemoriesFromEmbedding(
 				value.embedding,
@@ -392,7 +390,7 @@ ${labelsList}${examplesList}
 			log.info(`Recalled ${memories.length} memories for ${key} collection.`)
 			this.workingMemory[key] = memories
 		}
-		madHatter.executeHook('afterRecallMemories', this)
+		madHatter.executeHook('afterRecallMemories', structuredClone(this.workingMemory), this)
 
 		interaction.reply = queryEmbedding
 		interaction.endedAt = Date.now()
