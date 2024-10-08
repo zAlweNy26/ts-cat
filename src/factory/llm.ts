@@ -2,6 +2,7 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { db } from '@db'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatCohere } from '@langchain/cohere'
+import { BedrockChat } from '@langchain/community/chat_models/bedrock'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
 import { ChatOllama } from '@langchain/ollama'
@@ -106,7 +107,7 @@ const chatOpenAILLMConfig = addChatModel({
 })
 
 const azureChatOpenAILLMConfig = addChatModel({
-	name: 'Azure OpenAI Chat model',
+	name: 'Azure OpenAI',
 	description: 'Chat model from Azure OpenAI',
 	link: 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
 	config: z.object({
@@ -179,7 +180,7 @@ const ollamaLLMConfig = addChatModel({
 
 const geminiChatLLMConfig = addChatModel({
 	name: 'Gemini',
-	description: 'Configuration for Google Gemini chat model',
+	description: 'Configuration for Google Gemini chat models',
 	link: 'https://deepmind.google/technologies/gemini',
 	config: z.object({
 		apiKey: z.string(),
@@ -190,6 +191,25 @@ const geminiChatLLMConfig = addChatModel({
 		maxOutputTokens: z.number().int().gte(1).default(29000),
 	}),
 	model: ChatGoogleGenerativeAI,
+})
+
+const bedrockChatLLMConfig = addChatModel({
+	name: 'Amazon Bedrock',
+	description: 'Configuration for Amazon Bedrock chat models',
+	link: 'https://aws.amazon.com/bedrock',
+	config: z.object({
+		model: z.string().default('amazon.titan-tg1-large'),
+		region: z.string().default('us-west-2'),
+		temperature: z.number().gte(0).lte(1).default(0.1),
+		streaming: z.boolean().default(false),
+		maxTokens: z.number().int().gte(1).default(4096),
+		credentials: z.object({
+			accessKeyId: z.string(),
+			secretAccessKey: z.string(),
+			sessionToken: z.string().optional(),
+		}),
+	}),
+	model: BedrockChat,
 })
 
 export function getAllowedLLMs() {
@@ -205,6 +225,7 @@ export function getAllowedLLMs() {
 		anthropicLLMConfig,
 		ollamaLLMConfig,
 		geminiChatLLMConfig,
+		bedrockChatLLMConfig,
 	]
 	const models = madHatter.executeHook('allowedLLMs', allowedLLMs, addChatModel)
 	db.update((db) => {
