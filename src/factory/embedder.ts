@@ -1,5 +1,6 @@
 import type { Embeddings } from '@langchain/core/embeddings'
 import { db } from '@db'
+import { BedrockEmbeddings } from '@langchain/aws'
 import { CohereEmbeddings } from '@langchain/cohere'
 import { FireworksEmbeddings } from '@langchain/community/embeddings/fireworks'
 import { JinaEmbeddings } from '@langchain/community/embeddings/jina'
@@ -54,6 +55,15 @@ const fakeEmbedderConfig = addEmbeddings({
 	model: FakeEmbeddings,
 })
 
+const customOpenAIEmbedderConfig = addEmbeddings({
+	name: 'Custom OpenAI-compatible API',
+	description: 'Configuration for self-hosted OpenAI-compatible API embeddings',
+	config: z.object({
+		baseUrl: z.string().url(),
+	}),
+	model: CustomOpenAIEmbeddings,
+})
+
 const openAIEmbeddingModels = ['text-embedding-3-large', 'text-embedding-3-small', 'text-embedding-ada-002'] as const
 
 function openAIEmbeddingModelsValidation(dimensions: number | undefined, model: typeof openAIEmbeddingModels[number], ctx: z.RefinementCtx) {
@@ -91,7 +101,7 @@ function openAIEmbeddingModelsValidation(dimensions: number | undefined, model: 
 }
 
 const openAIEmbedderConfig = addEmbeddings({
-	name: 'OpenAI Embedder',
+	name: 'OpenAI',
 	description: 'Configuration for OpenAI embeddings',
 	link: 'https://platform.openai.com/docs/models/overview',
 	config: z.object({
@@ -103,7 +113,7 @@ const openAIEmbedderConfig = addEmbeddings({
 })
 
 const azureOpenAIEmbedderConfig = addEmbeddings({
-	name: 'Azure OpenAI Embedder',
+	name: 'Azure OpenAI',
 	description: 'Configuration for Azure OpenAI embeddings',
 	link: 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
 	config: z.object({
@@ -118,7 +128,7 @@ const azureOpenAIEmbedderConfig = addEmbeddings({
 })
 
 const togetherAIEmbedderConfig = addEmbeddings({
-	name: 'TogetherAI Embedder',
+	name: 'TogetherAI',
 	description: 'Configuration for TogetherAI embeddings',
 	link: 'https://docs.together.ai/docs/embedding-models',
 	config: z.object({
@@ -129,7 +139,7 @@ const togetherAIEmbedderConfig = addEmbeddings({
 })
 
 const fireworksEmbedderConfig = addEmbeddings({
-	name: 'Fireworks Embedder',
+	name: 'Fireworks',
 	description: 'Configuration for Fireworks embeddings',
 	link: 'https://docs.together.ai/docs/embedding-models',
 	config: z.object({
@@ -140,7 +150,7 @@ const fireworksEmbedderConfig = addEmbeddings({
 })
 
 const cohereEmbedderConfig = addEmbeddings({
-	name: 'Cohere Embedder',
+	name: 'Cohere',
 	description: 'Configuration for Cohere embeddings',
 	link: 'https://docs.cohere.com/docs/models',
 	config: z.object({
@@ -151,7 +161,7 @@ const cohereEmbedderConfig = addEmbeddings({
 })
 
 const jinaEmbedderConfig = addEmbeddings({
-	name: 'Jina Embedder',
+	name: 'Jina',
 	description: 'Configuration for Jina embeddings',
 	link: 'https://jina.ai/embeddings/',
 	config: z.object({
@@ -159,15 +169,6 @@ const jinaEmbedderConfig = addEmbeddings({
 		model: z.string().default('jina-clip-v1'),
 	}),
 	model: JinaEmbeddings,
-})
-
-const customOpenAIEmbedderConfig = addEmbeddings({
-	name: 'OpenAI-compatible API embedder',
-	description: 'Configuration for self-hosted OpenAI-compatible API embeddings',
-	config: z.object({
-		baseUrl: z.string().url(),
-	}),
-	model: CustomOpenAIEmbeddings,
 })
 
 const qdrantFastEmbedSettings = addEmbeddings({
@@ -187,7 +188,7 @@ const qdrantFastEmbedSettings = addEmbeddings({
 const googleEmbeddingModels = ['embedding-gecko-001', 'embedding-gecko-002', 'embedding-gecko-003', 'embedding-gecko-multilingual-001'] as const
 
 const googleEmbedderSettings = addEmbeddings({
-	name: 'Google Gemini Embedder',
+	name: 'Google Gemini',
 	description: 'Configuration for Gemini Embedder',
 	link: 'https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/text-embeddings',
 	config: z.object({
@@ -195,6 +196,22 @@ const googleEmbedderSettings = addEmbeddings({
 		model: z.enum(googleEmbeddingModels).default('embedding-gecko-001'),
 	}),
 	model: GoogleGenerativeAIEmbeddings,
+})
+
+const bedrockEmbedderConfig = addEmbeddings({
+	name: 'Amazon Bedrock',
+	description: 'Configuration for Amazon Bedrock Embeddings',
+	link: 'https://aws.amazon.com/bedrock',
+	config: z.object({
+		model: z.string().default('amazon.titan-embed-text-v1'),
+		region: z.string().default('us-west-2'),
+		credentials: z.object({
+			accessKeyId: z.string(),
+			secretAccessKey: z.string(),
+			sessionToken: z.string().optional(),
+		}),
+	}),
+	model: BedrockEmbeddings,
 })
 
 export function getAllowedEmbedders() {
@@ -209,6 +226,7 @@ export function getAllowedEmbedders() {
 		customOpenAIEmbedderConfig,
 		qdrantFastEmbedSettings,
 		googleEmbedderSettings,
+		bedrockEmbedderConfig,
 	]
 	const models = madHatter.executeHook('allowedEmbedders', allowedEmbeddersModels, addEmbeddings)
 	db.update((db) => {

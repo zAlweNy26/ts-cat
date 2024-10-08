@@ -4,9 +4,6 @@ import { Embeddings } from '@langchain/core/embeddings'
 import { FlagEmbedding } from 'fastembed'
 import { ofetch } from 'ofetch'
 
-/**
- * Use LLAMA2 as embedder by calling a self-hosted lama-cpp-python instance.
- */
 export class CustomOpenAIEmbeddings extends Embeddings {
 	private url = ''
 
@@ -45,9 +42,6 @@ export class CustomOpenAIEmbeddings extends Embeddings {
 
 type FastEmbeddingsParams = EmbeddingsParams & Parameters<typeof FlagEmbedding.init>[0] & { docEmbedType: 'passage' | 'default' }
 
-/**
- * Use Fastembed as embedder.
- */
 export class FastEmbedEmbeddings extends Embeddings {
 	private embedder: Promise<FlagEmbedding>
 
