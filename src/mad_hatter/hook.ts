@@ -1,6 +1,6 @@
 import type { DatabaseConfig } from '@db'
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
-import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WSMessage } from '@dto/message.ts'
+import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WorkingMemory, WSMessage } from '@dto/message.ts'
 import type { addChatModel, addEmbeddings, ChatModelConfig, EmbedderConfig } from '@factory'
 import type { Document } from '@langchain/core/documents'
 import type { CheshireCat, StrayCat } from '@lg'
@@ -32,14 +32,14 @@ export interface HookTypes {
 	afterSendMessage: (msg: WSMessage, stray: StrayCat) => MaybePromise<WSMessage>
 	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
 	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>
-	afterRecallMemories: (stray: StrayCat) => MaybePromise<void>
+	afterRecallMemories: (memory: BetterReadonly<WorkingMemory>, stray: StrayCat) => MaybePromise<BetterReadonly<WorkingMemory>>
 	afterModelInteraction: (interaction: ModelInteraction, stray: StrayCat) => ModelInteraction
 	// Vector Memory hooks
-	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => MaybePromise<Record<string, VectorMemoryCollection>>
+	memoryCollections: (collections: Record<string, VectorMemoryCollection>, cat: CheshireCat) => MaybePromise<Record<string, VectorMemoryCollection>>
 	// Rabbit Hole hooks
-	fileParsers: (loaders: FileParsers) => FileParsers
-	webParsers: (loaders: WebParser[]) => WebParser[]
-	textSplitter: (splitter: TextSplitter) => TextSplitter
+	fileParsers: (loaders: FileParsers, cat: CheshireCat) => FileParsers
+	webParsers: (loaders: WebParser[], cat: CheshireCat) => WebParser[]
+	textSplitter: (splitter: TextSplitter, cat: CheshireCat) => TextSplitter
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	afterStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>

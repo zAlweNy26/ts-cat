@@ -41,7 +41,7 @@ CatHook.add('beforeStoreEpisodicMemory', doc => doc)
 
 CatHook.add('beforeRecallMemories', configs => configs)
 
-CatHook.add('afterRecallMemories', () => {})
+CatHook.add('afterRecallMemories', wm => wm)
 
 CatHook.add('instantToolTrigger', input => input)
 

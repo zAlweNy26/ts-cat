@@ -4,6 +4,13 @@ declare global {
 	type TODO = any
 	type Nullable<T> = T | null | undefined
 	type MaybePromise<T> = T | Promise<T>
+	type BetterReadonly<T, Deep extends boolean = true> = {
+		readonly [Key in keyof T]: Deep extends true
+			? T[Key] extends object
+				? BetterReadonly<T[Key]>
+				: T[Key]
+			: T[Key]
+	}
 
 	namespace NodeJS {
 		interface ProcessEnv {
