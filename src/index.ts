@@ -1,6 +1,6 @@
 import nodemon from 'nodemon'
-import { log } from './src/logger.ts'
-import { parsedEnv } from './src/utils.ts'
+import { log } from './logger.ts'
+import { parsedEnv } from './utils.ts'
 
 const { watch, verbose } = parsedEnv
 
