@@ -24,7 +24,7 @@ import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.t
  */
 export class AgentManager {
 	private verboseRunnable = new RunnableLambda({
-		func: (x) => {
+		func: (x: any) => {
 			if (parsedEnv.verbose) log.dir(x)
 			return x
 		},

@@ -24,7 +24,7 @@ services:
     command: bun run start
     restart: unless-stopped
   ccat-ts-vector-memory:
-    image: qdrant/qdrant:v1.11.0
+    image: qdrant/qdrant:v1.12.0
     container_name: ccat_ts_vector_memory
     environment:
       - QDRANT__LOG_LEVEL=INFO

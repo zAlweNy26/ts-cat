@@ -110,7 +110,7 @@ export class RabbitHole {
 
 		log.info(`Preparing to load ${vectors.length} vector memories...`)
 
-		if (vectors.some(v => v.length !== cheshireCat.embedderSize)) {
+		if (vectors.length !== cheshireCat.embedderSize) {
 			log.error('The dimensionality of the embeddings is not consistent with the current embedder.')
 			return
 		}
