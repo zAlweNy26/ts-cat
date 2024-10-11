@@ -15,22 +15,22 @@
 		"url": "https://github.com/zAlweNy26/ts-cat/issues"
 	},
 	"keywords": [
-		"elysia",
-		"typescript",
-		"ai",
-		"javascript",
 		"cheshire-cat",
+		"typescript",
+		"javascript",
 		"langchain",
 		"assistant",
 		"framework",
-		"bun"
+		"elysia",
+		"bun",
+		"ai"
 	],
-	"main": "dist/main.js",
-	"module": "dist/main.mjs",
-	"types": "dist/main.d.ts",
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
 	"files": [
 		".d.ts",
-		"dist"
+		"dist/**"
 	],
 	"scripts": {
 		"build": "bun build --compile --minify --sourcemap --banner '// TS Cheshire Cat' --target bun --outfile ccat ./src/index.ts",
@@ -40,7 +40,7 @@
 		"test:ui": "vitest dev --ui",
 		"release": "bun run lint && bun run test && changelogen --release && git push --follow-tags",
 		"typecheck": "tsc --noEmit",
-		"dev": "WATCH=true bun --watch run ./src/index.ts",
+		"dev": "WATCH=true bun --hot run ./src/index.ts",
 		"start": "bun run ./src/index.ts"
 	},
 	"dependencies": {
