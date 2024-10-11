@@ -1,5 +1,4 @@
 import type { VectorMemoryCollections, VectorMemoryConfig } from '@dto/vector-memory.ts'
-import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
 import { madHatter } from '@mh'
 import { QdrantClient } from '@qdrant/js-client-rest'
@@ -41,7 +40,7 @@ export class VectorMemory {
 			declarative: await VectorMemoryCollection.create('declarative', embedderName, embedderSize),
 			episodic: await VectorMemoryCollection.create('episodic', embedderName, embedderSize),
 			procedural: await VectorMemoryCollection.create('procedural', embedderName, embedderSize),
-			...await madHatter.executeHook('memoryCollections', {}, cheshireCat),
+			...await madHatter.executeHook('memoryCollections', {}),
 		}
 	}
 

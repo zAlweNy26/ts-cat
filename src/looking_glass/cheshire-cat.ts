@@ -29,6 +29,7 @@ export class CheshireCat {
 
 	private constructor() {
 		log.silent('Initializing the Cheshire Cat...')
+		db.update(db => madHatter.executeHook('beforeBootstrap', db))
 		this.llm = this.loadLanguageModel()
 		this.embedder = this.loadLanguageEmbedder()
 		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
