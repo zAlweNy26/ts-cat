@@ -10,9 +10,9 @@ import type { TextSplitter } from 'langchain/text_splitter'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
+	beforeBootstrap: (db: Readonly<DatabaseConfig>) => DatabaseConfig
 	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => DatabaseConfig
 	// Mad Hatter hooks
-	beforeBootstrap: (db: Readonly<DatabaseConfig>) => DatabaseConfig
 	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => EmbedderConfig<TODO>[]
 	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => ChatModelConfig<TODO>[]
 	// Agent Manager hooks
@@ -35,11 +35,11 @@ export interface HookTypes {
 	afterRecallMemories: (memory: BetterReadonly<WorkingMemory>, stray: StrayCat) => MaybePromise<BetterReadonly<WorkingMemory>>
 	afterModelInteraction: (interaction: ModelInteraction, stray: StrayCat) => ModelInteraction
 	// Vector Memory hooks
-	memoryCollections: (collections: Record<string, VectorMemoryCollection>, cat: CheshireCat) => MaybePromise<Record<string, VectorMemoryCollection>>
+	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => MaybePromise<Record<string, VectorMemoryCollection>>
 	// Rabbit Hole hooks
-	fileParsers: (loaders: FileParsers, cat: CheshireCat) => FileParsers
-	webParsers: (loaders: WebParser[], cat: CheshireCat) => WebParser[]
-	textSplitter: (splitter: TextSplitter, cat: CheshireCat) => TextSplitter
+	fileParsers: (loaders: FileParsers) => FileParsers
+	webParsers: (loaders: WebParser[]) => WebParser[]
+	textSplitter: (splitter: TextSplitter) => TextSplitter
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	afterStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>

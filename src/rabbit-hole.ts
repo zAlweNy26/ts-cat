@@ -45,13 +45,13 @@ export class RabbitHole {
 
 	private constructor() {
 		log.silent('Initializing the Rabbit Hole...')
-		this.fileHandlers = madHatter.executeHook('fileParsers', this.fileHandlers, cheshireCat)
-		this.webHandlers = madHatter.executeHook('webParsers', this.webHandlers, cheshireCat)
+		this.fileHandlers = madHatter.executeHook('fileParsers', this.fileHandlers)
+		this.webHandlers = madHatter.executeHook('webParsers', this.webHandlers)
 		this.splitter = madHatter.executeHook('textSplitter', new RecursiveCharacterTextSplitter({
 			separators: ['\\n\\n', '\n\n', '.\\n', '.\n', '\\n', '\n', ' ', ''],
 			keepSeparator: true,
 			lengthFunction: text => getEncoding('cl100k_base').encode(text).length,
-		}), cheshireCat)
+		}))
 	}
 
 	/**
