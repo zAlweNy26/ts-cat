@@ -1,11 +1,11 @@
-version: '3.8'
-
 services:
-  ccat-ts:
+  ccat-ts-dev:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.dev
     container_name: ccat_ts
+    env_file:
+      - .env
     environment:
       - CORE_HOST=${CORE_HOST:-localhost}
       - CORE_PORT=${CORE_PORT:-1865}
@@ -20,12 +20,15 @@ services:
     ports:
       - ${CORE_PORT:-1865}:80
     volumes:
-      - ./:/app
-    command: bun run start
+      - .:/app
     restart: unless-stopped
-  ccat-ts-vector-memory:
+    depends_on:
+      - ccat-ts-vector-memory-dev
+  ccat-ts-vector-memory-dev:
     image: qdrant/qdrant:v1.12.0
     container_name: ccat_ts_vector_memory
+    env_file:
+      - .env
     environment:
       - QDRANT__LOG_LEVEL=INFO
     expose:
