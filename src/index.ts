@@ -1,8 +1,14 @@
+import { semver } from 'bun'
 import nodemon from 'nodemon'
 import { log } from './logger.ts'
 import { parsedEnv } from './utils.ts'
 
 const { watch, verbose } = parsedEnv
+
+if (!semver.satisfies(Bun.version, '>=1.1.19')) {
+	log.error('The Cat requires Bun version 1.1.19 or higher.')
+	process.exit(1)
+}
 
 nodemon({
 	ext: 'ts,json',
