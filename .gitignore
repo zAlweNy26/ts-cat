@@ -135,3 +135,4 @@ data/*
 !src/assets/favicon.png
 !src/assets/swagger-ui-theme.css
 !data/README.md
+ccat
