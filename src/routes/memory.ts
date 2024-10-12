@@ -101,7 +101,7 @@ export const memoryRoutes = new Elysia({
 		const info = await cat.vectorMemory.db.getCollection(collection)
 		infos.push({
 			name: collection,
-			size: info.vectors_count ?? 0,
+			size: info.points_count ?? 0,
 		})
 	}
 	return {
