@@ -87,11 +87,14 @@ export const httpError = new Elysia({ name: 'http-error' })
 				message: 'The request was invalid',
 			}],
 			$id: 'GenericError',
+			title: 'Generic Error',
+			description: 'The model for an HTTP error response',
 		}),
 	})
 	.onError(({ code, error, set }) => {
 		if (code === 'HTTP_ERROR') {
 			set.status = error.status
+			set.headers['content-type'] = 'application/json+problem'
 			return {
 				code: error.message,
 				status: error.status,
