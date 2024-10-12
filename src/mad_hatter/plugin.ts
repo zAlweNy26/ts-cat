@@ -60,7 +60,7 @@ export const CatPlugin = Object.freeze({
 	 * @param fn The function to execute when the event is triggered.
 	 * @returns the event instance
 	 */
-	on: <T extends EventNames>(event: T, fn: PluginEvents[T]) => ({ name: event, fn } as PluginEvent<T>),
+	on: <T extends EventNames>(event: T, fn: PluginEvents[T]): PluginEvent<T> => ({ name: event, fn }),
 })
 
 export class Plugin<
@@ -142,7 +142,7 @@ export class Plugin<
 			id: this.id,
 			active: this.active,
 			manifest: this.manifest,
-			upgradable: false,
+			upgradable: false, // TODO: Add registry support for upgrading
 			forms: this.forms.map(({ name, description, active }) => ({ name, description, active })),
 			tools: this.tools.map(({ name, description, active }) => ({ name, description, active })),
 			hooks: this.hooks.map(({ name, priority }) => ({ name, priority })),
@@ -161,7 +161,7 @@ export class Plugin<
 		return this._settings
 	}
 
-	set settings(settings: Record<string, any>) {
+	set settings(settings: S) {
 		this._settings = this.schema.parse(settings) as S
 		const settingsPath = join(this.path, 'settings.json')
 		Bun.write(settingsPath, JSON.stringify(this._settings, null, 2))
@@ -172,17 +172,16 @@ export class Plugin<
 	 * @param event The name of the event to trigger.
 	 */
 	triggerEvent(event: EventNames) {
-		const callback = this.events[event]
+		const callback = this.events[event] as (value: Record<string, any>) => void
 		if (callback) {
 			const timeStart = performance.now()
-			// TODO: Improve this check
 			if (event === 'installed' || event === 'removed') callback(this.manifest)
-			else callback(this.settings as TODO)
+			else if (event === 'enabled' || event === 'disabled') callback(this.settings)
 			const timeEnd = performance.now()
 			const eventTime = (timeEnd - timeStart).toFixed(2)
 			log.tag('bgCyanBright', 'PLUGIN', event, `event of ${this.id} executed in ${eventTime}ms`)
 		}
-		else log.info(`Plugin ${this.id} ${event}`)
+		else log.debug(`Plugin ${this.id} ${event}`)
 	}
 
 	private async loadManifest() {
@@ -206,7 +205,7 @@ export class Plugin<
 		const settingsPath = join(this.path, 'settings.json')
 		if (existsSync(settingsPath)) {
 			try {
-				const json = destr<Record<string, any>>(await Bun.file(settingsPath).text())
+				const json = destr(await Bun.file(settingsPath).text())
 				this._settings = this.schema.parse(json) as S
 			}
 			catch (err) {
@@ -233,7 +232,6 @@ export class Plugin<
 
 	private async importAll(files: Dirent[]) {
 		log.debug(`Importing plugin features...`)
-		// TODO: Improve plugin methods import (maybe with the Function class (?), ECMAScript parser or AST parser)
 		for (const file of files) {
 			const normalizedPath = relative(process.cwd(), file.path)
 			const content = await Bun.file(normalizedPath).text()
