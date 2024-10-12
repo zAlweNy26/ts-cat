@@ -49,6 +49,8 @@ export const modelInfo = t.Object({
 	value: t.Record(t.String(), t.Any()),
 }, {
 	$id: 'modelInfo',
+	title: 'Model Information',
+	description: 'Information about a model',
 	examples: [{
 		id: 'ChatOpenAI',
 		name: 'OpenAI GPT',
@@ -70,6 +72,8 @@ export const pluginManifest = t.Object({
 	tags: t.Array(t.String(), { default: ['miscellaneous', 'unknown'] }),
 }, {
 	$id: 'pluginManifest',
+	title: 'Plugin Manifest',
+	description: 'The manifest information of a plugin',
 	examples: [{
 		name: 'Core CCat',
 		description: 'The core Cat plugin used to define default hooks and tools. You don\'t see this plugin in the plugins folder, because it is an hidden plugin. It will be used to try out hooks and tools before they become available to other plugins. Written and delivered just for you, my furry friend.',
@@ -102,6 +106,8 @@ export const pluginInfo = t.Object({
 	})),
 }, {
 	$id: 'pluginInfo',
+	title: 'Plugin Information',
+	description: 'Information about a plugin (including its manifest)',
 	examples: [{
 		id: 'core_plugin',
 		active: true,
@@ -119,6 +125,8 @@ export const pluginSettings = t.Object({
 	value: t.Record(t.String(), t.Any()),
 }, {
 	$id: 'pluginSettings',
+	title: 'Plugin Settings',
+	description: 'Current settings for a plugin',
 	examples: [{
 		name: 'Core CCat',
 		schema: {},
@@ -143,6 +151,8 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	generic: t.Record(t.String(), t.Any(), {
 		examples: [{ key: 'value' }],
 		$id: 'GenericObject',
+		title: 'Generic Object',
+		description: 'A generic key-value object',
 	}),
 	json: t.Union([jsonLiterals, t.Array(jsonLiterals), t.Record(t.String(), jsonLiterals)], {
 		examples: [
@@ -152,6 +162,8 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 			42,
 		],
 		$id: 'GenericJson',
+		title: 'Generic JSON',
+		description: 'A generic object representing all JSON possible values',
 	}),
 	customSetting: t.Object({
 		name: t.String(),
@@ -159,6 +171,8 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	}, {
 		examples: [{ name: 'key', value: 'value' }],
 		$id: 'CustomSetting',
+		title: 'Custom Setting',
+		description: 'A custom setting for the cat',
 	}),
 	modelInfo,
 	pluginManifest,
