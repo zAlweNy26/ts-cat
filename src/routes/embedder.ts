@@ -58,8 +58,7 @@ export const embedderRoutes = new Elysia({
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const parsed = emb.config.safeParse(body)
 	if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
-	cat.loadLanguageModel()
-	cat.loadLanguageEmbedder()
+	cat.loadNaturalLanguage()
 	try {
 		await cat.loadMemory()
 		await mh.findPlugins()

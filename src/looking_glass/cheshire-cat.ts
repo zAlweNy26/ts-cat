@@ -20,8 +20,8 @@ type ProcedureHash = Record<string, {
 
 export class CheshireCat {
 	private static instance: CheshireCat
-	private llm: BaseChatModel
-	private embedder: Embeddings
+	private llm!: BaseChatModel
+	private embedder!: Embeddings
 	private memory!: VectorMemory
 	private manager: AgentManager
 	private strays = new Map<string, StrayCat>()
@@ -30,8 +30,7 @@ export class CheshireCat {
 	private constructor() {
 		log.silent('Initializing the Cheshire Cat...')
 		db.update(db => madHatter.executeHook('beforeBootstrap', db))
-		this.llm = this.loadLanguageModel()
-		this.embedder = this.loadLanguageEmbedder()
+		this.loadNaturalLanguage()
 		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
 		this.manager = new AgentManager()
 	}
@@ -107,10 +106,15 @@ export class CheshireCat {
 	}
 
 	/**
-	 * Get the Large Language Model (LLM) settings at bootstrap time.
-	 * @returns The found LLM settings from db or the default LLM settings
+	 * Load the Large Language Model (LLM) and the Embedder from the database.
+	 * If the selected LLM or Embedder is not found, it falls back to the default one.
 	 */
-	loadLanguageModel() {
+	loadNaturalLanguage() {
+		this.llm = this.loadLanguageModel()
+		this.embedder = this.loadLanguageEmbedder()
+	}
+
+	private loadLanguageModel() {
 		const selected = db.data.selectedLLM
 		try {
 			const llm = getLLM(selected)
@@ -126,11 +130,7 @@ export class CheshireCat {
 		}
 	}
 
-	/**
-	 * Get the Embedder settings at bootstrap time.
-	 * @returns The found Embedder settings from db or the default LLM settings
-	 */
-	loadLanguageEmbedder() {
+	private loadLanguageEmbedder() {
 		const selected = db.data.selectedEmbedder
 		try {
 			const embedder = getEmbedder(selected)
