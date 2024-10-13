@@ -1,4 +1,4 @@
-import { modelInfo, serverContext, swaggerTags } from '@/context'
+import { serverContext, swaggerTags } from '@/context'
 import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
@@ -25,10 +25,7 @@ export const llmRoutes = new Elysia({
 		summary: 'Get LLMs settings',
 	},
 	response: {
-		200: t.Object({
-			selected: t.String(),
-			options: t.Array(t.Ref(modelInfo)),
-		}),
+		200: 'modelsInfo',
 		400: 'error',
 	},
 }).get('/settings/:llmId', ({ db, params, HttpError }) => {

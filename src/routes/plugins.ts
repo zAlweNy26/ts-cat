@@ -1,7 +1,7 @@
 import { mkdir, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
-import { pluginInfo, pluginSettings, serverContext, swaggerTags } from '@/context'
+import { serverContext, swaggerTags } from '@/context'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
@@ -21,10 +21,7 @@ export const pluginsRoutes = new Elysia({
 		summary: 'Get plugins',
 	},
 	response: {
-		200: t.Object({
-			installed: t.Array(t.Ref(pluginInfo)),
-			registry: t.Array(t.Ref(pluginInfo)),
-		}),
+		200: 'pluginsInfo',
 	},
 }).get('/:pluginId', ({ mh, params, HttpError }) => {
 	const id = params.pluginId
@@ -206,9 +203,7 @@ export const pluginsRoutes = new Elysia({
 		summary: 'Get plugins settings',
 	},
 	response: {
-		200: t.Object({
-			settings: t.Array(t.Ref(pluginSettings)),
-		}),
+		200: 'pluginsSettings',
 	},
 }).get('/settings/:pluginId', ({ mh, params, HttpError }) => {
 	const id = params.pluginId

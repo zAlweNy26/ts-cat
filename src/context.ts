@@ -179,4 +179,27 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	pluginManifest,
 	pluginInfo,
 	pluginSettings,
+	modelsInfo: t.Object({
+		selected: t.String(),
+		options: t.Array(t.Ref(modelInfo)),
+	}, {
+		$id: 'ModelsInfo',
+		title: 'Models Information',
+		description: 'Information about available models and the selected model',
+	}),
+	pluginsInfo: t.Object({
+		installed: t.Array(t.Ref(pluginInfo)),
+		registry: t.Array(t.Ref(pluginInfo)),
+	}, {
+		$id: 'PluginsInfo',
+		title: 'Plugins Information',
+		description: 'Information about installed and available plugins from registry',
+	}),
+	pluginsSettings: t.Object({
+		settings: t.Array(t.Ref(pluginSettings)),
+	}, {
+		$id: 'PluginsSettings',
+		title: 'Plugins Settings',
+		description: 'Settings of all the installed plugins',
+	}),
 })

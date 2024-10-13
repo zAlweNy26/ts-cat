@@ -52,11 +52,14 @@ const app = new Elysia()
 						description: 'Authorization header token',
 					},
 				},
-				headers: {
-					user: {
+				parameters: {
+					userId: {
+						name: 'user',
+						in: 'header',
 						description: 'User ID header',
-						example: 'user',
+						required: false,
 						schema: { type: 'string' },
+						example: 'user',
 					},
 				},
 			},
