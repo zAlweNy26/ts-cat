@@ -140,8 +140,9 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	rh: rabbitHole,
 	log,
 	db,
-}).onBeforeHandle(({ headers, HttpError }) => {
+}).onBeforeHandle({ as: 'scoped' }, ({ headers, path, HttpError }) => {
 	const apiKey = headers.token, realKey = parsedEnv.apiKey
+	if (path.startsWith('/docs')) return
 	if (realKey && realKey !== apiKey)
 		throw HttpError.Unauthorized('Invalid API key')
 }).derive({ as: 'global' }, ({ headers }) => {

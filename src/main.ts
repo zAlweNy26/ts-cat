@@ -8,12 +8,12 @@ import { Elysia } from 'elysia'
 import { checkPort } from 'get-port-please'
 import isDocker from 'is-docker'
 import pkg from '~/package.json'
-import { swaggerTags } from './context.ts'
+import { serverContext, swaggerTags } from './context.ts'
 import { httpLogger, log } from './logger.ts'
 import { logWelcome, parsedEnv } from './utils.ts'
 
 const app = new Elysia()
-	.use(httpLogger())
+	.use(httpLogger)
 	.use(serverTiming())
 	.use(cors({
 		origin: parsedEnv.corsAllowedOrigins,
@@ -42,7 +42,7 @@ const app = new Elysia()
 				version: pkg.version,
 			},
 			tags: Object.values(swaggerTags),
-			security: [{ apiKey: ['token'] }],
+			security: [{ token: [] }],
 			components: {
 				securitySchemes: {
 					token: {
@@ -62,6 +62,7 @@ const app = new Elysia()
 			},
 		},
 	}))
+	.use(serverContext)
 	.use(generalRoutes)
 	.use(settingsRoutes)
 	.use(llmRoutes)

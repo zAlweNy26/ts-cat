@@ -91,10 +91,10 @@ export const httpError = new Elysia({ name: 'http-error' })
 			description: 'The model for an HTTP error response',
 		}),
 	})
-	.onError(({ code, error, set }) => {
+	.onError({ as: 'global' }, ({ code, error, set }) => {
 		if (code === 'HTTP_ERROR') {
 			set.status = error.status
-			set.headers['content-type'] = 'application/json+problem'
+			set.headers['content-type'] = 'application/json'
 			return {
 				code: error.message,
 				status: error.status,

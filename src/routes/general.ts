@@ -12,13 +12,21 @@ export const generalRoutes = new Elysia({
 	params: t.Object({
 		userId: t.String({ default: 'user' }),
 	}),
+	query: t.Object({
+		save: t.Optional(t.Boolean()),
+		token: t.Optional(t.String()),
+	}),
 	body: t.Intersect([
 		t.Object({
 			text: t.String(),
-			save: t.Optional(t.Boolean()),
 		}),
 		t.Record(t.String(), t.Any()),
 	]),
+	beforeHandle: ({ query, HttpError }) => {
+		const apiKey = query.token, realKey = parsedEnv.apiKey
+		if (realKey && realKey !== apiKey)
+			throw HttpError.Unauthorized('Invalid API key')
+	},
 	open: async (ws) => {
 		const { data: { params } } = ws
 		const user = params.userId
@@ -36,10 +44,10 @@ export const generalRoutes = new Elysia({
 		cat.removeStray(user)
 		log.debug(`User ${user} disconnected from the WebSocket.`)
 	},
-	message: ({ data: { params, body } }) => {
+	message: ({ data: { params, body, query } }) => {
 		const user = params.userId
 		const stray = cat.getStray(user)!
-		stray.run(body, body.save).then(stray.send).catch(log.error)
+		stray.run(body, query.save).then(stray.send).catch(log.error)
 	},
 	error: ({ error }) => {
 		log.dir(error)
