@@ -1,5 +1,44 @@
 # Changelog
 
+## v1.5.0
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.4.1...v1.5.0)
+
+### 🚀 Enhancements
+
+- Add support for amazon bedrock llms and embedders ([f7f7170](https://github.com/zAlweNy26/ts-cat/commit/f7f7170))
+
+### 🩹 Fixes
+
+- Improve some hooks signatures ([87ec5a0](https://github.com/zAlweNy26/ts-cat/commit/87ec5a0))
+- ⚠️  Revert last hooks signatures changes ([4c82ccb](https://github.com/zAlweNy26/ts-cat/commit/4c82ccb))
+- ⚠️  Divide docker-related files for dev and prod ([e875db9](https://github.com/zAlweNy26/ts-cat/commit/e875db9))
+- Fix some endpoints checks ([815d420](https://github.com/zAlweNy26/ts-cat/commit/815d420))
+- Correct natural language loading ([2977a71](https://github.com/zAlweNy26/ts-cat/commit/2977a71))
+- Fix build command ([f8f1abb](https://github.com/zAlweNy26/ts-cat/commit/f8f1abb))
+
+### 📖 Documentation
+
+- Add description to schema models ([74af095](https://github.com/zAlweNy26/ts-cat/commit/74af095))
+
+### 🏡 Chore
+
+- Bump Qdrant version ([1986feb](https://github.com/zAlweNy26/ts-cat/commit/1986feb))
+- Add bun version check ([97c39e3](https://github.com/zAlweNy26/ts-cat/commit/97c39e3))
+- Use hot reload instead of watch ([d84f172](https://github.com/zAlweNy26/ts-cat/commit/d84f172))
+- Fix logs colors and favicon ([91bd3e4](https://github.com/zAlweNy26/ts-cat/commit/91bd3e4))
+- Clean plugin class ([e24140a](https://github.com/zAlweNy26/ts-cat/commit/e24140a))
+- Update deps ([e06707b](https://github.com/zAlweNy26/ts-cat/commit/e06707b))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Revert last hooks signatures changes ([4c82ccb](https://github.com/zAlweNy26/ts-cat/commit/4c82ccb))
+- ⚠️  Divide docker-related files for dev and prod ([e875db9](https://github.com/zAlweNy26/ts-cat/commit/e875db9))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.4.1
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.4.0...v1.4.1)
