@@ -88,7 +88,7 @@ export const httpError = new Elysia({ name: 'http-error' })
 			}],
 			$id: 'GenericError',
 			title: 'Generic Error',
-			description: 'The model for an HTTP error response',
+			description: 'Generic HTTP error response',
 		}),
 	})
 	.onError({ as: 'global' }, ({ code, error, set }) => {

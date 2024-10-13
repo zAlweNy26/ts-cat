@@ -66,6 +66,14 @@ export const generalRoutes = new Elysia({
 			status: t.String(),
 			version: t.String(),
 			protected: t.Boolean(),
+		}, {
+			title: 'Server Status',
+			description: 'Current server status',
+			examples: [{
+				status: 'We\'re all mad here, dear!',
+				version: '1.0.0',
+				protected: false,
+			}],
 		}),
 		400: 'error',
 	},
@@ -86,16 +94,16 @@ export const generalRoutes = new Elysia({
 		description: 'Get a response from the Cheshire Cat using the RAG.',
 	},
 	response: {
-		200: t.Record(t.String(), t.Any()),
+		200: 'chatMessage',
 		400: 'error',
 	},
 }).post('/pure', async function* ({ stray, body, query }) {
 	const { stream } = query
-	if (stream) {
-		const res = await stray.llm(body.messages, stream)
-		for await (const chunk of res) yield normalizeMessageChunks(chunk)
-	}
-	return normalizeMessageChunks(await stray.llm(body.messages))
+
+	if (!stream) return normalizeMessageChunks(await stray.llm(body.messages))
+
+	const res = await stray.llm(body.messages, stream)
+	for await (const chunk of res) yield normalizeMessageChunks(chunk)
 }, {
 	body: t.Object({
 		messages: t.Array(t.String(), { default: ['Hello world'] }),
@@ -108,7 +116,7 @@ export const generalRoutes = new Elysia({
 		description: 'Get a pure LLM response from the Cheshire Cat.',
 	},
 	response: {
-		200: t.Record(t.String(), t.Any()),
+		200: t.Union([t.String(), t.Record(t.String(), t.Any())]),
 		400: 'error',
 	},
 }).post('/embed', async ({ stray, body }) => {
@@ -123,7 +131,11 @@ export const generalRoutes = new Elysia({
 		description: 'Get a pure Embedder response from the Cheshire Cat.',
 	},
 	response: {
-		200: t.Array(t.Number()),
+		200: t.Array(t.Number(), {
+			title: 'Embedding',
+			description: 'Embedding response',
+			examples: [[0.1, 0.2, 0.3]],
+		}),
 		400: 'error',
 	},
 })

@@ -50,48 +50,7 @@ export const memoryRoutes = new Elysia({
 		k: t.Number({ default: 10 }),
 	}),
 	response: {
-		200: t.Object({
-			query: t.Object({
-				text: t.String(),
-				vector: t.Array(t.Number()),
-			}),
-			vectors: t.Object({
-				embedder: t.String(),
-				collections: t.Record(t.String(), t.Array(t.Object({
-					id: t.String(),
-					vector: t.Array(t.Number()),
-					score: t.Number(),
-					pageContent: t.String(),
-					metadata: t.Optional(t.Record(t.String(), t.Any())),
-				}))),
-			}, {
-				examples: [{
-					query: {
-						text: 'Hello, world!',
-						vector: [0.1, 0.2, 0.3],
-					},
-					vectors: {
-						embedder: 'OpenAIEmbedder',
-						collections: {
-							declarative: [],
-							procedural: [],
-							episodic: [
-								{
-									id: '1da746f8-a832-4a45-a120-4549e17a1df7',
-									score: 0.8,
-									vector: [0.1, 0.2, 0.3],
-									pageContent: 'Hello, John!',
-									metadata: {
-										source: 'user',
-										when: 1712950290994,
-									},
-								},
-							],
-						},
-					},
-				}],
-			}),
-		}),
+		200: 'memoryRecall',
 		500: 'error',
 	},
 }).get('/collections', async () => {
@@ -119,6 +78,8 @@ export const memoryRoutes = new Elysia({
 				size: t.Number(),
 			})),
 		}, {
+			title: 'Collections',
+			description: 'List of available collections and their sizes',
 			examples: [{
 				collections: [
 					{
@@ -155,7 +116,7 @@ export const memoryRoutes = new Elysia({
 		summary: 'Wipe collections',
 	},
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'Collections wiped', description: 'Collections wiped successfully' }),
 		500: 'error',
 	},
 }).delete('/collections/:collectionId', async ({ mh, params, log, HttpError }) => {
@@ -180,7 +141,7 @@ export const memoryRoutes = new Elysia({
 		collectionId: t.String(),
 	}),
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'Collection wiped', description: 'Collection wiped successfully' }),
 		404: 'error',
 		500: 'error',
 	},
@@ -236,6 +197,27 @@ export const memoryRoutes = new Elysia({
 					}],
 				}),
 			})),
+		}, {
+			title: 'Documents',
+			description: 'List of documents in the collection',
+			examples: [{
+				documents: [
+					{
+						id: '1da746f8-a832-4a45-a120-4549e17a1df7',
+						pageContent: 'Hello, John!',
+						metadata: {
+							source: 'user',
+						},
+					},
+					{
+						id: '1da746f8-a832-4a45-a120-4549e17a1df8',
+						pageContent: 'Hello, Jane!',
+						metadata: {
+							source: 'user',
+						},
+					},
+				],
+			}],
 		}),
 		404: 'error',
 		500: 'error',
@@ -269,7 +251,7 @@ export const memoryRoutes = new Elysia({
 		}],
 	}),
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'Documents wiped', description: 'Documents wiped successfully' }),
 		404: 'error',
 		500: 'error',
 	},
@@ -296,7 +278,7 @@ export const memoryRoutes = new Elysia({
 		pointId: t.String(),
 	}),
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'Point wiped', description: 'Point wiped successfully' }),
 		404: 'error',
 		500: 'error',
 	},
@@ -329,6 +311,16 @@ export const memoryRoutes = new Elysia({
 			id: t.String(),
 			vector: t.Array(t.Number()),
 			payload: t.Record(t.String(), t.Any()),
+		}, {
+			title: 'Memory Point',
+			description: 'Point in memory',
+			examples: [{
+				id: '1da746f8-a832-4a45-a120-4549e17a1df7',
+				vector: [0.1, 0.2, 0.3],
+				payload: {
+					source: 'user',
+				},
+			}],
 		}),
 		404: 'error',
 		500: 'error',
@@ -343,23 +335,7 @@ export const memoryRoutes = new Elysia({
 		summary: 'Get conversation history',
 	},
 	response: {
-		200: t.Object({
-			history: t.Array(t.Object({
-				what: t.String(),
-				who: t.String(),
-				when: t.Number(),
-				why: t.Optional(t.Object({
-					input: t.String(),
-					intermediateSteps: t.Array(t.Object({
-						tool: t.String(),
-						input: t.Union([t.String(), t.Null()]),
-						observation: t.String(),
-					})),
-					memory: t.Optional(t.Record(t.String(), t.Any())),
-					interactions: t.Optional(t.Record(t.String(), t.Any())),
-				})),
-			})),
-		}),
+		200: 'chatHistory',
 	},
 }).delete('/history', ({ stray }) => {
 	stray.clearHistory()
@@ -369,7 +345,7 @@ export const memoryRoutes = new Elysia({
 		summary: 'Wipe conversation history',
 	},
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'History wiped', description: 'History wiped successfully' }),
 	},
 }).put('/history', ({ stray, body }) => {
 	stray.addHistory(body)
@@ -385,6 +361,6 @@ export const memoryRoutes = new Elysia({
 		when: t.Number(),
 	})),
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'History added', description: 'History added successfully' }),
 	},
 })

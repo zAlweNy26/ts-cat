@@ -40,6 +40,94 @@ export const swaggerTags = {
 
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
+export const memoryMessage = t.Object({
+	role: t.Union([t.Literal('AI'), t.Literal('User')]),
+	what: t.String(),
+	who: t.String(),
+	when: t.Number(),
+	why: t.Optional(t.Object({
+		input: t.String(),
+		intermediateSteps: t.Array(t.Object({
+			tool: t.String(),
+			input: t.Union([t.String(), t.Null()]),
+			observation: t.String(),
+		})),
+		memory: t.Optional(t.Record(t.String(), t.Any())),
+		interactions: t.Optional(t.Record(t.String(), t.Any())),
+	})),
+}, {
+	$id: 'memoryMessage',
+	title: 'Memory Message',
+	description: 'Content object saved in memory',
+})
+
+export const chatMessage = t.Union([
+	t.Object({
+		type: t.Literal('error'),
+		name: t.String(),
+		description: t.String(),
+	}),
+	t.Object({
+		type: t.Union([t.Literal('token'), t.Literal('notification')]),
+		content: t.String(),
+	}),
+	t.Intersect([
+		t.Object({
+			type: t.Literal('chat'),
+		}),
+		memoryMessage,
+	]),
+], {
+	$id: 'chatMessage',
+	title: 'Chat Message',
+	description: 'Message object received from the cat',
+})
+
+export const memoryRecall = t.Object({
+	query: t.Object({
+		text: t.String(),
+		vector: t.Array(t.Number()),
+	}),
+	vectors: t.Object({
+		embedder: t.String(),
+		collections: t.Record(t.String(), t.Array(t.Object({
+			id: t.String(),
+			vector: t.Array(t.Number()),
+			score: t.Number(),
+			pageContent: t.String(),
+			metadata: t.Optional(t.Record(t.String(), t.Any())),
+		}))),
+	}),
+}, {
+	title: 'Recalled memories',
+	description: 'Recalled memories from memory collections',
+	examples: [{
+		query: {
+			text: 'Hello, world!',
+			vector: [0.1, 0.2, 0.3],
+		},
+		vectors: {
+			embedder: 'OpenAIEmbedder',
+			collections: {
+				declarative: [],
+				procedural: [],
+				episodic: [
+					{
+						id: '1da746f8-a832-4a45-a120-4549e17a1df7',
+						score: 0.8,
+						vector: [0.1, 0.2, 0.3],
+						pageContent: 'Hello, John!',
+						metadata: {
+							source: 'user',
+							when: 1712950290994,
+						},
+					},
+				],
+			},
+		},
+	}],
+})
+
 export const modelInfo = t.Object({
 	id: t.String(),
 	name: t.String(),
@@ -142,7 +230,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	db,
 }).onBeforeHandle({ as: 'scoped' }, ({ headers, path, HttpError }) => {
 	const apiKey = headers.token, realKey = parsedEnv.apiKey
-	if (path.startsWith('/docs')) return
+	if (path.startsWith('/docs') || path.startsWith('/assets')) return
 	if (realKey && realKey !== apiKey)
 		throw HttpError.Unauthorized('Invalid API key')
 }).derive({ as: 'global' }, ({ headers }) => {
@@ -153,7 +241,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		examples: [{ key: 'value' }],
 		$id: 'GenericObject',
 		title: 'Generic Object',
-		description: 'A generic key-value object',
+		description: 'Generic key-value object',
 	}),
 	json: t.Union([jsonLiterals, t.Array(jsonLiterals), t.Record(t.String(), jsonLiterals)], {
 		examples: [
@@ -164,7 +252,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		],
 		$id: 'GenericJson',
 		title: 'Generic JSON',
-		description: 'A generic object representing all JSON possible values',
+		description: 'Generic object representing all JSON possible values',
 	}),
 	customSetting: t.Object({
 		name: t.String(),
@@ -173,8 +261,18 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		examples: [{ name: 'key', value: 'value' }],
 		$id: 'CustomSetting',
 		title: 'Custom Setting',
-		description: 'A custom setting for the cat',
+		description: 'Custom setting for the cat',
 	}),
+	chatMessage,
+	memoryMessage,
+	chatHistory: t.Object({
+		history: t.Array(t.Ref(memoryMessage)),
+	}, {
+		$id: 'ChatHistory',
+		title: 'Chat History',
+		description: 'Chat messages history',
+	}),
+	memoryRecall,
 	modelInfo,
 	pluginManifest,
 	pluginInfo,

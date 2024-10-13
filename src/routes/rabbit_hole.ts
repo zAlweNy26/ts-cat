@@ -17,6 +17,12 @@ export const rabbitHoleRoutes = new Elysia({
 	response: {
 		200: t.Object({
 			allowedMimetypes: t.Array(t.String()),
+		}, {
+			title: 'Allowed Mimetypes',
+			description: 'List of allowed mimetypes that can be ingested',
+			examples: [{
+				allowedMimetypes: ['text/plain', 'application/pdf', 'application/json'],
+			}],
 		}),
 	},
 }).post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
@@ -48,6 +54,9 @@ export const rabbitHoleRoutes = new Elysia({
 	response: {
 		200: t.Object({
 			info: t.String(),
+		}, {
+			title: 'Chunk ingested',
+			description: 'Chunk ingested successfully',
 		}),
 		400: 'error',
 	},
@@ -81,6 +90,9 @@ export const rabbitHoleRoutes = new Elysia({
 	response: {
 		200: t.Object({
 			info: t.String(),
+		}, {
+			title: 'File ingested',
+			description: 'File ingested successfully',
 		}),
 		400: 'error',
 	},
@@ -122,6 +134,9 @@ export const rabbitHoleRoutes = new Elysia({
 	response: {
 		200: t.Object({
 			info: t.String(),
+		}, {
+			title: 'Files ingested',
+			description: 'Files ingested successfully',
 		}),
 		400: 'error',
 	},
@@ -159,6 +174,9 @@ export const rabbitHoleRoutes = new Elysia({
 	response: {
 		200: t.Object({
 			info: t.String(),
+		}, {
+			title: 'URL ingested',
+			description: 'URL ingested successfully',
 		}),
 		400: 'error',
 	},
@@ -189,6 +207,9 @@ export const rabbitHoleRoutes = new Elysia({
 	response: {
 		200: t.Object({
 			info: t.String(),
+		}, {
+			title: 'Memory ingested',
+			description: 'Memory ingested successfully',
 		}),
 		400: 'error',
 	},

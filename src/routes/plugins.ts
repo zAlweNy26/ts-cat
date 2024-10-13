@@ -57,7 +57,7 @@ export const pluginsRoutes = new Elysia({
 	},
 	params: t.Object({ pluginId: t.String() }),
 	response: {
-		204: t.Void(),
+		204: t.Void({ title: 'Plugin removed', description: 'The plugin has been removed' }),
 		404: 'error',
 		400: 'error',
 	},
@@ -104,7 +104,7 @@ export const pluginsRoutes = new Elysia({
 		async: t.Boolean({ default: true }),
 	}),
 	response: {
-		200: t.Object({ info: t.String() }),
+		200: t.Object({ info: t.String() }, { title: 'Plugin installation info', description: 'Plugin installed successfully' }),
 		400: 'error',
 		500: 'error',
 	},
@@ -127,7 +127,7 @@ export const pluginsRoutes = new Elysia({
 		async: t.Boolean({ default: true }),
 	}),
 	response: {
-		200: t.Object({ info: t.String() }),
+		200: t.Object({ info: t.String() }, { title: 'Plugin installation info', description: 'Plugin installed successfully' }),
 		400: 'error',
 	},
 }).patch('/toggle/:pluginId', async ({ body, params, mh, HttpError }) => {
@@ -148,7 +148,7 @@ export const pluginsRoutes = new Elysia({
 	params: t.Object({ pluginId: t.String() }),
 	body: t.Object({ active: t.Boolean() }),
 	response: {
-		200: t.Object({ active: t.Boolean() }),
+		200: t.Object({ active: t.Boolean() }, { title: 'Plugin activation status', description: 'Plugin toggled successfully' }),
 		404: 'error',
 		400: 'error',
 	},
@@ -184,7 +184,7 @@ export const pluginsRoutes = new Elysia({
 		procedureName: t.String(),
 	}),
 	response: {
-		200: t.Object({ active: t.Boolean() }),
+		200: t.Object({ active: t.Boolean() }, { title: 'Procedure activation status', description: 'Procedure toggled successfully' }),
 		404: 'error',
 		400: 'error',
 	},
