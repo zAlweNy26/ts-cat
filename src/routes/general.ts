@@ -62,8 +62,8 @@ export const generalRoutes = new Elysia({
 		400: 'error',
 	},
 }).post('/chat', async ({ stray, body, query }) => {
-	const { save } = query
-	const res = await stray.run(body, save)
+	const { save, why } = query
+	const res = await stray.run(body, save, why)
 	return res
 }, {
 	body: t.Object({
@@ -71,6 +71,7 @@ export const generalRoutes = new Elysia({
 	}),
 	query: t.Object({
 		save: t.Boolean({ default: true }),
+		why: t.Boolean({ default: true }),
 	}),
 	detail: {
 		summary: 'Chat',

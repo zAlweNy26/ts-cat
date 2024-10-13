@@ -142,7 +142,7 @@ export class StrayCat {
 	 * @param save Whether to save the message or not in the chat history (default: true).
 	 * @returns The response message.
 	 */
-	async run(msg: Message, save = true): Promise<WSMessage> {
+	async run(msg: Message, save = true, returnWhy = true): Promise<WSMessage> {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
 
@@ -210,7 +210,9 @@ export class StrayCat {
 			},
 		}, this)
 
-		if (save) this.chatHistory.push(finalOutput)
+		if (save) this.chatHistory.push({ ...finalOutput })
+
+		if (!returnWhy) delete finalOutput.why
 
 		this.modelsInteractions = []
 
