@@ -2,8 +2,7 @@ import type { Dirent } from 'node:fs'
 import { existsSync, statSync } from 'node:fs'
 import { basename, extname, join, relative } from 'node:path'
 import { log } from '@logger'
-import { getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
-import { defu } from 'defu'
+import { deepDefaults, getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
 import { destr } from 'destr'
 import { titleCase } from 'scule'
 import { z } from 'zod'
@@ -86,7 +85,7 @@ export class Plugin<
 		if (!stats.isDirectory()) log.error(new Error('Plugin path must be a directory'))
 
 		this._id = basename(path)
-		this._manifest = defu(getZodDefaults(pluginManifestSchema), { name: titleCase(this._id) }) as PluginManifest
+		this._manifest = deepDefaults(getZodDefaults(pluginManifestSchema), { name: titleCase(this._id) }) as PluginManifest
 	}
 
 	static async new(path: string) {
@@ -190,7 +189,7 @@ export class Plugin<
 		if (existsSync(manifestPath)) {
 			try {
 				const json = destr<PluginManifest>(await Bun.file(manifestPath).text())
-				this._manifest = pluginManifestSchema.parse(defu(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
+				this._manifest = pluginManifestSchema.parse(deepDefaults(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
 			}
 			catch (err) {
 				let msg = `Error reading plugin.json for ${this.id}`

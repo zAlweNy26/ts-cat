@@ -122,7 +122,7 @@ const azureOpenAIEmbedderConfig = addEmbeddings({
 		apiKey: z.string(),
 		base: z.string(),
 		deployment: z.string(),
-		dimensions: z.number().int().positive().optional(),
+		dimensions: z.number().int().positive().max(3072).optional(),
 	}).superRefine((data, ctx) => openAIEmbeddingModelsValidation(data.dimensions, data.model, ctx)),
 	model: AzureOpenAIEmbeddings,
 })

@@ -1,9 +1,9 @@
 import type { BaseMessageChunk } from '@langchain/core/messages'
 import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import { defu } from 'defu'
 import { safeDestr } from 'destr'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
+import _DefaultsDeep from 'lodash/defaultsDeep.js'
 import _SampleSize from 'lodash/sampleSize.js'
 import { z } from 'zod'
 
@@ -140,6 +140,21 @@ export async function compareStrings(input: string, prediction: string, criteria
 	return (res.score as number) ?? 1
 }
 
+/**
+ * Merges the properties of the source objects into the target object, recursively applying defaults.
+ * @param target The target object to apply defaults to.
+ * @param sources The source objects containing default values.
+ * @returns A new object with the merged properties.
+ */
+export function deepDefaults<T, S = T>(target: T, ...sources: S[]) {
+	return _DefaultsDeep(structuredClone(target), ...sources) as T
+}
+
+/**
+ * Normalizes the content of a message chunk.
+ * @param chunk The message chunk to normalize.
+ * @returns The normalized text content as a string.
+ */
 export function normalizeMessageChunks(chunk: BaseMessageChunk) {
 	const { content } = chunk
 	if (typeof content === 'string') return content
@@ -174,7 +189,7 @@ export async function parseJson<T extends z.AnyZodObject>(text: string, schema: 
 	text = text.replace(/^```(json)?|```$/g, '').trim()
 	text += text.endsWith('}') ? '' : '}'
 	text = text.replace(/^['"]|['"]$/g, '').replace('\\_', '_').replace('\\-', '-')
-	const merged = addDefaults ? defu(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
+	const merged = addDefaults ? deepDefaults(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
 	return await schema.parseAsync(merged) as z.infer<T>
 }
 

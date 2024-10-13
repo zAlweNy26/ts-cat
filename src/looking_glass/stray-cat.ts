@@ -16,9 +16,8 @@ import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables
 import { log } from '@logger'
 import { madHatter } from '@mh'
 import { rabbitHole } from '@rh'
-import { normalizeMessageChunks } from '@utils'
+import { deepDefaults, normalizeMessageChunks } from '@utils'
 import callsites from 'callsites'
-import { defu } from 'defu'
 import { createSqlQueryChain, type SqlDialect } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
 import { QuerySqlTool } from 'langchain/tools/sql'
@@ -381,7 +380,7 @@ ${labelsList}${examplesList}
 				threshold: 0.7,
 			},
 		}
-		recallConfigs = defu(await madHatter.executeHook('beforeRecallMemories', recallConfigs, this), recallConfigs)
+		recallConfigs = deepDefaults(await madHatter.executeHook('beforeRecallMemories', recallConfigs, this), recallConfigs)
 		for (const [key, value] of Object.entries(recallConfigs)) {
 			const memories = await this.vectorMemory.collections[key]?.recallMemoriesFromEmbedding(
 				value.embedding,
