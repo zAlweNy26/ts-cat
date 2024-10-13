@@ -1,5 +1,11 @@
 import '@total-typescript/ts-reset'
 
+declare module 'nodemon' {
+	interface NodemonSettings {
+		legacyWatch?: boolean
+	}
+}
+
 declare global {
 	type TODO = any
 	type Nullable<T> = T | null | undefined

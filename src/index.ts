@@ -1,8 +1,10 @@
 import { semver } from 'bun'
+import isDocker from 'is-docker'
 import nodemon from 'nodemon'
 import { log } from './logger.ts'
 import { parsedEnv } from './utils.ts'
 
+const inDocker = isDocker()
 const { watch, verbose } = parsedEnv
 
 if (!semver.satisfies(Bun.version, '>=1.1.19')) {
@@ -15,6 +17,7 @@ nodemon({
 	watch: ['src/**', '.env'],
 	exec: 'bun',
 	script: 'src/main.ts',
+	legacyWatch: inDocker,
 	ignoreRoot: watch ? ['**/settings.json', 'src/plugins/**', 'src/assets/**'] : ['**/**'],
 	env: {
 		NODE_ENV: watch ? 'development' : 'production',
