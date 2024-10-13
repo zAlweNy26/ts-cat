@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.5.1
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.0...v1.5.1)
+
+### 🚀 Enhancements
+
+- Add query param to disable why in /chat endpoint ([4a94e16](https://github.com/zAlweNy26/ts-cat/commit/4a94e16))
+- Switch to polling if in docker ([a52d30f](https://github.com/zAlweNy26/ts-cat/commit/a52d30f))
+
+### 🩹 Fixes
+
+- Fix defaults object merging ([2545fac](https://github.com/zAlweNy26/ts-cat/commit/2545fac))
+- Fix overall server setup ([d864167](https://github.com/zAlweNy26/ts-cat/commit/d864167))
+- Fix model reference not found in schemas ([8ebf0b8](https://github.com/zAlweNy26/ts-cat/commit/8ebf0b8))
+
+### 📖 Documentation
+
+- Improve openapi documentation ([6d812e1](https://github.com/zAlweNy26/ts-cat/commit/6d812e1))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.5.0
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.4.1...v1.5.0)
