@@ -39,7 +39,7 @@ export const embedderRoutes = new Elysia({
 		value,
 	}
 }, {
-	params: t.Object({ embedderId: t.String() }),
+	params: t.Object({ embedderId: t.String({ title: 'Embedder ID', description: 'ID of one of the available embedders' }) }),
 	detail: {
 		description: 'Get settings and schema of the specified embedder.',
 		summary: 'Get embedder settings',
@@ -75,7 +75,7 @@ export const embedderRoutes = new Elysia({
 		value: parsed.data,
 	}
 }, {
-	params: t.Object({ embedderId: t.String() }),
+	params: t.Object({ embedderId: t.String({ title: 'Embedder ID', description: 'ID of one of the available embedders' }) }),
 	body: 'generic',
 	detail: {
 		description: 'Upsert the specified embedder setting.',

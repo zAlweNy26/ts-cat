@@ -83,11 +83,23 @@ export const generalRoutes = new Elysia({
 	return res
 }, {
 	body: t.Object({
-		text: t.String({ default: 'Hello world' }),
+		text: t.String({
+			title: 'Text',
+			description: 'The text to send to the Cheshire Cat',
+			default: 'Hello world',
+		}),
 	}),
 	query: t.Object({
-		save: t.Boolean({ default: true }),
-		why: t.Boolean({ default: true }),
+		save: t.Boolean({
+			title: 'Save',
+			description: 'Whether to save the message in the memory',
+			default: true,
+		}),
+		why: t.Boolean({
+			title: 'Why',
+			description: 'Whether to include the reasoning in the response',
+			default: true,
+		}),
 	}),
 	detail: {
 		summary: 'Chat',
@@ -106,10 +118,18 @@ export const generalRoutes = new Elysia({
 	for await (const chunk of res) yield normalizeMessageChunks(chunk)
 }, {
 	body: t.Object({
-		messages: t.Array(t.String(), { default: ['Hello world'] }),
+		messages: t.Array(t.String(), {
+			title: 'Messages',
+			description: 'The messages to send to the Cheshire Cat',
+			default: ['Hello world'],
+		}),
 	}),
 	query: t.Object({
-		stream: t.Boolean({ default: true }),
+		stream: t.Boolean({
+			title: 'Stream',
+			description: 'Whether to stream the response',
+			default: true,
+		}),
 	}),
 	detail: {
 		summary: 'Pure llm',
@@ -124,7 +144,11 @@ export const generalRoutes = new Elysia({
 	return res
 }, {
 	body: t.Object({
-		text: t.String({ default: 'Hello world' }),
+		text: t.String({
+			title: 'Text',
+			description: 'The text to embed using the current selected embedder',
+			default: 'Hello world',
+		}),
 	}),
 	detail: {
 		summary: 'Pure embed',

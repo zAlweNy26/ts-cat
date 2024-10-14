@@ -52,8 +52,15 @@ export const memoryMessage = t.Object({
 			input: t.Union([t.String(), t.Null()]),
 			observation: t.String(),
 		})),
-		memory: t.Optional(t.Record(t.String(), t.Any())),
-		interactions: t.Optional(t.Record(t.String(), t.Any())),
+		memory: t.Optional(t.Intersect([
+			t.Object({
+				episodic: t.Array(t.Record(t.String(), t.Any())),
+				declarative: t.Array(t.Record(t.String(), t.Any())),
+				procedural: t.Array(t.Record(t.String(), t.Any())),
+			}),
+			t.Record(t.String(), t.Array(t.Record(t.String(), t.Any()))),
+		])),
+		interactions: t.Optional(t.Array(t.Record(t.String(), t.Any()))),
 	})),
 }, {
 	$id: 'memoryMessage',
@@ -287,7 +294,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	}),
 	pluginsInfo: t.Object({
 		installed: t.Array(t.Ref(pluginInfo)),
-		registry: t.Array(t.Ref(pluginInfo)),
+		registry: t.Array(t.Pick(pluginInfo, ['id', 'manifest'])),
 	}, {
 		$id: 'PluginsInfo',
 		title: 'Plugins Information',

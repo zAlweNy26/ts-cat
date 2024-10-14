@@ -39,7 +39,7 @@ export const llmRoutes = new Elysia({
 		value,
 	}
 }, {
-	params: t.Object({ llmId: t.String() }),
+	params: t.Object({ llmId: t.String({ title: 'LLM ID', description: 'ID of one of the available LLMs' }) }),
 	detail: {
 		description: 'Get settings and schema of the specified Large Language Model.',
 		summary: 'Get LLM settings',
@@ -75,7 +75,7 @@ export const llmRoutes = new Elysia({
 		value: parsed.data,
 	}
 }, {
-	params: t.Object({ llmId: t.String() }),
+	params: t.Object({ llmId: t.String({ title: 'LLM ID', description: 'ID of one of the available LLMs' }) }),
 	body: 'generic',
 	detail: {
 		description: 'Upsert the specified Large Language Model setting.',

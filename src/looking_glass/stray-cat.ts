@@ -139,6 +139,7 @@ export class StrayCat {
 	 * Processes the user message and returns the response.
 	 * @param msg The message to send.
 	 * @param save Whether to save the message or not in the chat history (default: true).
+	 * @param returnWhy Whether to return the 'why' field in the response (default: true).
 	 * @returns The response message.
 	 */
 	async run(msg: Message, save = true, returnWhy = true): Promise<WSMessage> {
