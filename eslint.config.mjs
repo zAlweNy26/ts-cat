@@ -1,4 +1,5 @@
 import antfu from '@antfu/eslint-config'
+import oxlint from 'eslint-plugin-oxlint'
 
 export default antfu({
 	stylistic: {
@@ -24,4 +25,6 @@ export default antfu({
 		'no-console': 'off',
 		'one-var': 'off',
 	},
-})
+}, [
+	oxlint.configs['flat/recommended'],
+])

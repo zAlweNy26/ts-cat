@@ -38,10 +38,14 @@
 		"lint:fix": "eslint . --fix",
 		"test": "vitest dev --exclude \"**/test/api/**\" --run",
 		"test:ui": "vitest dev --ui",
-		"release": "bun run lint && bun run test && changelogen --release && git push --follow-tags",
 		"typecheck": "tsc --noEmit",
 		"dev": "WATCH=true bun --hot run ./src/index.ts",
-		"start": "bun run ./src/index.ts"
+		"start": "bun run ./src/index.ts",
+		"ci": "bun run lint:fix && bun run typecheck && bun run test",
+		"prepare": "bun run .husky/install.mjs"
+	},
+	"lint-staged": {
+		"**/*.{js,mjs,cjs,jsx,ts,mts,cts}": "oxlint"
 	},
 	"dependencies": {
 		"@aws-crypto/sha256-js": "5.2.0",
@@ -79,6 +83,7 @@
 		"date-fns": "^4.1.0",
 		"destr": "^2.0.3",
 		"elysia": "^1.1.20",
+		"eslint-plugin-oxlint": "0.9.10",
 		"fastembed": "^1.14.1",
 		"get-port-please": "^3.1.2",
 		"html-to-text": "^9.0.5",
@@ -112,6 +117,9 @@
 		"@vitest/ui": "^2.1.2",
 		"changelogen": "^0.5.7",
 		"eslint": "^9.12.0",
+		"husky": "9.1.6",
+		"lint-staged": "15.2.10",
+		"oxlint": "0.9.10",
 		"typescript": "5.6.3",
 		"vite-tsconfig-paths": "^5.0.1",
 		"vitest": "^2.1.2"
