@@ -151,7 +151,16 @@ export class CheshireCat {
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
-		this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
+		try {
+			this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
+		}
+		catch (error) {
+			log.error('Failed to get embedder size. Reset to FakeEmbeddings.')
+			log.dir(error)
+			// TODO: Should we also set it in the db?
+			this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
+			this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
+		}
 		if (this._embedderSize === 0) {
 			log.error('Embedder size is 0')
 			throw new Error('Embedder size is 0. Unable to proceed.')

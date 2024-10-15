@@ -2,17 +2,17 @@ import type { AgentFastReply } from '@dto/agent.ts'
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WorkingMemory, WSMessage } from '@dto/message.ts'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import type { BaseLanguageModelInput } from '@langchain/core/language_models/base'
-import type { BaseMessageChunk } from '@langchain/core/messages'
-import type { IterableReadableStream } from '@langchain/core/utils/stream'
 import type { ServerWebSocket } from 'bun'
 import type { TSchema } from 'elysia'
 import type { TypeCheck } from 'elysia/type-system'
 import type { ElysiaWS } from 'elysia/ws'
 import { resolveObjectURL } from 'node:buffer'
 import { Document } from '@langchain/core/documents'
+import { AIMessageChunk } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables'
+import { AsyncGeneratorWithSetup, IterableReadableStream } from '@langchain/core/utils/stream'
 import { log } from '@logger'
 import { madHatter } from '@mh'
 import { rabbitHole } from '@rh'
@@ -175,7 +175,8 @@ export class StrayCat {
 			catMsg = await this.agentManager.executeAgent(this)
 		}
 		catch (error) {
-			log.error(error)
+			log.error('Failed to execute agent.')
+			log.dir(error)
 			catMsg = {
 				output: 'I am sorry, I could not process your request.',
 				intermediateSteps: [],
@@ -404,13 +405,32 @@ ${labelsList}${examplesList}
 	 * @param prompt The prompt or messages to be passed to the LLM.
 	 * @param stream Optional parameter to enable streaming mode.
 	 */
-	async llm(prompt: BaseLanguageModelInput, stream?: false): Promise<BaseMessageChunk>
-	async llm(prompt: BaseLanguageModelInput, stream?: true): Promise<IterableReadableStream<BaseMessageChunk>>
-	async llm(prompt: BaseLanguageModelInput, stream = false): Promise<BaseMessageChunk | IterableReadableStream<BaseMessageChunk>> {
+	async llm(prompt: BaseLanguageModelInput, stream?: false): Promise<AIMessageChunk>
+	async llm(prompt: BaseLanguageModelInput, stream?: true): Promise<IterableReadableStream<AIMessageChunk>>
+	async llm(prompt: BaseLanguageModelInput, stream = false): Promise<AIMessageChunk | IterableReadableStream<AIMessageChunk>> {
 		const callbacks: BaseCallbackHandler[] = []
 		if (stream) callbacks.push(new NewTokenHandler(this))
 		callbacks.push(new ModelInteractionHandler(this, 'StrayCat'), new RateLimitHandler())
-		if (stream) return this.currentLLM.stream(prompt, { callbacks })
-		return this.currentLLM.invoke(prompt, { callbacks })
+		try {
+			let result: AIMessageChunk | IterableReadableStream<AIMessageChunk>
+			if (stream) result = await this.currentLLM.stream(prompt, { callbacks })
+			else result = await this.currentLLM.invoke(prompt, { callbacks })
+			return result
+		}
+		catch (error) {
+			log.error('Failed to call LLM.')
+			log.dir(error)
+			if (stream) {
+				const wrappedGenerator = new AsyncGeneratorWithSetup({
+					generator: (async function* () {
+						yield new AIMessageChunk('I am sorry,')
+						yield new AIMessageChunk('I could not process your request.')
+					})(),
+				})
+				await wrappedGenerator.setup
+				return IterableReadableStream.fromAsyncGenerator(wrappedGenerator)
+			}
+			return new AIMessageChunk('I am sorry, I could not process your request.')
+		}
 	}
 }

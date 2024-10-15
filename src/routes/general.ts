@@ -127,8 +127,8 @@ export const generalRoutes = new Elysia({
 	query: t.Object({
 		stream: t.Boolean({
 			title: 'Stream',
-			description: 'Whether to stream the response',
-			default: true,
+			description: 'Whether to stream the response or not',
+			default: false,
 		}),
 	}),
 	detail: {
