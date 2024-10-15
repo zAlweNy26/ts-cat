@@ -239,3 +239,8 @@ export function getAllowedEmbedders() {
 }
 
 export const getEmbedder = (embedder: string) => getAllowedEmbedders().find(e => e.info.id === embedder)
+
+export function getEmbedderSettings(emb?: string) {
+	emb ||= db.data.selectedEmbedder
+	return db.data.embedders.find(e => e.name === emb)?.value
+}

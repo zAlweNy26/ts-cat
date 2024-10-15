@@ -7,6 +7,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
 import { ChatOllama } from '@langchain/ollama'
 import { AzureChatOpenAI, ChatOpenAI } from '@langchain/openai'
+import { llmCache } from '@lg/cache.ts'
 import { madHatter } from '@mh'
 import { z } from 'zod'
 import { CustomChat, CustomChatOllama, CustomChatOpenAI, FakeChat } from './custom_llm.ts'
@@ -38,7 +39,10 @@ export class ChatModelConfig<Config extends z.ZodTypeAny = z.ZodTypeAny> {
 	initModel(params: z.input<Config>) {
 		const { model, config } = this._settings
 		const Model = model
-		return new Model(config.parse(params))
+		return new Model({
+			cache: llmCache(),
+			...config.parse(params),
+		})
 	}
 }
 
@@ -238,3 +242,8 @@ export function getAllowedLLMs() {
 }
 
 export const getLLM = (llm: string) => getAllowedLLMs().find(e => e.info.id === llm)
+
+export function getLLMSettings(llm?: string) {
+	llm ||= db.data.selectedLLM
+	return db.data.llms.find(l => l.name === llm)?.value
+}

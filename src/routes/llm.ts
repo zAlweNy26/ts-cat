@@ -1,5 +1,5 @@
 import { serverContext, swaggerTags } from '@/context'
-import { getAllowedLLMs, getLLM } from '@factory/llm.ts'
+import { getAllowedLLMs, getLLM, getLLMSettings } from '@factory/llm.ts'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
@@ -28,11 +28,11 @@ export const llmRoutes = new Elysia({
 		200: 'modelsInfo',
 		400: 'error',
 	},
-}).get('/settings/:llmId', ({ db, params, HttpError }) => {
+}).get('/settings/:llmId', ({ params, HttpError }) => {
 	const id = params.llmId
 	const llm = getLLM(id)
 	if (!llm) throw HttpError.NotFound(`The passed LLM id '${id}' doesn't exist in the list of available LLMs.`)
-	const value = db.getLLMSettings(id) ?? {}
+	const value = getLLMSettings(id) ?? {}
 	return {
 		...llm.info,
 		schema: zodToJsonSchema(llm.config),

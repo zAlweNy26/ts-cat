@@ -1,29 +1,34 @@
 import { JSONFileSyncPreset } from 'lowdb/node'
 import { z } from 'zod'
+import { deepDefaults, getZodDefaults } from './utils'
 
 const defaultDbKeys = z.object({
-	instantTool: z.boolean(),
-	selectedLLM: z.string(),
-	selectedEmbedder: z.string(),
-	chunkSize: z.number(),
-	chunkOverlap: z.number(),
+	instantTool: z.boolean().default(true),
+	selectedLLM: z.string().default('FakeChat'),
+	selectedEmbedder: z.string().default('FakeEmbeddings'),
+	chunkSize: z.number().default(256),
+	chunkOverlap: z.number().default(64),
 	rateLimiter: z.object({
-		enabled: z.boolean(),
-		tokensPerSecond: z.number(),
-		checkInterval: z.number(),
-		maxBucketSize: z.number(),
-	}).partial(),
+		enabled: z.boolean().default(false),
+		checkInterval: z.number().default(1),
+		maxBucketSize: z.number().default(1000),
+		tokensPerSecond: z.number().default(1000),
+	}),
+	cache: z.object({
+		enabled: z.boolean().default(true),
+		redisUrl: z.string().url().optional(),
+	}),
 	llms: z.array(z.object({
 		name: z.string(),
 		value: z.record(z.any()),
-	})),
+	})).default([{ name: 'FakeChat', value: {} }]),
 	embedders: z.array(z.object({
 		name: z.string(),
 		value: z.record(z.any()),
-	})),
-	activePlugins: z.array(z.string()),
-	activeTools: z.array(z.string()),
-	activeForms: z.array(z.string()),
+	})).default([{ name: 'FakeEmbeddings', value: {} }]),
+	activePlugins: z.array(z.string()).default([]),
+	activeTools: z.array(z.string()).default([]),
+	activeForms: z.array(z.string()).default(['core_plugin']),
 }).passthrough()
 
 const dbConfig = defaultDbKeys.refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
@@ -37,29 +42,9 @@ export class Database {
 	private _db: ReturnType<typeof JSONFileSyncPreset<DatabaseConfig>>
 
 	private constructor(path: string) {
-		this._db = JSONFileSyncPreset<DatabaseConfig>(path, {
-			instantTool: true,
-			selectedLLM: 'FakeChat',
-			selectedEmbedder: 'FakeEmbeddings',
-			chunkSize: 256,
-			chunkOverlap: 64,
-			rateLimiter: {
-				enabled: false,
-				tokensPerSecond: 1000,
-				checkInterval: 0.1,
-				maxBucketSize: 1000,
-			},
-			llms: [
-				{ name: 'FakeChat', value: {} },
-			],
-			embedders: [
-				{ name: 'FakeEmbeddings', value: {} },
-			],
-			activeTools: [],
-			activeForms: [],
-			activePlugins: ['core_plugin'],
-		})
+		this._db = JSONFileSyncPreset<DatabaseConfig>(path, getZodDefaults(defaultDbKeys)!)
 		this._db.read()
+		this._db.data = deepDefaults(this._db.data, getZodDefaults(defaultDbKeys))
 		this._db.write()
 	}
 
@@ -114,26 +99,6 @@ export class Database {
 		this.update((db) => {
 			delete db[key]
 		})
-	}
-
-	/**
-	 * Retrieves the LLM settings based on the LLM name.
-	 * @param llm The name of the LLM. If not provided, the selected LLM will be used.
-	 * @returns The LLM settings if found, otherwise undefined.
-	 */
-	getLLMSettings(llm?: string) {
-		llm ||= this._db.data.selectedLLM
-		return this._db.data.llms.find(l => l.name === llm)?.value
-	}
-
-	/**
-	 * Retrieves the embedder settings based on the embedder name.
-	 * @param emb The name of the embedder. If not provided, the selected embedder will be used.
-	 * @returns The embedder settings if found, otherwise undefined.
-	 */
-	getEmbedderSettings(emb?: string) {
-		emb ||= this._db.data.selectedEmbedder
-		return this._db.data.embedders.find(e => e.name === emb)?.value
 	}
 }
 

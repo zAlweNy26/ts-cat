@@ -82,6 +82,7 @@
 		"fastembed": "^1.14.1",
 		"get-port-please": "^3.1.2",
 		"html-to-text": "^9.0.5",
+		"ioredis": "5.4.1",
 		"is-docker": "^3.0.0",
 		"js-tiktoken": "^1.0.15",
 		"langchain": "0.3.2",
