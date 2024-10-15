@@ -146,7 +146,7 @@ export async function compareStrings(input: string, prediction: string, criteria
  * @param sources The source objects containing default values.
  * @returns A new object with the merged properties.
  */
-export function deepDefaults<T, S = T>(target: T, ...sources: S[]) {
+export function deepDefaults<T>(target: T, ...sources: any[]) {
 	return _DefaultsDeep(structuredClone(target), ...sources) as T
 }
 
@@ -198,7 +198,7 @@ export async function parseJson<T extends z.AnyZodObject>(text: string, schema: 
  * @param schema The Zod schema for which to retrieve the default values.
  * @param discriminant The discriminant value for discriminated unions.
  */
-export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_input'] | undefined {
+export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_output'] | undefined {
 	if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else if (schema instanceof z.ZodEnum) return schema.options[0]
 	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]
