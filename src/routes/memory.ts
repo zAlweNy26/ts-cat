@@ -330,6 +330,54 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
+}).post('/collections/:collectionId/point', async ({ params, body, log, HttpError }) => {
+	const { collectionId } = params, { content, payload, vector } = body
+	try {
+		const point = await cat.vectorMemory.collections[collectionId]!.addPoint(content, vector, payload)
+		if (!point) throw new Error('Error adding point.')
+		return {
+			id: point.id.toString(),
+		}
+	}
+	catch (error) {
+		log.error(error)
+		throw HttpError.InternalServer('Unable to add point in memory.')
+	}
+}, {
+	detail: {
+		description: 'Add a point in memory.',
+		summary: 'Add memory point',
+	},
+	body: t.Object({
+		content: t.String({ title: 'Content', description: 'Content of the point' }),
+		vector: t.Array(t.Number(), { title: 'Vector', description: 'Vector of the point' }),
+		payload: t.Record(t.String(), t.Any(), { title: 'Payload', description: 'Metadata of the point' }),
+	}, {
+		title: 'Memory Point',
+		description: 'Point to add in memory',
+		examples: [{
+			content: 'Hello, John!',
+			vector: [0.1, 0.2, 0.3],
+			payload: {
+				source: 'user',
+			},
+		}],
+	}),
+	params: t.Object({
+		collectionId: t.String({ title: 'Collection ID', description: 'ID of the collection to add the point to' }),
+	}),
+	response: {
+		200: t.Object({
+			id: t.String(),
+		}, {
+			title: 'Memory Point',
+			description: 'Point added in memory',
+			examples: [{
+				id: '1da746f8-a832-4a45-a120-4549e17a1df7',
+			}],
+		}),
+		500: 'error',
+	},
 }).get('/history', ({ stray }) => {
 	return {
 		history: stray.getHistory(),
