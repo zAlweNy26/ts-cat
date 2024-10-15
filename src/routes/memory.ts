@@ -155,7 +155,6 @@ export const memoryRoutes = new Elysia({
 		const points = await cat.vectorMemory.collections[id]!.getAllPoints(limit, body)
 		return {
 			documents: points.map(p => ({ ...p.payload as {
-				id: string
 				pageContent: string
 				metadata: Record<string, any>
 			}, id: p.id.toString() })),

@@ -46,7 +46,7 @@ export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 	active = true
 
 	constructor(name: string, description: string, fn: ToolFun, options?: ToolOptions) {
-		const { direct = false, startExamples = [] } = { ...options }
+		const { direct = false, startExamples = [] } = options ?? {}
 
 		super({
 			name: kebabCase(name),

@@ -210,7 +210,7 @@ export class StrayCat {
 			},
 		}, this)
 
-		if (save) this.chatHistory.push({ ...finalOutput })
+		if (save) this.chatHistory.push(structuredClone(finalOutput))
 
 		if (!returnWhy) delete finalOutput.why
 
