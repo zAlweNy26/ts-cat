@@ -33,7 +33,7 @@
 		"dist/**"
 	],
 	"scripts": {
-		"build": "bun build --compile --minify --sourcemap --target bun --outfile ccat ./src/index.ts",
+		"build": "bun build --compile --minify --sourcemap --outfile ccat ./src/main.ts",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"test": "vitest dev --exclude \"**/test/api/**\" --run",
