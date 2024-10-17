@@ -7,6 +7,7 @@ import { getEmbedder, getEmbedderSettings, getLLM, getLLMSettings } from '@facto
 import { log } from '@logger'
 import { getVectorMemory, type VectorMemory } from '@memory'
 import { type Form, isForm, isTool, madHatter, type Tool } from '@mh'
+import { catchError } from '@utils'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat, type WS } from './stray-cat.ts'
 import { whiteRabbit } from './white-rabbit.ts'
@@ -151,20 +152,20 @@ export class CheshireCat {
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
-		try {
-			this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
-		}
-		catch (error) {
-			log.error('Failed to get embedder size. Reset to FakeEmbeddings.')
-			log.dir(error)
-			// TODO: Should we also set it in the db?
-			this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
-			this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
-		}
+		const [error, vector = [0.1, 0.2, 0.3, 0.4, 0.5]] = await catchError(
+			this.currentEmbedder.embedQuery('hello world'),
+			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
+		)
+
+		// TODO: Should we also set it in the db?
+		if (error) this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
+
+		this._embedderSize = vector.length
 		if (this._embedderSize === 0) {
 			log.error('Embedder size is 0')
 			throw new Error('Embedder size is 0. Unable to proceed.')
 		}
+
 		this.memory = await getVectorMemory({
 			embedderName: db.data.selectedEmbedder,
 			embedderSize: this.embedderSize,

@@ -6,6 +6,7 @@ import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import _DefaultsDeep from 'lodash/defaultsDeep.js'
 import _SampleSize from 'lodash/sampleSize.js'
 import { z } from 'zod'
+import { log } from './logger'
 
 export const LogLevel = ['error', 'warning', 'normal', 'info', 'debug'] as const
 
@@ -175,6 +176,35 @@ export const existsDir = (path: string) => !!Array.from(new Bun.Glob(path).scanS
 export function getRandomString(length: number) {
 	const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	return _SampleSize(letters, length).join('')
+}
+
+/**
+ * Catches errors from a promise.
+ * @param promise The promise to handle.
+ * @param options Additional options for handling the promise.
+ * @param options.errorsToCatch An optional array of error constructors to catch.
+ * @param options.logMessage An optional message to log when an error occurs.
+ * @returns A tuple with either the error or the result of the promise.
+ * @throws Will rethrow the error if it is not in the `errorsToCatch` array.
+ */
+export async function catchError<T, E extends new (...args: any[]) => Error>(
+	promise: Promise<T>,
+	options?: { errorsToCatch?: E[], logMessage?: string },
+): Promise<[undefined, T] | [InstanceType<E>]> {
+	try {
+		const res = await promise
+		return [undefined, res]
+	}
+	catch (error: any) {
+		const { errorsToCatch, logMessage } = options ?? {}
+		if (errorsToCatch === undefined || errorsToCatch.some(e => error instanceof e)) {
+			log.error(logMessage || 'An error occurred while executing a promise:')
+			log.dir(error)
+			return [error]
+		}
+
+		throw error
+	}
 }
 
 /**
