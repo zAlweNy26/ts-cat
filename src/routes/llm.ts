@@ -85,5 +85,6 @@ export const llmRoutes = new Elysia({
 		200: 'customSetting',
 		400: 'error',
 		404: 'error',
+		500: 'error',
 	},
 })

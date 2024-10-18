@@ -24,6 +24,7 @@ export const rabbitHoleRoutes = new Elysia({
 				allowedMimetypes: ['text/plain', 'application/pdf', 'application/json'],
 			}],
 		}),
+		400: 'error',
 	},
 }).post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { sync, source } = query, { chunk, metadata } = body
@@ -59,6 +60,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'Chunk ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/file', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { file, metadata } = body, { sync, chunkOverlap, chunkSize } = query
@@ -95,6 +97,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'File ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { content } = body, { sync, chunkOverlap, chunkSize } = query
@@ -139,6 +142,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'Files ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { webUrl, metadata } = body, { sync, chunkOverlap, chunkSize } = query
@@ -179,6 +183,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'URL ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/memory', async ({ rh, body, query, log, HttpError }) => {
 	const { file } = body, { sync } = query
@@ -212,5 +217,6 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'Memory ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 })

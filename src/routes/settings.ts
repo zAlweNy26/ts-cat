@@ -28,6 +28,7 @@ export const settingsRoutes = new Elysia({
 	response: {
 		200: 'generic',
 		400: 'error',
+		404: 'error',
 	},
 }).put('/:settingId', ({ db, params, body, HttpError }) => {
 	const id = params.settingId
@@ -53,6 +54,7 @@ export const settingsRoutes = new Elysia({
 		200: 'generic',
 		400: 'error',
 		404: 'error',
+		500: 'error',
 	},
 }).post('/:settingId', ({ db, params, body, HttpError }) => {
 	const id = params.settingId

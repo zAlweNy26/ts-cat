@@ -51,6 +51,7 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		200: 'memoryRecall',
+		400: 'error',
 		500: 'error',
 	},
 }).get('/collections', async () => {
@@ -97,6 +98,7 @@ export const memoryRoutes = new Elysia({
 				],
 			}],
 		}),
+		400: 'error',
 		500: 'error',
 	},
 }).delete('/collections', async ({ mh, log, HttpError, set }) => {
@@ -118,6 +120,7 @@ export const memoryRoutes = new Elysia({
 	},
 	response: {
 		204: t.Void({ title: 'Collections wiped', description: 'Collections wiped successfully' }),
+		400: 'error',
 		500: 'error',
 	},
 }).delete('/collections/:collectionId', async ({ mh, params, log, HttpError, set }) => {
@@ -144,6 +147,7 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		204: t.Void({ title: 'Collection wiped', description: 'Collection wiped successfully' }),
+		400: 'error',
 		404: 'error',
 		500: 'error',
 	},
@@ -222,6 +226,7 @@ export const memoryRoutes = new Elysia({
 				],
 			}],
 		}),
+		400: 'error',
 		404: 'error',
 		500: 'error',
 	},
@@ -256,14 +261,15 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		204: t.Void({ title: 'Documents wiped', description: 'Documents wiped successfully' }),
+		400: 'error',
 		404: 'error',
 		500: 'error',
 	},
 }).delete('/collections/:collectionId/point/:pointId', async ({ params, log, HttpError, set }) => {
 	const { collectionId, pointId } = params
+	const collections = Object.keys(cat.vectorMemory.collections)
+	if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
 	try {
-		const collections = Object.keys(cat.vectorMemory.collections)
-		if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
 		const points = await cat.vectorMemory.db.retrieve(collectionId, { ids: [pointId] })
 		if (points.length === 0) throw HttpError.NotFound('Point not found.')
 		await cat.vectorMemory.collections[collectionId]?.deletePoints([pointId])
@@ -284,11 +290,14 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		204: t.Void({ title: 'Point wiped', description: 'Point wiped successfully' }),
+		400: 'error',
 		404: 'error',
 		500: 'error',
 	},
 }).get('/collections/:collectionId/point/:pointId', async ({ params, log, HttpError }) => {
 	const { collectionId, pointId } = params
+	const collections = Object.keys(cat.vectorMemory.collections)
+	if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
 	try {
 		const points = await cat.vectorMemory.collections[collectionId]!.getPoints([pointId])
 		if (points.length === 0) throw HttpError.NotFound('Point not found.')
@@ -327,11 +336,14 @@ export const memoryRoutes = new Elysia({
 				},
 			}],
 		}),
+		400: 'error',
 		404: 'error',
 		500: 'error',
 	},
 }).post('/collections/:collectionId/point', async ({ params, body, log, HttpError }) => {
 	const { collectionId } = params, { content, payload, vector } = body
+	const collections = Object.keys(cat.vectorMemory.collections)
+	if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
 	try {
 		const point = await cat.vectorMemory.collections[collectionId]!.addPoint(content, vector, payload)
 		if (!point) throw new Error('Error adding point.')
@@ -376,6 +388,8 @@ export const memoryRoutes = new Elysia({
 				id: '1da746f8-a832-4a45-a120-4549e17a1df7',
 			}],
 		}),
+		400: 'error',
+		404: 'error',
 		500: 'error',
 	},
 }).get('/history', ({ stray }) => {
@@ -389,6 +403,7 @@ export const memoryRoutes = new Elysia({
 	},
 	response: {
 		200: 'chatHistory',
+		400: 'error',
 	},
 }).delete('/history', ({ stray, set }) => {
 	stray.clearHistory()
@@ -400,6 +415,7 @@ export const memoryRoutes = new Elysia({
 	},
 	response: {
 		204: t.Void({ title: 'History wiped', description: 'History wiped successfully' }),
+		400: 'error',
 	},
 }).put('/history', ({ stray, body, set }) => {
 	stray.addHistory(body.history)
@@ -427,5 +443,6 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		204: t.Void({ title: 'History added', description: 'History added successfully' }),
+		400: 'error',
 	},
 })
