@@ -1,9 +1,9 @@
 import type { AgentFastReply } from '@dto/agent.ts'
 import type { StrayCat } from '@lg'
-import { PromptTemplate } from '@langchain/core/prompts'
+import { catchError } from '@/errors.ts'
+import { ChatPromptTemplate } from '@langchain/core/prompts'
 import { log } from '@logger'
-import { parsedEnv, parseJson } from '@utils'
-import { LLMChain } from 'langchain/chains'
+import { normalizeMessageChunks, parseJson } from '@utils'
 import _Merge from 'lodash/merge.js'
 import _Unset from 'lodash/unset.js'
 import { kebabCase } from 'scule'
@@ -208,10 +208,10 @@ export class Form<
 		return model
 	}
 
-	private async extract() {
+	private async extract(): Promise<S> {
 		const history = this.stringifyChatHistory()
 
-		const prompt = `Your task is to fill up a JSON out of a conversation.
+		const template = `Your task is to fill up a JSON out of a conversation.
 The JSON must have this format:
 \`\`\`json
 {structure}
@@ -229,14 +229,10 @@ ${history}
 Updated JSON:
 \`\`\`json`
 
-		log.debug(prompt)
+		log.debug(template)
 
-		const extractionChain = new LLMChain({
-			llm: this.cat.currentLLM,
-			prompt: PromptTemplate.fromTemplate(prompt),
-			verbose: parsedEnv.verbose,
-			outputKey: 'output',
-		})
+		const prompt = ChatPromptTemplate.fromTemplate(template)
+		const chain = prompt.pipe(this.cat.currentLLM)
 
 		let structure = '{'
 		for (const key in this.schema.shape) {
@@ -245,19 +241,26 @@ Updated JSON:
 		}
 		structure += '\n}'
 
-		const json = (await extractionChain.invoke({ structure, stop: ['```'] })).output
-		let output: Record<string, any> = {}
+		const [chainError, chainResponse] = await catchError(chain.invoke({ structure, start: ['```'] }))
 
-		try {
-			output = parseJson(json, this.schema)
-			log.debug('Form JSON after parsing:\n', output)
-		}
-		catch (error) {
-			output = {}
-			log.warn(error)
+		if (chainError) {
+			log.error(chainError)
+			return {} as S
 		}
 
-		return output
+		const json = normalizeMessageChunks(chainResponse)
+
+		const [error, output = {}] = await catchError(parseJson(json, this.schema), {
+			errorsToCatch: [z.ZodError],
+			logMessage: `Error while parsing JSON from form ${this.name}`,
+		})
+
+		if (!error) {
+			log.debug('Form JSON after parsing:')
+			log.dir(output)
+		}
+
+		return output as S
 	}
 
 	private async askUserConfirm() {
