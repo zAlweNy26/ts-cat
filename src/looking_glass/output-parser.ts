@@ -1,5 +1,5 @@
+import { catchError } from '@/errors.ts'
 import { OutputParserException } from '@langchain/core/output_parsers'
-import { log } from '@logger'
 import { madHatter } from '@mh'
 import { parseJson } from '@utils'
 import { type AgentAction, AgentActionOutputParser, type AgentFinish } from 'langchain/agents'
@@ -16,21 +16,22 @@ const agentOutputSchema = z.object({
 	}),
 })
 
-type AgentOutput = z.infer<typeof agentOutputSchema>
-
 export class ProceduresOutputParser extends AgentActionOutputParser {
 	lc_namespace = ['looking_glass', 'procedures-output-parser']
 
 	async parse(output: string): Promise<AgentFinish | AgentAction> {
-		let parsedOutput: AgentOutput
+		const [parseError, parsedOutput] = await catchError(
+			parseJson(output, agentOutputSchema),
+			{ errorsToCatch: [OutputParserException], logMessage: `Could not parse LLM output: ${output}` },
+		)
 
-		try {
-			parsedOutput = await parseJson(output, agentOutputSchema)
-		}
-		catch (error) {
-			log.error(error)
-			log.warn(`Could not parse LLM output: ${output}`)
-			throw new OutputParserException(`Could not parse LLM output: ${output}`)
+		if (parseError) {
+			return {
+				log: output,
+				returnValues: {
+					output: null,
+				},
+			}
 		}
 
 		const parsedLog = JSON.stringify(parsedOutput, null, 4)

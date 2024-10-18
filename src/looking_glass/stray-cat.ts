@@ -1,4 +1,3 @@
-import type { AgentFastReply } from '@dto/agent.ts'
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WorkingMemory, WSMessage } from '@dto/message.ts'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import type { BaseLanguageModelInput } from '@langchain/core/language_models/base'
@@ -7,6 +6,7 @@ import type { TSchema } from 'elysia'
 import type { TypeCheck } from 'elysia/type-system'
 import type { ElysiaWS } from 'elysia/ws'
 import { resolveObjectURL } from 'node:buffer'
+import { catchError } from '@/errors.ts'
 import { Document } from '@langchain/core/documents'
 import { AIMessageChunk } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
@@ -170,21 +170,14 @@ export class StrayCat {
 			}
 		}
 
-		let catMsg: AgentFastReply
-		try {
-			catMsg = await this.agentManager.executeAgent(this)
-		}
-		catch (error) {
-			log.error('Failed to execute agent.')
-			log.dir(error)
-			catMsg = {
-				output: 'I am sorry, I could not process your request.',
-				intermediateSteps: [],
-			}
-		}
+		const [agentError, catMsg = {
+			output: 'I am sorry, I could not process your request.',
+		}] = await catchError(this.agentManager.executeAgent(this), { logMessage: 'Failed to execute agent.' })
 
-		log.normal('Agent response:')
-		log.dir(catMsg)
+		if (!agentError) {
+			log.normal('Agent response:')
+			log.dir(catMsg)
+		}
 
 		let doc = new Document<Record<string, any>>({
 			pageContent: response.text,
@@ -411,15 +404,12 @@ ${labelsList}${examplesList}
 		const callbacks: BaseCallbackHandler[] = []
 		if (stream) callbacks.push(new NewTokenHandler(this))
 		callbacks.push(new ModelInteractionHandler(this, 'StrayCat'), new RateLimitHandler())
-		try {
-			let result: AIMessageChunk | IterableReadableStream<AIMessageChunk>
-			if (stream) result = await this.currentLLM.stream(prompt, { callbacks })
-			else result = await this.currentLLM.invoke(prompt, { callbacks })
-			return result
-		}
-		catch (error) {
-			log.error('Failed to call LLM.')
-			log.dir(error)
+
+		const [error, response] = stream
+			? await catchError(this.currentLLM.stream(prompt, { callbacks }), { logMessage: 'Failed to call LLM.' })
+			: await catchError(this.currentLLM.invoke(prompt, { callbacks }), { logMessage: 'Failed to call LLM.' })
+
+		if (error) {
 			if (stream) {
 				const wrappedGenerator = new AsyncGeneratorWithSetup({
 					generator: (async function* () {
@@ -432,5 +422,6 @@ ${labelsList}${examplesList}
 			}
 			return new AIMessageChunk('I am sorry, I could not process your request.')
 		}
+		else return response
 	}
 }

@@ -38,8 +38,9 @@
 		"lint:fix": "eslint . --fix",
 		"test": "vitest dev --exclude \"**/test/api/**\" --run",
 		"test:ui": "vitest dev --ui",
-		"release": "bun run lint && bun run test && changelogen --release && git push --follow-tags",
+		"release": "bun run ci && changelogen --release && git push --follow-tags",
 		"typecheck": "tsc --noEmit",
+		"ci": "bun run typecheck && bun run lint && bun run test",
 		"dev": "WATCH=true bun --hot run ./src/index.ts",
 		"start": "bun run ./src/index.ts"
 	},

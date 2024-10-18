@@ -1,6 +1,7 @@
 import type { PointData } from '@dto/vector-memory.ts'
 import type { Embeddings } from '@langchain/core/embeddings'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { catchError } from '@/errors.ts'
 import { rabbitHole } from '@/rabbit-hole.ts'
 import { db } from '@db'
 import { getEmbedder, getEmbedderSettings, getLLM, getLLMSettings } from '@factory'
@@ -151,20 +152,20 @@ export class CheshireCat {
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
-		try {
-			this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
-		}
-		catch (error) {
-			log.error('Failed to get embedder size. Reset to FakeEmbeddings.')
-			log.dir(error)
-			// TODO: Should we also set it in the db?
-			this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
-			this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
-		}
+		const [error, vector = [0.1, 0.2, 0.3, 0.4, 0.5]] = await catchError(
+			this.currentEmbedder.embedQuery('hello world'),
+			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
+		)
+
+		// TODO: Should we also set it in the db?
+		if (error) this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
+
+		this._embedderSize = vector.length
 		if (this._embedderSize === 0) {
 			log.error('Embedder size is 0')
 			throw new Error('Embedder size is 0. Unable to proceed.')
 		}
+
 		this.memory = await getVectorMemory({
 			embedderName: db.data.selectedEmbedder,
 			embedderSize: this.embedderSize,
