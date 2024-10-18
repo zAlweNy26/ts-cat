@@ -40,6 +40,17 @@ export const swaggerTags = {
 
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
+export const messageInput = t.Intersect([
+	t.Object({
+		text: t.String(),
+	}),
+	t.Record(t.String(), t.Any()),
+], {
+	$id: 'messageInput',
+	title: 'Message Input',
+	description: 'Message to pass to the cat',
+})
+
 export const memoryMessage = t.Object({
 	role: t.Union([t.Literal('AI'), t.Literal('User')]),
 	what: t.String(),
@@ -270,6 +281,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		title: 'Custom Setting',
 		description: 'Custom setting for the cat',
 	}),
+	messageInput,
 	chatMessage,
 	memoryMessage,
 	chatHistory: t.Object({

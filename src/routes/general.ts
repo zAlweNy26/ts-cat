@@ -13,15 +13,12 @@ export const generalRoutes = new Elysia({
 		userId: t.String({ default: 'user' }),
 	}),
 	query: t.Object({
-		save: t.Optional(t.Boolean()),
-		token: t.Optional(t.String()),
+		why: t.Boolean({ default: true }),
+		save: t.Boolean({ default: true }),
+		token: t.String({ default: true }),
 	}),
-	body: t.Intersect([
-		t.Object({
-			text: t.String(),
-		}),
-		t.Record(t.String(), t.Any()),
-	]),
+	body: 'messageInput',
+	idleTimeout: 300, // TODO: Set a proper idle timeout
 	beforeHandle: ({ query, HttpError }) => {
 		const apiKey = query.token, realKey = parsedEnv.apiKey
 		if (realKey && realKey !== apiKey)
@@ -82,13 +79,7 @@ export const generalRoutes = new Elysia({
 	const res = await stray.run(body, save, why)
 	return res
 }, {
-	body: t.Object({
-		text: t.String({
-			title: 'Text',
-			description: 'The text to send to the Cheshire Cat',
-			default: 'Hello world',
-		}),
-	}),
+	body: 'messageInput',
 	query: t.Object({
 		save: t.Boolean({
 			title: 'Save',
