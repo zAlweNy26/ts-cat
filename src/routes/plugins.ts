@@ -158,31 +158,19 @@ export const pluginsRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, body, mh, db, HttpError }) => {
+}).patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, body, mh, HttpError }) => {
 	const { pluginId, procedureName } = params, { active } = body
 	const p = mh.getPlugin(pluginId)
 	if (!p) throw HttpError.NotFound('Plugin not found')
 
-	const tool = p.tools.find(t => t.name === procedureName)
-	const form = p.forms.find(f => f.name === procedureName)
-	if (!tool && !form) throw HttpError.NotFound('Procedure not found')
+	const proc = p.tools.find(t => t.name === procedureName)
+		|| p.forms.find(f => f.name === procedureName)
+	if (!proc) throw HttpError.NotFound('Procedure not found')
 
-	if (tool) tool.active = active
-	if (form) form.active = active
-
-	db.update((db) => {
-		if (tool) {
-			if (tool.active) db.activeTools.push(procedureName)
-			else db.activeTools = db.activeTools.filter(t => t !== procedureName)
-		}
-		else if (form) {
-			if (form.active) db.activeForms.push(procedureName)
-			else db.activeForms = db.activeForms.filter(f => f !== procedureName)
-		}
-	})
+	proc.active = active
 
 	return {
-		active: (tool?.active ?? form?.active) ?? false,
+		active: proc.active,
 	}
 }, {
 	detail: {
