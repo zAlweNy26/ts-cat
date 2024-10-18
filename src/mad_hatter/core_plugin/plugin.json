@@ -1,9 +1,9 @@
 {
-	"name": "Core CCat",
-	"description": "The core Cat plugin used to define default hooks and tools. You don't see this plugin in the plugins folder, because it is an hidden plugin. It will be used to try out hooks and tools before they become available to other plugins. Written and delivered just for you, my furry friend.",
+	"name": "CCat Core",
+	"description": "The core Cat plugin used to define default hooks and tools. You don't see this plugin in the plugins folder, because it is an hidden plugin. It will be used to try out hooks and tools before they become available to other plugins. Written and delivered just for you, my furry friend!",
 	"authorName": "Cheshire Cat",
 	"authorUrl": "https://cheshirecat.ai",
 	"pluginUrl": "https://github.com/cheshire-cat-ai/core",
 	"tags": ["core", "cat", "default", "hidden"],
-	"version": "0.0.1"
+	"version": "1.0.0"
 }

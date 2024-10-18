@@ -47,7 +47,7 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Database query executor
 - [x] Supports streaming both in WebSocket and HTTP
 - [x] Tokens usage visible through model interactions
-- [x] Cache support for LLM responses
+- [x] Cache support for LLM and Embedder responses
 - [ ] External plugins registry support
 - [ ] Built-in CLI
 - [ ] Supports multimodality
