@@ -26,9 +26,9 @@ const defaultDbKeys = z.object({
 		name: z.string(),
 		value: z.record(z.any()),
 	})).default([{ name: 'FakeEmbeddings', value: {} }]),
-	activePlugins: z.array(z.string()).default([]),
+	activePlugins: z.array(z.string()).default(['core_plugin']),
 	activeTools: z.array(z.string()).default([]),
-	activeForms: z.array(z.string()).default(['core_plugin']),
+	activeForms: z.array(z.string()).default([]),
 }).passthrough()
 
 const dbConfig = defaultDbKeys.refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
