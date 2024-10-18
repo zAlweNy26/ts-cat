@@ -1,5 +1,43 @@
 # Changelog
 
+## v1.5.2
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.1...v1.5.2)
+
+### 🚀 Enhancements
+
+- Add validation check for memory json file ([d067a49](https://github.com/zAlweNy26/ts-cat/commit/d067a49))
+- Support cache for llm responses and fix db ([fec7216](https://github.com/zAlweNy26/ts-cat/commit/fec7216))
+- Support cache for embedder responses ([ac7bca2](https://github.com/zAlweNy26/ts-cat/commit/ac7bca2))
+- Add endpoint to add memory point ([7fda9d6](https://github.com/zAlweNy26/ts-cat/commit/7fda9d6))
+- Add trycatch in case of invalid settings ([0f78334](https://github.com/zAlweNy26/ts-cat/commit/0f78334))
+- Improve error handling ([af1e9cb](https://github.com/zAlweNy26/ts-cat/commit/af1e9cb))
+- Improve form extract method ([5d14683](https://github.com/zAlweNy26/ts-cat/commit/5d14683))
+- Update message input ([2b62561](https://github.com/zAlweNy26/ts-cat/commit/2b62561))
+
+### 🩹 Fixes
+
+- Update utils ([1ce9caa](https://github.com/zAlweNy26/ts-cat/commit/1ce9caa))
+
+### 📖 Documentation
+
+- Update README ([8f108ef](https://github.com/zAlweNy26/ts-cat/commit/8f108ef))
+- Improve documentation ([1056293](https://github.com/zAlweNy26/ts-cat/commit/1056293))
+- Remove some comments ([3b75fbb](https://github.com/zAlweNy26/ts-cat/commit/3b75fbb))
+
+### 📦 Build
+
+- Improve docker-related files ([b2d1f5d](https://github.com/zAlweNy26/ts-cat/commit/b2d1f5d))
+
+### 🏡 Chore
+
+- Use SimpleChatModel class for FakeChat ([b226f1e](https://github.com/zAlweNy26/ts-cat/commit/b226f1e))
+- Small tweaks ([6a6f3b1](https://github.com/zAlweNy26/ts-cat/commit/6a6f3b1))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.5.1
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.0...v1.5.1)
