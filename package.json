@@ -1,7 +1,7 @@
 {
 	"name": "ts-cat",
 	"type": "module",
-	"version": "1.5.2",
+	"version": "1.5.3",
 	"private": true,
 	"description": "TypeScript version of the Cheshire Cat AI project",
 	"author": "zAlweNy26 & Contributors",
@@ -125,5 +125,17 @@
 	},
 	"patchedDependencies": {
 		"langchain@0.3.2": "patches/langchain@0.3.2.patch"
+	},
+	"changelog": {
+		"types": {
+			"feat": {
+				"title": "🚀 Enhancements",
+				"semver": "patch"
+			},
+			"refactor": {
+				"title": "💅 Refactors",
+				"semver": "minor"
+			}
+		}
 	}
 }

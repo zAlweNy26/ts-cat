@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.5.3
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.2...v1.5.3)
+
+### 🚀 Enhancements
+
+- Improve procedures toggle ([22fe36c](https://github.com/zAlweNy26/ts-cat/commit/22fe36c))
+- Improve plugin management ([bb5d0da](https://github.com/zAlweNy26/ts-cat/commit/bb5d0da))
+
+### 📖 Documentation
+
+- Update core plugin.json ([ad774e3](https://github.com/zAlweNy26/ts-cat/commit/ad774e3))
+- Improve openapi documentation ([d7d6169](https://github.com/zAlweNy26/ts-cat/commit/d7d6169))
+
+### 🏡 Chore
+
+- Update dependencies ([9933301](https://github.com/zAlweNy26/ts-cat/commit/9933301))
+- Fix db default values ([967fb3b](https://github.com/zAlweNy26/ts-cat/commit/967fb3b))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.5.2
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.1...v1.5.2)
