@@ -1,6 +1,7 @@
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { madHatter } from '@mh/mad-hatter.ts'
 import { Elysia, t } from 'elysia'
+import Turbit from 'turbit'
 import { db } from './database.ts'
 import { httpError } from './errors'
 import { log } from './logger.ts'
@@ -246,6 +247,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	rh: rabbitHole,
 	log,
 	db,
+	turbit: Turbit(),
 }).onBeforeHandle({ as: 'scoped' }, ({ headers, path, HttpError }) => {
 	const apiKey = headers.token, realKey = parsedEnv.apiKey
 	if (path.startsWith('/docs') || path.startsWith('/assets')) return

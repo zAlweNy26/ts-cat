@@ -26,18 +26,23 @@ export const rabbitHoleRoutes = new Elysia({
 		}),
 		400: 'error',
 	},
-}).post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { sync, source } = query, { chunk, metadata } = body
+}).post('/chunk', async ({ rh, body, query, stray, turbit, log, HttpError }) => {
+	const { source } = query, { chunk, metadata } = body
 	try {
-		if (sync) await rh.ingestContent(stray, chunk, source, metadata)
-		else rh.ingestContent(stray, chunk, source, metadata).catch(log.error)
+		const { stats } = await turbit.run(rh.ingestContent, {
+			type: 'extended',
+			args: [stray, source, metadata],
+			data: [chunk],
+		})
+		log.debug('Ingestion of chunk usage:')
+		log.debug(stats)
 	}
 	catch (error) {
 		log.error('Error while ingesting chunk:', error)
 		throw HttpError.InternalServer('Error while ingesting the passed chunk')
 	}
 	return {
-		info: sync ? 'Chunk has been ingested successfully.' : 'Chunk is being ingested asynchronously...',
+		info: 'Chunk has been ingested successfully.',
 	}
 }, {
 	body: t.Object({
@@ -45,7 +50,6 @@ export const rabbitHoleRoutes = new Elysia({
 		metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the chunk synchronously', default: true }),
 		source: t.String({ title: 'Source', description: 'Source of the chunk', default: 'unknown' }),
 	}),
 	detail: {
@@ -62,18 +66,23 @@ export const rabbitHoleRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).post('/file', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { file, metadata } = body, { sync, chunkOverlap, chunkSize } = query
+}).post('/file', async ({ rh, body, query, stray, turbit, log, HttpError }) => {
+	const { file, metadata } = body, { chunkOverlap, chunkSize } = query
 	try {
-		if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
-		else rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
+		const { stats } = await turbit.run(rh.ingestFile, {
+			type: 'extended',
+			args: [stray, chunkSize, chunkOverlap, metadata],
+			data: [file],
+		})
+		log.debug('Ingestion of file usage:')
+		log.debug(stats)
 	}
 	catch (error) {
 		log.error('Error while ingesting file:', error)
 		throw HttpError.InternalServer('Error while ingesting the passed file')
 	}
 	return {
-		info: sync ? 'File has been ingested successfully.' : 'File is being ingested asynchronously...',
+		info: 'File has been ingested successfully.',
 	}
 }, {
 	body: t.Object({
@@ -81,7 +90,6 @@ export const rabbitHoleRoutes = new Elysia({
 		metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the plugin synchronously', default: true }),
 		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
 		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
 	}),
@@ -99,24 +107,23 @@ export const rabbitHoleRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { content } = body, { sync, chunkOverlap, chunkSize } = query
+}).post('/files', async ({ rh, body, query, stray, turbit, log, HttpError }) => {
+	const { content } = body, { chunkOverlap, chunkSize } = query
 	try {
-		if (sync) {
-			for (const { file, metadata } of content)
-				await rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
-		}
-		else {
-			for (const { file, metadata } of content)
-				rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
-		}
+		const { stats } = await turbit.run(rh.ingestFiles, {
+			type: 'extended',
+			args: [stray, chunkSize, chunkOverlap],
+			data: [content],
+		})
+		log.debug('Ingestion of file usage:')
+		log.debug(stats)
 	}
 	catch (error) {
 		log.error('Error while ingesting files:', error)
 		throw HttpError.InternalServer('Error while ingesting the passed files')
 	}
 	return {
-		info: sync ? 'Files have been ingested successfully.' : 'Files are being ingested asynchronously...',
+		info: 'Files have been ingested successfully.',
 	}
 }, {
 	body: t.Object({
@@ -144,18 +151,23 @@ export const rabbitHoleRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { webUrl, metadata } = body, { sync, chunkOverlap, chunkSize } = query
+}).post('/web', async ({ rh, body, query, stray, turbit, log, HttpError }) => {
+	const { webUrl, metadata } = body, { chunkOverlap, chunkSize } = query
 	try {
-		if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap, metadata)
-		else rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap, metadata).catch(log.error)
+		const { stats } = await turbit.run(rh.ingestPathOrURL, {
+			type: 'extended',
+			args: [stray, chunkSize, chunkOverlap, metadata],
+			data: [webUrl],
+		})
+		log.debug('Ingestion of file usage:')
+		log.debug(stats)
 	}
 	catch (error) {
 		log.error('Error while ingesting web url:', error)
 		throw HttpError.InternalServer('Error while ingesting the passed url')
 	}
 	return {
-		info: sync ? 'Web page has been ingested successfully.' : 'Web page is being ingested asynchronously...',
+		info: 'Web page has been ingested successfully.',
 	}
 }, {
 	body: t.Object({
@@ -167,7 +179,6 @@ export const rabbitHoleRoutes = new Elysia({
 		metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the website synchronously', default: true }),
 		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
 		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
 	}),
@@ -185,25 +196,27 @@ export const rabbitHoleRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).post('/memory', async ({ rh, body, query, log, HttpError }) => {
-	const { file } = body, { sync } = query
+}).post('/memory', async ({ rh, body, turbit, log, HttpError }) => {
+	const { file } = body
 	try {
-		if (sync) await rh.ingestMemory(file)
-		else rh.ingestMemory(file).catch(log.error)
+		const { stats } = await turbit.run(rh.ingestMemory, {
+			type: 'extended',
+			args: [],
+			data: [file],
+		})
+		log.debug('Ingestion of file usage:')
+		log.debug(stats)
 	}
 	catch (error) {
 		log.error('Error while ingesting memory file:', error)
 		throw HttpError.InternalServer('Error while ingesting the passed memory file')
 	}
 	return {
-		info: sync ? 'Memory file has been ingested successfully.' : 'Memory file is being ingested asynchronously...',
+		info: 'Memory file has been ingested successfully.',
 	}
 }, {
 	body: t.Object({
 		file: t.File({ description: 'Memory file to ingest. It must be a JSON.' }),
-	}),
-	query: t.Object({
-		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the memory synchronously', default: true }),
 	}),
 	detail: {
 		description: 'Upload a memory json file to the cat memory.',

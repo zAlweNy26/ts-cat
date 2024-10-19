@@ -133,12 +133,12 @@ export class RabbitHole {
 
 	/**
 	 * Ingests textual content into the memory.
-	 * @param stray The StrayCat instance.
 	 * @param content The textual content to ingest.
+	 * @param stray The StrayCat instance.
 	 * @param source The source of the content (default: 'unknown').
 	 * @param metadata Additional metadata to store with the content.
 	 */
-	async ingestContent(stray: StrayCat, content: string | string[], source = 'unknown', metadata?: Record<string, any>) {
+	async ingestContent(content: string | string[], stray: StrayCat, source = 'unknown', metadata?: Record<string, any>) {
 		log.info('Ingesting textual content...')
 		content = Array.isArray(content) ? content : [content]
 		let docs = content.map(c => new Document({ pageContent: c }))
@@ -148,14 +148,14 @@ export class RabbitHole {
 
 	/**
 	 * Ingests a file and processes its content.
-	 * @param stray The StrayCat instance.
 	 * @param file The file to ingest.
+	 * @param stray The StrayCat instance.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
 	 * @param metadata Additional metadata to store with the content.
 	 * @throws An error if the file type is not supported.
 	 */
-	async ingestFile(stray: StrayCat, file: File, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
+	async ingestFile(file: File, stray: StrayCat, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
 		const mime = file.type as keyof typeof this.fileHandlers
 		if (!Object.keys(this.fileHandlers).includes(mime))
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
@@ -170,17 +170,32 @@ export class RabbitHole {
 	}
 
 	/**
+	 * Ingests multiple files sequentially.
+	 * @param contents An array of objects containing the file and optional metadata.
+	 * @param contents[].file The file to be ingested.
+	 * @param contents[].metadata Optional metadata associated with the file.
+	 * @param stray An instance of StrayCat used for processing the files.
+	 * @param chunkSize Optional size of the chunks to split the file into.
+	 * @param chunkOverlap Optional overlap size between chunks.
+	 * @throws An error if one of the files' types is not supported.
+	 */
+	async ingestFiles(contents: { file: File, metadata?: Record<string, any> }[], stray: StrayCat, chunkSize?: number, chunkOverlap?: number) {
+		for (const { file, metadata } of contents)
+			await this.ingestFile(file, stray, chunkSize, chunkOverlap, metadata)
+	}
+
+	/**
 	 * Ingests a path or URL and processes the content.
 	 * If the input is a URL, it uses a web handler to load the content.
 	 * If the input is a file system path, it reads the file and processes the content.
-	 * @param stray The StrayCat instance.
 	 * @param path The path or URL to ingest.
+	 * @param stray The StrayCat instance.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
 	 * @param metadata Additional metadata to store with the content.
 	 * @throws If the URL doesn't match any web handler or the path doesn't exist.
 	 */
-	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
+	async ingestPathOrURL(path: string, stray: StrayCat, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
 		try {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
@@ -199,7 +214,7 @@ export class RabbitHole {
 			if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
 			const data = await Bun.file(resolve(path)).text()
 			const file = new File([data], basename(path), { type: extname(path) })
-			await this.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
+			await this.ingestFile(file, stray, chunkSize, chunkOverlap, metadata)
 		}
 	}
 
