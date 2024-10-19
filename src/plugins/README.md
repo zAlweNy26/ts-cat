@@ -4,6 +4,24 @@ To create a plugin, you need to create a new directory in the `plugins` director
 The name of the directory will be the identifier of the plugin.
 To let the Cheshire Cat detect your plugin, you need to create at least one `.ts` file in the directory.
 
+To scaffold a new plugin, you can use the following command:
+
+```bash
+# inside the plugins directory
+cp -r ../../.bun-create/plugin <your_plugin_id> # linux/macos
+xcopy ..\..\.bun-create\plugin <your_plugin_id> /E /I /H /K # windows (cmd)
+Copy-Item -Recurse -Force ..\..\.bun-create\plugin <your_plugin_id> # windows (powershell)
+```
+
+<!-- TODO: When Bun fixes `bun create` command, use this instead:
+```bash
+# inside the plugins directory
+bun create /plugin <your_plugin_id>
+```
+-->
+
+This will create for you all the necessary files to start creating your plugin!
+
 ## How to import the methods
 
 To import `tool`, `hook`, `form` or `plugin` methods, you need to:
@@ -82,15 +100,13 @@ log.info('Hello, world!')
 log.error('An error occurred!')
 ```
 
-## Install other packages
+## Manage external packages
 
-To install other packages, you need to add a `requirements.txt` file in the main directory of your plugin.
-The content of the file should be the list of the packages you want to install.
-Here is an example:
+To manage external packages, you can use the usual commands, but using Bun:
 
-```text
-package1@1.0.0
-package2
+```bash
+# Install a package
+bun add package-name
+# Uninstall a package
+bun remove package-name
 ```
-
-If the version is not specified, the latest version will be installed.
