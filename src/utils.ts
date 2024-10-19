@@ -1,5 +1,5 @@
 import type { BaseMessageChunk } from '@langchain/core/messages'
-import { readdir } from 'node:fs/promises'
+import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { safeDestr } from 'destr'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
@@ -166,7 +166,13 @@ export function normalizeMessageChunks(chunk: BaseMessageChunk) {
  * @param path The path to the directory to check.
  */
 // TODO: Wait for a Bun internal method to be implemented
-export const existsDir = (path: string) => !!Array.from(new Bun.Glob(path).scanSync({ onlyFiles: false }))[0]
+export async function existsDir(path: string) {
+	const glob = new Bun.Glob(path)
+	const scans = await Array.fromAsync(glob.scan({ onlyFiles: false }))
+	if (scans.length === 0) return false
+	const stats = await stat(scans[0]!)
+	return stats.isDirectory()
+}
 
 /**
  * Generates a random string of the specified length.

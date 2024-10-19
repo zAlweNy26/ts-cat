@@ -1,4 +1,6 @@
-import { JSONFileSyncPreset } from 'lowdb/node'
+import _CloneDeepWith from 'lodash/cloneDeepWith.js'
+import { LowSync } from 'lowdb'
+import { DataFileSync } from 'lowdb/node'
 import { z } from 'zod'
 import { deepDefaults, getZodDefaults } from './utils'
 
@@ -26,9 +28,9 @@ const defaultDbKeys = z.object({
 		name: z.string(),
 		value: z.record(z.any()),
 	})).default([{ name: 'FakeEmbeddings', value: {} }]),
-	activePlugins: z.array(z.string()).default(['core_plugin']),
-	activeTools: z.array(z.string()).default([]),
-	activeForms: z.array(z.string()).default([]),
+	activePlugins: z.set(z.string()).default(new Set(['core_plugin'])),
+	activeTools: z.set(z.string()).default(new Set()),
+	activeForms: z.set(z.string()).default(new Set()),
 }).passthrough()
 
 const dbConfig = defaultDbKeys.refine(({ llms, embedders, selectedEmbedder, selectedLLM }) => {
@@ -37,12 +39,28 @@ const dbConfig = defaultDbKeys.refine(({ llms, embedders, selectedEmbedder, sele
 
 export type DatabaseConfig = z.infer<typeof dbConfig>
 
+class JSONFileSync extends DataFileSync<DatabaseConfig> {
+	constructor(filename: string) {
+		super(filename, {
+			parse: data => JSON.parse(data, (k, v) => {
+				if (Array.isArray(v)
+					&& ['activePlugins', 'activeTools', 'activeForms'].includes(k)) return new Set(v)
+				return v
+			}) as DatabaseConfig,
+			stringify: data => JSON.stringify(_CloneDeepWith(data, (v) => {
+				if (v instanceof Set) return [...v]
+				if (v instanceof Map) return Object.fromEntries(v)
+			}), null, 2),
+		})
+	}
+}
+
 export class Database {
 	private static instance: Database
-	private _db: ReturnType<typeof JSONFileSyncPreset<DatabaseConfig>>
+	private _db: LowSync<DatabaseConfig>
 
 	private constructor(path: string) {
-		this._db = JSONFileSyncPreset<DatabaseConfig>(path, getZodDefaults(defaultDbKeys)!)
+		this._db = new LowSync(new JSONFileSync(path), getZodDefaults(defaultDbKeys)!)
 		this._db.read()
 		this._db.data = deepDefaults(this._db.data, getZodDefaults(defaultDbKeys))
 		this._db.write()

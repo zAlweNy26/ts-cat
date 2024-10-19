@@ -10,9 +10,8 @@ export const pluginsRoutes = new Elysia({
 	prefix: '/plugins',
 	detail: { tags: [swaggerTags.plugins.name] },
 }).use(serverContext).get('/', ({ mh }) => {
-	const ps = mh.installedPlugins.map(({ info }) => info)
 	return {
-		installed: ps,
+		installed: mh.installedPlugins,
 		registry: [],
 	}
 }, {
@@ -136,15 +135,12 @@ export const pluginsRoutes = new Elysia({
 		400: 'error',
 	},
 }).patch('/toggle/:pluginId', async ({ body, params, mh, HttpError }) => {
-	const id = params.pluginId
+	const id = params.pluginId, state = body.active
 	if (id === 'core_plugin') throw HttpError.InternalServer('Cannot toggle core_plugin')
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
-	const { active } = body
-	if (active) await mh.togglePlugin(id)
-	return {
-		active: p.active,
-	}
+	const active = await mh.togglePlugin(id, state)
+	return { active }
 }, {
 	detail: {
 		description: 'Enable or disable a single plugin.',
@@ -158,7 +154,7 @@ export const pluginsRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, body, mh, HttpError }) => {
+}).patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, body, log, mh, HttpError }) => {
 	const { pluginId, procedureName } = params, { active } = body
 	const p = mh.getPlugin(pluginId)
 	if (!p) throw HttpError.NotFound('Plugin not found')
@@ -168,6 +164,8 @@ export const pluginsRoutes = new Elysia({
 	if (!proc) throw HttpError.NotFound('Procedure not found')
 
 	proc.active = active
+
+	log.debug(`Toggled procedure ${procedureName} of plugin ${pluginId} to ${active}`)
 
 	return {
 		active: proc.active,
@@ -191,11 +189,14 @@ export const pluginsRoutes = new Elysia({
 		404: 'error',
 	},
 }).get('/settings', ({ mh }) => {
-	const ps = mh.installedPlugins.map(p => ({
-		name: p.id,
-		value: p.settings,
-		schema: zodToJsonSchema(p.schema),
-	}))
+	const ps = mh.installedPlugins.map(({ id }) => {
+		const p = mh.getPlugin(id)!
+		return {
+			name: p.id,
+			value: p.settings,
+			schema: zodToJsonSchema(p.schema),
+		}
+	})
 	return {
 		settings: ps,
 	}

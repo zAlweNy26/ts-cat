@@ -43,7 +43,7 @@ type ToolSchema = z.infer<typeof toolSchema>
 
 export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 	#cat!: StrayCat
-	#active = true
+	#active = false
 	startExamples: string[]
 
 	constructor(name: string, description: string, fn: ToolFun, options?: ToolOptions) {
@@ -71,8 +71,8 @@ export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 	set active(active: boolean) {
 		this.#active = active
 		db.update((db) => {
-			if (this.#active) db.activeTools.push(this.name)
-			else db.activeTools = db.activeTools.filter(f => f !== this.name)
+			if (this.#active) db.activeTools.add(this.name)
+			else db.activeTools.delete(this.name)
 		})
 	}
 

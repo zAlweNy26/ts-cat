@@ -149,8 +149,8 @@ export class Form<
 	set active(active: boolean) {
 		this.#active = active
 		db.update((db) => {
-			if (this.#active) db.activeForms.push(this.name)
-			else db.activeForms = db.activeForms.filter(f => f !== this.name)
+			if (this.#active) db.activeForms.add(this.name)
+			else db.activeForms.delete(this.name)
 		})
 	}
 
