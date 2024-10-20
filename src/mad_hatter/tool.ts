@@ -1,5 +1,6 @@
 import type { RunnableConfig } from '@langchain/core/runnables'
 import type { StrayCat } from '@lg'
+import { db } from '@db'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import { parsedEnv } from '@utils'
 import _IsEmpty from 'lodash/isEmpty.js'
@@ -41,19 +42,19 @@ const toolSchema = z.object({
 type ToolSchema = z.infer<typeof toolSchema>
 
 export class Tool extends DynamicStructuredTool<typeof toolSchema> {
-	private cat: StrayCat | undefined
-	public startExamples: string[]
-	active = true
+	#cat!: StrayCat
+	#active = false
+	startExamples: string[]
 
 	constructor(name: string, description: string, fn: ToolFun, options?: ToolOptions) {
-		const { direct = false, startExamples = [] } = { ...options }
+		const { direct = false, startExamples = [] } = options ?? {}
 
 		super({
 			name: kebabCase(name),
 			description,
 			func: ({ text }) => {
-				if (!this.cat) throw new Error('Cat not assigned to tool')
-				return fn(text, this.cat)
+				if (!this.#cat) throw new Error('Cat not assigned to tool')
+				return fn(text, this.#cat)
 			},
 			schema: toolSchema,
 			returnDirect: direct,
@@ -61,6 +62,18 @@ export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 		})
 
 		this.startExamples = startExamples
+	}
+
+	get active() {
+		return this.#active
+	}
+
+	set active(active: boolean) {
+		this.#active = active
+		db.update((db) => {
+			if (this.#active) db.activeTools.add(this.name)
+			else db.activeTools.delete(this.name)
+		})
 	}
 
 	invoke(input: string | { [x: string]: any }, config?: RunnableConfig | undefined): Promise<string> {
@@ -71,7 +84,7 @@ export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 	}
 
 	assignCat(cat: StrayCat) {
-		this.cat = cat
+		this.#cat = cat
 		return this
 	}
 }

@@ -89,7 +89,7 @@ The content of the file should be the list of the packages you want to install.
 Here is an example:
 
 ```text
-package1@version
+package1@1.0.0
 package2
 ```
 

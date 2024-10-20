@@ -8,8 +8,10 @@ import { TogetherAIEmbeddings } from '@langchain/community/embeddings/togetherai
 import { FakeEmbeddings } from '@langchain/core/utils/testing'
 import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai'
 import { AzureOpenAIEmbeddings, OpenAIEmbeddings } from '@langchain/openai'
+import { embedderCache } from '@lg/cache.ts'
 import { madHatter } from '@mh'
 import { ExecutionProvider as FastEmbedExecutionProviders, EmbeddingModel as FastEmbedModels } from 'fastembed'
+import { CacheBackedEmbeddings } from 'langchain/embeddings/cache_backed'
 import { z, ZodIssueCode } from 'zod'
 import { CustomOpenAIEmbeddings, FastEmbedEmbeddings } from './custom_embedder.ts'
 
@@ -40,7 +42,10 @@ export class EmbedderConfig<Config extends z.ZodTypeAny = z.ZodTypeAny> {
 	initModel(params: z.input<Config>) {
 		const { model, config } = this._settings
 		const Model = model
-		return new Model(config.parse(params))
+		const embedder = new Model(config.parse(params))
+		const cache = embedderCache()
+		if (cache) return CacheBackedEmbeddings.fromBytesStore(embedder, cache, { namespace: model.name })
+		return embedder
 	}
 }
 
@@ -239,3 +244,8 @@ export function getAllowedEmbedders() {
 }
 
 export const getEmbedder = (embedder: string) => getAllowedEmbedders().find(e => e.info.id === embedder)
+
+export function getEmbedderSettings(emb?: string) {
+	emb ||= db.data.selectedEmbedder
+	return db.data.embedders.find(e => e.name === emb)?.value
+}

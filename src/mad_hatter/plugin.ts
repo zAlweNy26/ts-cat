@@ -1,12 +1,13 @@
 import type { Dirent } from 'node:fs'
-import { existsSync, statSync } from 'node:fs'
+import { rm } from 'node:fs/promises'
 import { basename, extname, join, relative } from 'node:path'
 import { log } from '@logger'
-import { deepDefaults, getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
+import { deepDefaults, existsDir, getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
 import { destr } from 'destr'
+import { diffLines } from 'diff'
+import _CloneDeep from 'lodash/cloneDeep.js'
 import { titleCase } from 'scule'
 import { z } from 'zod'
-import pkg from '~/package.json'
 import { type Form, isForm } from './form.ts'
 import { type Hook, isHook } from './hook.ts'
 import { isTool, type Tool } from './tool.ts'
@@ -73,24 +74,23 @@ export class Plugin<
 	private _id: string
 	private _reloading = false
 	private _active = false
-	private _hooks: Hook[] = []
-	private _tools: Tool[] = []
-	private _forms: Form[] = []
-	private _fileUrls: string[] = []
+	#oldRequirements = ''
+	#hooks: Hook[] = []
+	#fileUrls: string[] = []
+	tools: Tool[] = []
+	forms: Form[] = []
 
 	private constructor(public path: string) {
-		if (!existsSync(path)) log.error(new Error('Plugin path does not exist'))
-
-		const stats = statSync(path)
-		if (!stats.isDirectory()) log.error(new Error('Plugin path must be a directory'))
-
 		this._id = basename(path)
 		this._manifest = deepDefaults(getZodDefaults(pluginManifestSchema), { name: titleCase(this._id) }) as PluginManifest
 	}
 
 	static async new(path: string) {
+		if (!(await existsDir(path))) throw new Error('Plugin path does not exist')
+
 		const plugin = new Plugin(path)
 		await plugin.reload()
+
 		return plugin
 	}
 
@@ -120,20 +120,18 @@ export class Plugin<
 		return this._active
 	}
 
+	set active(active: boolean) {
+		this._active = active
+		if (active) this.triggerEvent('enabled')
+		else this.triggerEvent('disabled')
+	}
+
 	get manifest() {
 		return this._manifest
 	}
 
 	get hooks() {
-		return [...this._hooks]
-	}
-
-	get tools() {
-		return [...this._tools]
-	}
-
-	get forms() {
-		return [...this._forms]
+		return _CloneDeep(this.#hooks)
 	}
 
 	get info() {
@@ -150,10 +148,6 @@ export class Plugin<
 
 	get schema() {
 		return this._schema
-	}
-
-	get fileUrls() {
-		return [...this._fileUrls]
 	}
 
 	get settings() {
@@ -185,10 +179,10 @@ export class Plugin<
 
 	private async loadManifest() {
 		log.debug('Loading plugin manifest...')
-		const manifestPath = join(this.path, 'plugin.json')
-		if (existsSync(manifestPath)) {
+		const file = Bun.file(join(this.path, 'plugin.json'))
+		if (await file.exists()) {
 			try {
-				const json = destr<PluginManifest>(await Bun.file(manifestPath).text())
+				const json = destr<PluginManifest>(await file.text())
 				this._manifest = pluginManifestSchema.parse(deepDefaults(json, getZodDefaults(pluginManifestSchema), { name: titleCase(this.id) }))
 			}
 			catch (err) {
@@ -201,10 +195,10 @@ export class Plugin<
 
 	private async loadSettings() {
 		log.debug('Loading plugin settings...')
-		const settingsPath = join(this.path, 'settings.json')
-		if (existsSync(settingsPath)) {
+		const file = Bun.file(join(this.path, 'settings.json'))
+		if (await file.exists()) {
 			try {
-				const json = destr(await Bun.file(settingsPath).text())
+				const json = destr(await file.text())
 				this._settings = this.schema.parse(json) as S
 			}
 			catch (err) {
@@ -218,14 +212,17 @@ export class Plugin<
 
 	private async installRequirements() {
 		log.debug('Installing plugin requirements...')
-		const requirementsPath = join(this.path, 'requirements.txt')
-		if (existsSync(requirementsPath)) {
-			const requirements = await Bun.file(requirementsPath).text()
-			const pkgs = requirements.split('\n')
-			if (!Object.keys(pkg.dependencies).every(dep => pkgs.includes(dep))) {
-				try { Bun.spawnSync(['bun', 'i', ...pkgs]) }
-				catch (error) { log.error(`Error installing requirements for ${this.id}: ${error}`) }
-			}
+		const file = Bun.file(join(this.path, 'requirements.txt'))
+		if (await file.exists()) {
+			const newRequirements = await file.text()
+			const differences = diffLines(this.#oldRequirements, newRequirements)
+			const newPkgs = differences.filter(d => d.added).map(d => d.value.trim())
+			const oldPkgs = differences.filter(d => d.removed).map(d => d.value.trim().split('@')[0]).filter(p => p !== undefined)
+			this.#oldRequirements = newRequirements
+			try { Bun.spawnSync(['bun', 'remove', ...oldPkgs]) }
+			catch (error) { log.error(`Error uninstalling requirements for ${this.id}: ${error}`) }
+			try { Bun.spawnSync(['bun', 'i', ...newPkgs]) }
+			catch (error) { log.error(`Error installing requirements for ${this.id}: ${error}`) }
 		}
 	}
 
@@ -246,9 +243,9 @@ export class Plugin<
 				const exported = await import(moduleUrl)
 				Object.values(exported).forEach((v) => {
 					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v
-					else if (isForm(v)) this._forms.push(v)
-					else if (isTool(v)) this._tools.push(v)
-					else if (isHook(v)) this._hooks.push({ ...v, from: this.id })
+					else if (isForm(v)) this.forms.push(v)
+					else if (isTool(v)) this.tools.push(v)
+					else if (isHook(v)) this.#hooks.push({ ...v, from: this.id })
 					else if (isPluginEvent(v)) this.events[v.name] = v.fn as any
 				})
 			}
@@ -256,24 +253,29 @@ export class Plugin<
 				log.error('Error importing plugin:', error)
 			}
 			finally {
-				this._fileUrls.push(moduleUrl)
+				this.#fileUrls.push(moduleUrl)
 			}
 		}
 	}
 
 	/**
-	 * Activates the plugin.
+	 * Asynchronously removes the current plugin.
+	 * This method performs the following actions:
+	 * 1. Triggers the 'removed' event.
+	 * 2. Revokes all object URLs stored.
+	 * 3. If `requirements.txt` exists, attempts to remove the packages.
+	 * 4. Deletes the plugin's directory and its contents.
 	 */
-	activate() {
-		this._active = true
-		this.triggerEvent('enabled')
-	}
-
-	/**
-	 * Deactivates the plugin.
-	 */
-	deactivate() {
-		this._active = false
-		this.triggerEvent('disabled')
+	async remove() {
+		this.triggerEvent('removed')
+		this.#fileUrls.forEach(u => URL.revokeObjectURL(u))
+		const file = Bun.file(join(this.path, 'requirements.txt'))
+		if (await file.exists()) {
+			const requirements = await file.text()
+			const pkgs = requirements.split('\n').map(req => req.trim().split('@')[0]).filter(p => p !== undefined)
+			try { Bun.spawnSync(['bun', 'remove', ...pkgs]) }
+			catch (error) { log.error(`Error uninstalling requirements for ${this.id}: ${error}`) }
+		}
+		await rm(this.path, { recursive: true, force: true })
 	}
 }

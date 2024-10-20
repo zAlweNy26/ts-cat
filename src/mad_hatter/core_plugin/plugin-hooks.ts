@@ -7,8 +7,6 @@ CatHook.add('beforeBootstrap', db => db)
 
 CatHook.add('afterBootstrap', db => db)
 
-// Mad Hatter hooks
-
 CatHook.add('allowedEmbedders', embedders => embedders)
 
 CatHook.add('allowedLLMs', llms => llms)

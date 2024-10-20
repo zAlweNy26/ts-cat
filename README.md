@@ -32,7 +32,7 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - 🐘 Remembers conversations and documents and uses them in conversation
 - 🚀 Extensible via plugins
 - 🏛️ Event callbacks, function calling (tools), conversational forms
-- 🌍 Supports any language model (works with OpenAI, Google, Ollama, HuggingFace, custom services)
+- 🌍 Supports any language model (works with OpenAI, Google, Ollama, HuggingFace, custom services and many others)
 - 🐋 Production ready - 100% dockerized
 
 ## Features
@@ -46,12 +46,16 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Rate limiter
 - [x] Database query executor
 - [x] Supports streaming both in WebSocket and HTTP
+- [x] Tokens usage visible through model interactions
+- [x] Cache support for LLM and Embedder responses
+- [ ] External plugins registry support
 - [ ] Built-in CLI
 - [ ] Supports multimodality
 
 ## Pre-requisites
 
 - Bun (>= 1.1.19)
+- Docker
 
 ## Installation
 
@@ -67,10 +71,11 @@ docker compose build --no-cache
 ## How to run
 
 ```bash
-# (for development, with watcher)
+# (for development)
+docker run -p 6333:6333 qdrant/qdrant
 bun run dev
-# (for development, without watcher)
-bun start
+# OR
+docker compose build -f compose.dev.yml --no-cache # (if you want to use Docker for development)
 
 # (for production)
 docker compose up
@@ -80,6 +85,8 @@ docker compose up
 
 ```bash
 bun run test
+# OR
+docker compose -f compose.dev.yml exec ccat-ts-dev bun run test
 ```
 
 ## License

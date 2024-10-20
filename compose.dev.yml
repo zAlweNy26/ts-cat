@@ -1,33 +1,25 @@
 services:
-  ccat-ts-dev:
+  ccat:
     build:
       context: .
       dockerfile: ./Dockerfile.dev
-    container_name: ccat_ts
+    container_name: ccat_ts_dev
     env_file:
       - .env
     environment:
       - FORCE_COLOR=1
-      - CORE_HOST=${CORE_HOST:-localhost}
-      - CORE_PORT=${CORE_PORT:-1865}
-      - CORE_USE_SECURE_PROTOCOLS=${CORE_USE_SECURE_PROTOCOLS:-}
-      - QDRANT_HOST=${QDRANT_HOST:-ccat_ts_vector_memory}
+      - QDRANT_HOST=${QDRANT_HOST:-ccat_ts_vector_memory_dev}
       - QDRANT_PORT=${QDRANT_PORT:-6333}
-      - TZ=${TIMEZONE:-UTC}
-      - API_KEY=${API_KEY:-}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - DEBUG=${DEBUG:-true}
-      - SAVE_MEMORY_SNAPSHOTS=${SAVE_MEMORY_SNAPSHOTS:-false}
     ports:
       - ${CORE_PORT:-1865}:80
     volumes:
       - .:/app
     restart: unless-stopped
     depends_on:
-      - ccat-ts-vector-memory-dev
-  ccat-ts-vector-memory-dev:
+      - vector-memory
+  vector-memory:
     image: qdrant/qdrant:v1.12.0
-    container_name: ccat_ts_vector_memory
+    container_name: ccat_ts_vector_memory_dev
     env_file:
       - .env
     environment:

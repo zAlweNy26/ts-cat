@@ -1,23 +1,18 @@
 import type { CallbackManagerForLLMRun } from '@langchain/core/callbacks/manager'
 import type { BaseMessage } from '@langchain/core/messages'
 import type { ChatResult } from '@langchain/core/outputs'
-import { BaseChatModel, type BaseChatModelParams } from '@langchain/core/language_models/chat_models'
+import { BaseChatModel, type BaseChatModelParams, SimpleChatModel } from '@langchain/core/language_models/chat_models'
 import { ChatOllama } from '@langchain/ollama'
 import { ChatOpenAI } from '@langchain/openai'
 import { ofetch } from 'ofetch'
 
-export class FakeChat extends BaseChatModel {
+export class FakeChat extends SimpleChatModel {
 	constructor(params?: BaseChatModelParams) {
 		super(params ?? {})
 	}
 
-	_generate(messages: BaseMessage[]): Promise<ChatResult> {
-		return Promise.resolve({
-			generations: messages.map(message => ({
-				text: 'You did not configure a Language Model. Do it in the settings!',
-				message,
-			})),
-		})
+	async _call(): Promise<string> {
+		return 'You did not configure a Language Model. Do it in the settings!'
 	}
 
 	_llmType(): string {

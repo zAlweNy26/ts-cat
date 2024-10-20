@@ -1,9 +1,10 @@
 import type { AgentFastReply } from '@dto/agent.ts'
 import type { StrayCat } from '@lg'
-import { PromptTemplate } from '@langchain/core/prompts'
+import { catchError } from '@/errors.ts'
+import { db } from '@db'
+import { ChatPromptTemplate } from '@langchain/core/prompts'
 import { log } from '@logger'
-import { parsedEnv, parseJson } from '@utils'
-import { LLMChain } from 'langchain/chains'
+import { normalizeMessageChunks, parseJson } from '@utils'
 import _Merge from 'lodash/merge.js'
 import _Unset from 'lodash/unset.js'
 import { kebabCase } from 'scule'
@@ -111,9 +112,9 @@ export class Form<
 	T extends Record<string, z.ZodType> = Record<string, z.ZodType>,
 	S extends z.infer<z.ZodObject<T>> = z.infer<z.ZodObject<T>>,
 > {
-	private cat!: StrayCat
-	private _state: FormState = FormState.INCOMPLETE
-	active = true
+	#cat!: StrayCat
+	#state: FormState = FormState.INCOMPLETE
+	#active = false
 	name: string
 	schema: z.ZodObject<T>
 	model: S = {} as S
@@ -138,45 +139,57 @@ export class Form<
 	}
 
 	get state() {
-		return this._state
+		return this.#state
+	}
+
+	get active() {
+		return this.#active
+	}
+
+	set active(active: boolean) {
+		this.#active = active
+		db.update((db) => {
+			if (this.#active) db.activeForms.add(this.name)
+			else db.activeForms.delete(this.name)
+		})
 	}
 
 	assignCat(cat: StrayCat) {
-		this.cat = cat
+		this.#cat = cat
 		return this
 	}
 
 	reset() {
 		this.model = {} as S
-		this._state = FormState.INCOMPLETE
+		this.#state = FormState.INCOMPLETE
 		this.invalidFields = []
 		this.missingFields = []
 	}
 
 	async next(): Promise<AgentFastReply> {
-		if (await this.checkExitIntent()) this._state = FormState.CLOSED
+		if (await this.checkExitIntent()) this.#state = FormState.CLOSED
 
 		if (this.state === FormState.WAIT_CONFIRM) {
 			const confirm = await this.askUserConfirm()
 			if (confirm) {
-				this._state = FormState.CLOSED
-				return await this.submit(this.model, this.cat)
+				this.#state = FormState.CLOSED
+				return await this.submit(this.model, this.#cat)
 			}
-			else this._state = FormState.INCOMPLETE
+			else this.#state = FormState.INCOMPLETE
 		}
 
 		if (this.state === FormState.INCOMPLETE) this.model = await this.update()
 
 		if (this.state === FormState.COMPLETE) {
-			if (this.askConfirm) this._state = FormState.WAIT_CONFIRM
+			if (this.askConfirm) this.#state = FormState.WAIT_CONFIRM
 			else {
-				this._state = FormState.CLOSED
-				return await this.submit(this.model, this.cat)
+				this.#state = FormState.CLOSED
+				return await this.submit(this.model, this.#cat)
 			}
 		}
 
 		return await this.message({
-			cat: this.cat,
+			cat: this.#cat,
 			model: this.model,
 			state: this.state,
 			invalidFields: this.invalidFields,
@@ -208,10 +221,10 @@ export class Form<
 		return model
 	}
 
-	private async extract() {
+	private async extract(): Promise<S> {
 		const history = this.stringifyChatHistory()
 
-		const prompt = `Your task is to fill up a JSON out of a conversation.
+		const template = `Your task is to fill up a JSON out of a conversation.
 The JSON must have this format:
 \`\`\`json
 {structure}
@@ -229,14 +242,10 @@ ${history}
 Updated JSON:
 \`\`\`json`
 
-		log.debug(prompt)
+		log.debug(template)
 
-		const extractionChain = new LLMChain({
-			llm: this.cat.currentLLM,
-			prompt: PromptTemplate.fromTemplate(prompt),
-			verbose: parsedEnv.verbose,
-			outputKey: 'output',
-		})
+		const prompt = ChatPromptTemplate.fromTemplate(template)
+		const chain = prompt.pipe(this.#cat.currentLLM)
 
 		let structure = '{'
 		for (const key in this.schema.shape) {
@@ -245,23 +254,30 @@ Updated JSON:
 		}
 		structure += '\n}'
 
-		const json = (await extractionChain.invoke({ structure, stop: ['```'] })).output
-		let output: Record<string, any> = {}
+		const [chainError, chainResponse] = await catchError(chain.invoke({ structure, start: ['```'] }))
 
-		try {
-			output = parseJson(json, this.schema)
-			log.debug('Form JSON after parsing:\n', output)
-		}
-		catch (error) {
-			output = {}
-			log.warn(error)
+		if (chainError) {
+			log.error(chainError)
+			return {} as S
 		}
 
-		return output
+		const json = normalizeMessageChunks(chainResponse)
+
+		const [error, output = {}] = await catchError(parseJson(json, this.schema), {
+			errorsToCatch: [z.ZodError],
+			logMessage: `Error while parsing JSON from form ${this.name}`,
+		})
+
+		if (!error) {
+			log.debug('Form JSON after parsing:')
+			log.dir(output)
+		}
+
+		return output as S
 	}
 
 	private async askUserConfirm() {
-		const userMsg = this.cat.lastUserMessage.text
+		const userMsg = this.#cat.lastUserMessage.text
 		const confirmPrompt = `
 		Your task is to produce a JSON representing whether a user is confirming or not.
 JSON must be in this format:
@@ -275,13 +291,13 @@ JSON:
 {
     "confirm": `
 
-		const res = await this.cat.llm(confirmPrompt)
+		const res = normalizeMessageChunks(await this.#cat.llm(confirmPrompt))
 
 		return JSON.stringify(res).toLowerCase().includes('true')
 	}
 
 	private async checkExitIntent() {
-		const userMsg = this.cat.lastUserMessage.text
+		const userMsg = this.#cat.lastUserMessage.text
 		let stopExamples = `Examples where { exit: true }:
 - Exit form
 - Stop form
@@ -303,14 +319,14 @@ JSON:
 {
 	"exit": `
 
-		const res = await this.cat.llm(checkExitPrompt)
+		const res = normalizeMessageChunks(await this.#cat.llm(checkExitPrompt))
 
 		return JSON.stringify(res).toLowerCase().includes('true')
 	}
 
 	private stringifyChatHistory() {
-		const userMsg = this.cat.lastUserMessage.text
-		const chatHistory = this.cat.getHistory(10)
+		const userMsg = this.#cat.lastUserMessage.text
+		const chatHistory = this.#cat.getHistory(10)
 
 		let history = chatHistory.map(m => `- ${m.who}: ${m.what}`).join('\n')
 		history += `\nHuman: ${userMsg}`
@@ -325,11 +341,11 @@ JSON:
 		const result = this.schema.safeParse(model)
 
 		if (result.success) {
-			this._state = FormState.COMPLETE
+			this.#state = FormState.COMPLETE
 			return result.data
 		}
 		else {
-			this._state = FormState.INCOMPLETE
+			this.#state = FormState.INCOMPLETE
 			this.invalidFields = result.error.errors.map(e => e.message)
 			this.missingFields = result.error.errors.map(e => e.path.join('.'))
 			for (const key of this.missingFields) _Unset(model, key)

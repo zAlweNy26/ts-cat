@@ -13,15 +13,12 @@ export const generalRoutes = new Elysia({
 		userId: t.String({ default: 'user' }),
 	}),
 	query: t.Object({
-		save: t.Optional(t.Boolean()),
-		token: t.Optional(t.String()),
+		why: t.Boolean({ default: true }),
+		save: t.Boolean({ default: true }),
+		token: t.String({ default: true }),
 	}),
-	body: t.Intersect([
-		t.Object({
-			text: t.String(),
-		}),
-		t.Record(t.String(), t.Any()),
-	]),
+	body: 'messageInput',
+	idleTimeout: 300, // TODO: Set a proper idle timeout
 	beforeHandle: ({ query, HttpError }) => {
 		const apiKey = query.token, realKey = parsedEnv.apiKey
 		if (realKey && realKey !== apiKey)
@@ -82,12 +79,18 @@ export const generalRoutes = new Elysia({
 	const res = await stray.run(body, save, why)
 	return res
 }, {
-	body: t.Object({
-		text: t.String({ default: 'Hello world' }),
-	}),
+	body: 'messageInput',
 	query: t.Object({
-		save: t.Boolean({ default: true }),
-		why: t.Boolean({ default: true }),
+		save: t.Boolean({
+			title: 'Save',
+			description: 'Whether to save the message in the memory',
+			default: true,
+		}),
+		why: t.Boolean({
+			title: 'Why',
+			description: 'Whether to include the reasoning in the response',
+			default: true,
+		}),
 	}),
 	detail: {
 		summary: 'Chat',
@@ -106,10 +109,18 @@ export const generalRoutes = new Elysia({
 	for await (const chunk of res) yield normalizeMessageChunks(chunk)
 }, {
 	body: t.Object({
-		messages: t.Array(t.String(), { default: ['Hello world'] }),
+		messages: t.Array(t.String(), {
+			title: 'Messages',
+			description: 'The messages to send to the Cheshire Cat',
+			default: ['Hello world'],
+		}),
 	}),
 	query: t.Object({
-		stream: t.Boolean({ default: true }),
+		stream: t.Boolean({
+			title: 'Stream',
+			description: 'Whether to stream the response or not',
+			default: false,
+		}),
 	}),
 	detail: {
 		summary: 'Pure llm',
@@ -124,7 +135,11 @@ export const generalRoutes = new Elysia({
 	return res
 }, {
 	body: t.Object({
-		text: t.String({ default: 'Hello world' }),
+		text: t.String({
+			title: 'Text',
+			description: 'The text to embed using the current selected embedder',
+			default: 'Hello world',
+		}),
 	}),
 	detail: {
 		summary: 'Pure embed',

@@ -1,4 +1,34 @@
 import { Elysia, t } from 'elysia'
+import { log } from './logger'
+
+/**
+ * Catches errors from a promise.
+ * @param promise The promise to handle.
+ * @param options Additional options for handling the promise.
+ * @param options.errorsToCatch An optional array of error constructors to catch.
+ * @param options.logMessage An optional message to log when an error occurs.
+ * @returns A tuple with either the error or the result of the promise.
+ * @throws Will rethrow the error if it is not in the `errorsToCatch` array.
+ */
+export async function catchError<T, E extends new (...args: any[]) => Error>(
+	promise: Promise<T>,
+	options?: { errorsToCatch?: E[], logMessage?: string },
+): Promise<[undefined, T] | [InstanceType<E>]> {
+	try {
+		const res = await promise
+		return [undefined, res]
+	}
+	catch (error: any) {
+		const { errorsToCatch, logMessage } = options ?? {}
+		if (errorsToCatch === undefined || errorsToCatch.some(e => error instanceof e)) {
+			log.error(logMessage || 'An error occurred while executing a promise:')
+			log.dir(error)
+			return [error]
+		}
+
+		throw error
+	}
+}
 
 export class HttpError extends Error {
 	public constructor(

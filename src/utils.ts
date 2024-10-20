@@ -1,5 +1,5 @@
 import type { BaseMessageChunk } from '@langchain/core/messages'
-import { readdir } from 'node:fs/promises'
+import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { safeDestr } from 'destr'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
@@ -146,7 +146,7 @@ export async function compareStrings(input: string, prediction: string, criteria
  * @param sources The source objects containing default values.
  * @returns A new object with the merged properties.
  */
-export function deepDefaults<T, S = T>(target: T, ...sources: S[]) {
+export function deepDefaults<T>(target: T, ...sources: any[]) {
 	return _DefaultsDeep(structuredClone(target), ...sources) as T
 }
 
@@ -166,7 +166,13 @@ export function normalizeMessageChunks(chunk: BaseMessageChunk) {
  * @param path The path to the directory to check.
  */
 // TODO: Wait for a Bun internal method to be implemented
-export const existsDir = (path: string) => !!Array.from(new Bun.Glob(path).scanSync({ onlyFiles: false }))[0]
+export async function existsDir(path: string) {
+	const glob = new Bun.Glob(path)
+	const scans = await Array.fromAsync(glob.scan({ onlyFiles: false }))
+	if (scans.length === 0) return false
+	const stats = await stat(scans[0]!)
+	return stats.isDirectory()
+}
 
 /**
  * Generates a random string of the specified length.
@@ -198,7 +204,7 @@ export async function parseJson<T extends z.AnyZodObject>(text: string, schema: 
  * @param schema The Zod schema for which to retrieve the default values.
  * @param discriminant The discriminant value for discriminated unions.
  */
-export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_input'] | undefined {
+export function getZodDefaults<T extends z.ZodTypeAny>(schema: T, discriminant?: string): T['_output'] | undefined {
 	if (schema instanceof z.ZodDefault) return schema._def.defaultValue()
 	else if (schema instanceof z.ZodEnum) return schema.options[0]
 	else if (schema instanceof z.ZodNativeEnum) return Object.values(schema.enum)[0]

@@ -1,5 +1,5 @@
 import { serverContext, swaggerTags } from '@/context'
-import { getAllowedEmbedders, getEmbedder } from '@factory/embedder.ts'
+import { getAllowedEmbedders, getEmbedder, getEmbedderSettings } from '@factory/embedder.ts'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
@@ -28,18 +28,18 @@ export const embedderRoutes = new Elysia({
 		200: 'modelsInfo',
 		400: 'error',
 	},
-}).get('/settings/:embedderId', ({ db, params, HttpError }) => {
+}).get('/settings/:embedderId', ({ params, HttpError }) => {
 	const id = params.embedderId
 	const emb = getEmbedder(id)
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
-	const value = db.getEmbedderSettings(id) ?? {}
+	const value = getEmbedderSettings(id) ?? {}
 	return {
 		...emb.info,
 		schema: zodToJsonSchema(emb.config),
 		value,
 	}
 }, {
-	params: t.Object({ embedderId: t.String() }),
+	params: t.Object({ embedderId: t.String({ title: 'Embedder ID', description: 'ID of one of the available embedders' }) }),
 	detail: {
 		description: 'Get settings and schema of the specified embedder.',
 		summary: 'Get embedder settings',
@@ -75,7 +75,7 @@ export const embedderRoutes = new Elysia({
 		value: parsed.data,
 	}
 }, {
-	params: t.Object({ embedderId: t.String() }),
+	params: t.Object({ embedderId: t.String({ title: 'Embedder ID', description: 'ID of one of the available embedders' }) }),
 	body: 'generic',
 	detail: {
 		description: 'Upsert the specified embedder setting.',
@@ -85,5 +85,6 @@ export const embedderRoutes = new Elysia({
 		200: 'customSetting',
 		400: 'error',
 		404: 'error',
+		500: 'error',
 	},
 })

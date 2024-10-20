@@ -40,6 +40,17 @@ export const swaggerTags = {
 
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
+export const messageInput = t.Intersect([
+	t.Object({
+		text: t.String(),
+	}),
+	t.Record(t.String(), t.Any()),
+], {
+	$id: 'messageInput',
+	title: 'Message Input',
+	description: 'Message to pass to the cat',
+})
+
 export const memoryMessage = t.Object({
 	role: t.Union([t.Literal('AI'), t.Literal('User')]),
 	what: t.String(),
@@ -52,8 +63,15 @@ export const memoryMessage = t.Object({
 			input: t.Union([t.String(), t.Null()]),
 			observation: t.String(),
 		})),
-		memory: t.Optional(t.Record(t.String(), t.Any())),
-		interactions: t.Optional(t.Record(t.String(), t.Any())),
+		memory: t.Optional(t.Intersect([
+			t.Object({
+				episodic: t.Array(t.Record(t.String(), t.Any())),
+				declarative: t.Array(t.Record(t.String(), t.Any())),
+				procedural: t.Array(t.Record(t.String(), t.Any())),
+			}),
+			t.Record(t.String(), t.Array(t.Record(t.String(), t.Any()))),
+		])),
+		interactions: t.Optional(t.Array(t.Record(t.String(), t.Any()))),
 	})),
 }, {
 	$id: 'memoryMessage',
@@ -263,6 +281,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		title: 'Custom Setting',
 		description: 'Custom setting for the cat',
 	}),
+	messageInput,
 	chatMessage,
 	memoryMessage,
 	chatHistory: t.Object({
@@ -287,7 +306,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	}),
 	pluginsInfo: t.Object({
 		installed: t.Array(t.Ref(pluginInfo)),
-		registry: t.Array(t.Ref(pluginInfo)),
+		registry: t.Array(t.Pick(pluginInfo, ['id', 'manifest'])),
 	}, {
 		$id: 'PluginsInfo',
 		title: 'Plugins Information',

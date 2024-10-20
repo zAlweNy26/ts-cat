@@ -1,12 +1,13 @@
 import type { Form } from './form.ts'
 import type { HookNames, Hooks, HookTypes } from './hook.ts'
 import type { Tool } from './tool.ts'
-import { mkdir, readdir, rm } from 'node:fs/promises'
+import { mkdir, readdir } from 'node:fs/promises'
 import { basename, join, sep } from 'node:path'
 import { db } from '@db'
 import { log } from '@logger'
 import { catPaths, existsDir } from '@utils'
 import chokidar from 'chokidar'
+import _CloneDeep from 'lodash/cloneDeep.js'
 import { Plugin } from './plugin.ts'
 
 const { basePath, pluginsPath } = catPaths
@@ -14,7 +15,7 @@ const { basePath, pluginsPath } = catPaths
 export class MadHatter {
 	private static instance: MadHatter
 	private plugins = new Map<string, Plugin>()
-	private activePlugins: Plugin['id'][] = []
+	private activePlugins: Set<string> = new Set(['core_plugin'])
 	onPluginsSyncCallback?: () => Promise<void> = undefined
 	hooks: Partial<Hooks> = {}
 	tools: Tool[] = []
@@ -22,7 +23,7 @@ export class MadHatter {
 
 	private constructor() {
 		log.silent('Initializing the Mad Hatter...')
-		this.activePlugins = [...new Set(['core_plugin', ...db.data.activePlugins])]
+		this.activePlugins = new Set([...this.activePlugins, ...db.data.activePlugins])
 	}
 
 	/**
@@ -64,7 +65,7 @@ export class MadHatter {
 	 * Gets a copy of the installed plugins.
 	 */
 	get installedPlugins() {
-		return [...this.plugins.values()]
+		return [..._CloneDeep(this.plugins.values().map(p => p.info))]
 	}
 
 	/**
@@ -72,7 +73,7 @@ export class MadHatter {
 	 */
 	async findPlugins() {
 		log.silent('Finding plugins...')
-		if (existsDir(pluginsPath)) {
+		if (await existsDir(pluginsPath)) {
 			const dirs = await readdir(pluginsPath, { withFileTypes: true })
 			for (const dir of dirs) {
 				if (dir.isDirectory()) {
@@ -90,16 +91,8 @@ export class MadHatter {
 				log.error('Error creating plugins directory:', error)
 			}
 		}
-		log.success('Active plugins:', this.activePlugins.join(', '))
+		log.success('Active plugins:', [...this.activePlugins].join(', '))
 		await this.syncHooksAndProcedures()
-		if (Object.keys(this.hooks).length > 0) {
-			log.success('Added hooks:')
-			log.table(Object.entries(this.hooks).map(([key, value]) =>
-				({ 'Hook Name': key, 'Plugins': value.map(p => p.from).join(' | ') }),
-			))
-		}
-		if (this.tools.length > 0) log.success('Added tools:', this.tools.map(t => `"${t.name}"`).join(', '))
-		if (this.forms.length > 0) log.success('Added forms:', this.forms.map(f => `"${f.name}"`).join(', '))
 	}
 
 	/**
@@ -115,7 +108,7 @@ export class MadHatter {
 			this.plugins.set(plugin.id, plugin)
 			plugin.triggerEvent('installed')
 		}
-		if (this.activePlugins.includes(plugin.id)) plugin.activate()
+		plugin.active = this.activePlugins.has(plugin.id)
 		return plugin
 	}
 
@@ -135,17 +128,8 @@ export class MadHatter {
 		const plugin = this.plugins.get(id)
 		if (plugin) {
 			log.debug(`Removing plugin: ${id}`)
-			plugin.triggerEvent('removed')
-			plugin.fileUrls.forEach(u => URL.revokeObjectURL(u))
-			const requirementsPath = join(plugin.path, 'requirements.txt')
-			if (existsDir(requirementsPath)) {
-				const requirements = await Bun.file(requirementsPath).text()
-				const pkgs = requirements.split('\n').map(req => req.trim().split('=')[0]).filter(p => p !== undefined)
-				try { Bun.spawnSync(['bun', 'remove', ...pkgs]) }
-				catch (error) { log.error(`Error removing requirements for ${plugin.id}: ${error}`) }
-			}
-			await rm(plugin.path, { recursive: true, force: true })
-			this.activePlugins = this.activePlugins.filter(p => p !== id)
+			await plugin.remove()
+			this.activePlugins.delete(id)
 			db.update(db => db.activePlugins = this.activePlugins)
 			this.plugins.delete(id)
 			await this.syncHooksAndProcedures()
@@ -168,25 +152,24 @@ export class MadHatter {
 	/**
 	 * Toggles a plugin's state and executes corresponding hooks.
 	 * @param id The ID of the plugin to toggle.
+	 * @param state The state to set the plugin to. Default is undefined.
 	 * @param sync Whether to synchronize hooks and tools immediately. Default is true.
 	 */
-	async togglePlugin(id: string, sync = true) {
+	async togglePlugin(id: string, state?: boolean, sync = true) {
 		const plugin = this.plugins.get(id)
-		if (plugin) {
-			const active = this.activePlugins.includes(id)
-			if (active) {
-				plugin.deactivate()
-				this.activePlugins = this.activePlugins.filter(p => p !== id)
-			}
-			else {
-				plugin.activate()
-				this.activePlugins.push(plugin.id)
-			}
+		if (!plugin) {
+			log.error(`Plugin ${id} not found`)
+			return false
+		}
+		if (plugin.active !== state) {
+			plugin.active = state ?? !plugin.active
+			if (plugin.active) this.activePlugins.add(plugin.id)
+			else this.activePlugins.delete(plugin.id)
 			db.update(db => db.activePlugins = this.activePlugins)
 			if (sync) await this.syncHooksAndProcedures()
-			return plugin.active
 		}
-		return false
+		else log.info(`Plugin ${id} is already ${state ? 'enabled' : 'disabled'}`)
+		return plugin.active
 	}
 
 	/**
@@ -199,7 +182,9 @@ export class MadHatter {
 		this.forms = []
 		this.hooks = {}
 		this.plugins.forEach((plugin) => {
-			if (this.activePlugins.includes(plugin.id)) {
+			if (this.activePlugins.has(plugin.id)) {
+				plugin.tools.forEach(tool => tool.active = db.data.activeTools.has(tool.name))
+				plugin.forms.forEach(form => form.active = db.data.activeForms.has(form.name))
 				this.tools.push(...plugin.tools)
 				this.forms.push(...plugin.forms)
 				plugin.hooks.forEach((hook) => {
@@ -213,6 +198,14 @@ export class MadHatter {
 		Object.entries(this.hooks).forEach(([name, hooks]) => {
 			this.hooks[name as HookNames] = hooks.sort((a, b) => b.priority - a.priority)
 		})
+		if (Object.keys(this.hooks).length > 0) {
+			log.success('Added hooks:')
+			log.table(Object.entries(this.hooks).map(([key, value]) =>
+				({ 'Hook Name': key, 'Plugins': value.map(p => p.from).join(' | ') }),
+			))
+		}
+		if (this.tools.length > 0) log.success('Added tools:', this.tools.map(t => `"${t.name}"`).join(', '))
+		if (this.forms.length > 0) log.success('Added forms:', this.forms.map(f => `"${f.name}"`).join(', '))
 		await this.onPluginsSyncCallback?.()
 	}
 }
@@ -220,7 +213,7 @@ export class MadHatter {
 export const madHatter = await MadHatter.getInstance()
 
 chokidar.watch('src/plugins', {
-	ignored: file => file.endsWith('settings.json'),
+	ignored: path => path.endsWith('settings.json'),
 	ignoreInitial: true,
 	persistent: true,
 }).on('all', async (event, path) => {

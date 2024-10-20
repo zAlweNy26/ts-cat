@@ -24,6 +24,7 @@ export const rabbitHoleRoutes = new Elysia({
 				allowedMimetypes: ['text/plain', 'application/pdf', 'application/json'],
 			}],
 		}),
+		400: 'error',
 	},
 }).post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { sync, source } = query, { chunk, metadata } = body
@@ -40,12 +41,12 @@ export const rabbitHoleRoutes = new Elysia({
 	}
 }, {
 	body: t.Object({
-		chunk: t.Union([t.String(), t.Array(t.String())]),
+		chunk: t.Union([t.String(), t.Array(t.String())], { title: 'Chunk(s)', description: 'Text content to ingest.' }),
 		metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ default: true }),
-		source: t.String(),
+		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the chunk synchronously', default: true }),
+		source: t.String({ title: 'Source', description: 'Source of the chunk', default: 'unknown' }),
 	}),
 	detail: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -59,6 +60,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'Chunk ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/file', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { file, metadata } = body, { sync, chunkOverlap, chunkSize } = query
@@ -79,9 +81,9 @@ export const rabbitHoleRoutes = new Elysia({
 		metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ default: true }),
-		chunkSize: t.Number({ default: 256 }),
-		chunkOverlap: t.Number({ default: 64 }),
+		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the plugin synchronously', default: true }),
+		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
+		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
 	}),
 	detail: {
 		description: 'Upload a file whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -95,6 +97,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'File ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { content } = body, { sync, chunkOverlap, chunkSize } = query
@@ -123,9 +126,9 @@ export const rabbitHoleRoutes = new Elysia({
 		})),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ default: true }),
-		chunkSize: t.Number({ default: 256 }),
-		chunkOverlap: t.Number({ default: 64 }),
+		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the plugins synchronously', default: true }),
+		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
+		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
 	}),
 	detail: {
 		description: 'Upload a list of files whose contents will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -139,6 +142,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'Files ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { webUrl, metadata } = body, { sync, chunkOverlap, chunkSize } = query
@@ -163,9 +167,9 @@ export const rabbitHoleRoutes = new Elysia({
 		metadata: t.Optional(t.Record(t.String(), t.Any(), { description: 'Metadata to attach to the ingested content.' })),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ default: true }),
-		chunkSize: t.Number({ default: 256 }),
-		chunkOverlap: t.Number({ default: 64 }),
+		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the website synchronously', default: true }),
+		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
+		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
 	}),
 	detail: {
 		description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -179,6 +183,7 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'URL ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 }).post('/memory', async ({ rh, body, query, log, HttpError }) => {
 	const { file } = body, { sync } = query
@@ -198,7 +203,7 @@ export const rabbitHoleRoutes = new Elysia({
 		file: t.File({ description: 'Memory file to ingest. It must be a JSON.' }),
 	}),
 	query: t.Object({
-		sync: t.Boolean({ default: true }),
+		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the memory synchronously', default: true }),
 	}),
 	detail: {
 		description: 'Upload a memory json file to the cat memory.',
@@ -212,5 +217,6 @@ export const rabbitHoleRoutes = new Elysia({
 			description: 'Memory ingested successfully',
 		}),
 		400: 'error',
+		500: 'error',
 	},
 })

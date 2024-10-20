@@ -1,9 +1,10 @@
 import type { PointData } from '@dto/vector-memory.ts'
 import type { Embeddings } from '@langchain/core/embeddings'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { catchError } from '@/errors.ts'
 import { rabbitHole } from '@/rabbit-hole.ts'
 import { db } from '@db'
-import { getEmbedder, getLLM } from '@factory'
+import { getEmbedder, getEmbedderSettings, getLLM, getLLMSettings } from '@factory'
 import { log } from '@logger'
 import { getVectorMemory, type VectorMemory } from '@memory'
 import { type Form, isForm, isTool, madHatter, type Tool } from '@mh'
@@ -119,7 +120,7 @@ export class CheshireCat {
 		try {
 			const llm = getLLM(selected)
 			if (!llm) throw new Error('LLM not found')
-			const settings = db.getLLMSettings(selected)
+			const settings = getLLMSettings(selected)
 			if (!settings) throw new Error('LLM settings not found')
 			return llm.initModel(settings)
 		}
@@ -135,7 +136,7 @@ export class CheshireCat {
 		try {
 			const embedder = getEmbedder(selected)
 			if (!embedder) throw new Error('Embedder not found')
-			const settings = db.getEmbedderSettings(selected)
+			const settings = getEmbedderSettings(selected)
 			if (!settings) throw new Error('Embedder settings not found')
 			return embedder.initModel(settings)
 		}
@@ -151,11 +152,20 @@ export class CheshireCat {
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
-		this._embedderSize = (await this.currentEmbedder.embedQuery('hello world')).length
+		const [error, vector = [0.1, 0.2, 0.3, 0.4, 0.5]] = await catchError(
+			this.currentEmbedder.embedQuery('hello world'),
+			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
+		)
+
+		// TODO: Should we also set it in the db?
+		if (error) this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
+
+		this._embedderSize = vector.length
 		if (this._embedderSize === 0) {
 			log.error('Embedder size is 0')
 			throw new Error('Embedder size is 0. Unable to proceed.')
 		}
+
 		this.memory = await getVectorMemory({
 			embedderName: db.data.selectedEmbedder,
 			embedderSize: this.embedderSize,

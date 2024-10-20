@@ -20,7 +20,7 @@ export const settingsRoutes = new Elysia({
 	if (!key) throw HttpError.NotFound(`The passed setting key '${id}' is not present in the database.`)
 	return { [key]: db.data[key] }
 }, {
-	params: t.Object({ settingId: t.String() }),
+	params: t.Object({ settingId: t.String({ title: 'Setting ID', description: 'ID of the setting to retrieve' }) }),
 	detail: {
 		description: 'Get the a specific setting from the database.',
 		summary: 'Get setting',
@@ -28,6 +28,7 @@ export const settingsRoutes = new Elysia({
 	response: {
 		200: 'generic',
 		400: 'error',
+		404: 'error',
 	},
 }).put('/:settingId', ({ db, params, body, HttpError }) => {
 	const id = params.settingId
@@ -43,7 +44,7 @@ export const settingsRoutes = new Elysia({
 		[key]: body,
 	}
 }, {
-	params: t.Object({ settingId: t.String() }),
+	params: t.Object({ settingId: t.String({ title: 'Setting ID', description: 'ID of the setting to update' }) }),
 	body: 'json',
 	detail: {
 		description: 'Update a specific setting in the database if it exists.',
@@ -53,6 +54,7 @@ export const settingsRoutes = new Elysia({
 		200: 'generic',
 		400: 'error',
 		404: 'error',
+		500: 'error',
 	},
 }).post('/:settingId', ({ db, params, body, HttpError }) => {
 	const id = params.settingId
@@ -62,7 +64,7 @@ export const settingsRoutes = new Elysia({
 		[id]: body,
 	}
 }, {
-	params: t.Object({ settingId: t.String() }),
+	params: t.Object({ settingId: t.String({ title: 'Setting ID', description: 'ID of the setting to set' }) }),
 	body: 'json',
 	detail: {
 		description: 'Create a new setting in the database.',
@@ -83,7 +85,7 @@ export const settingsRoutes = new Elysia({
 		[key]: value,
 	}
 }, {
-	params: t.Object({ settingId: t.String() }),
+	params: t.Object({ settingId: t.String({ title: 'Setting ID', description: 'ID of the setting to delete' }) }),
 	detail: {
 		description: 'Delete a specific setting from the database.',
 		summary: 'Delete setting',

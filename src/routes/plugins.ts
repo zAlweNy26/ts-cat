@@ -10,9 +10,8 @@ export const pluginsRoutes = new Elysia({
 	prefix: '/plugins',
 	detail: { tags: [swaggerTags.plugins.name] },
 }).use(serverContext).get('/', ({ mh }) => {
-	const ps = mh.installedPlugins.map(({ info }) => info)
 	return {
-		installed: ps,
+		installed: mh.installedPlugins,
 		registry: [],
 	}
 }, {
@@ -22,6 +21,7 @@ export const pluginsRoutes = new Elysia({
 	},
 	response: {
 		200: 'pluginsInfo',
+		400: 'error',
 	},
 }).get('/:pluginId', ({ mh, params, HttpError }) => {
 	const id = params.pluginId
@@ -33,18 +33,20 @@ export const pluginsRoutes = new Elysia({
 		description: 'Returns information on a single plugin.',
 		summary: 'Get plugin details',
 	},
-	params: t.Object({ pluginId: t.String() }),
+	params: t.Object({ pluginId: t.String({ title: 'Plugin ID', description: 'ID of the plugin whose information will be retrieved' }) }),
 	response: {
 		200: 'pluginInfo',
+		400: 'error',
 		404: 'error',
 	},
-}).delete('/:pluginId', async ({ mh, params, log, HttpError }) => {
+}).delete('/:pluginId', async ({ mh, params, log, HttpError, set }) => {
 	const id = params.pluginId
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
 	if (p.id === 'core_plugin') throw HttpError.InternalServer('Cannot delete core_plugin')
 	try {
 		await mh.removePlugin(id)
+		set.status = 204
 	}
 	catch (error) {
 		log.error(error)
@@ -55,11 +57,12 @@ export const pluginsRoutes = new Elysia({
 		description: 'Totally removes the specified plugin.',
 		summary: 'Delete plugin',
 	},
-	params: t.Object({ pluginId: t.String() }),
+	params: t.Object({ pluginId: t.String({ title: 'Plugin ID', description: 'ID of the plugin to delete' }) }),
 	response: {
 		204: t.Void({ title: 'Plugin removed', description: 'The plugin has been removed' }),
-		404: 'error',
 		400: 'error',
+		404: 'error',
+		500: 'error',
 	},
 }).post('/upload', async ({ body, log, mh, HttpError }) => {
 	const { file } = body
@@ -87,6 +90,7 @@ export const pluginsRoutes = new Elysia({
 	}
 	catch (error) {
 		log.warn(error)
+		throw HttpError.InternalServer('Failed to install plugin')
 	}
 
 	return {
@@ -99,9 +103,9 @@ export const pluginsRoutes = new Elysia({
 	},
 	body: t.Object({
 		file: t.File(),
-	}),
-	query: t.Object({
-		async: t.Boolean({ default: true }),
+	}, {
+		title: 'Plugin file',
+		description: 'The plugin file to be uploaded',
 	}),
 	response: {
 		200: t.Object({ info: t.String() }, { title: 'Plugin installation info', description: 'Plugin installed successfully' }),
@@ -122,57 +126,49 @@ export const pluginsRoutes = new Elysia({
 	},
 	body: t.Object({
 		url: t.String({ format: 'uri' }),
-	}),
-	query: t.Object({
-		async: t.Boolean({ default: true }),
+	}, {
+		title: 'Plugin URL',
+		description: 'The URL of the plugin to be installed',
 	}),
 	response: {
 		200: t.Object({ info: t.String() }, { title: 'Plugin installation info', description: 'Plugin installed successfully' }),
 		400: 'error',
 	},
 }).patch('/toggle/:pluginId', async ({ body, params, mh, HttpError }) => {
-	const id = params.pluginId
+	const id = params.pluginId, state = body.active
 	if (id === 'core_plugin') throw HttpError.InternalServer('Cannot toggle core_plugin')
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
-	const { active } = body
-	if (active) await mh.togglePlugin(id)
-	return {
-		active: p.active,
-	}
+	const active = await mh.togglePlugin(id, state)
+	return { active }
 }, {
 	detail: {
 		description: 'Enable or disable a single plugin.',
 		summary: 'Toggle plugin',
 	},
-	params: t.Object({ pluginId: t.String() }),
-	body: t.Object({ active: t.Boolean() }),
+	params: t.Object({ pluginId: t.String({ title: 'Plugin ID', description: 'ID of the plugin to toggle' }) }),
+	body: t.Object({ active: t.Boolean({ default: true }) }, { title: 'Plugin status', description: 'Status of the plugin' }),
 	response: {
-		200: t.Object({ active: t.Boolean() }, { title: 'Plugin activation status', description: 'Plugin toggled successfully' }),
-		404: 'error',
+		200: t.Object({ active: t.Boolean() }, { title: 'Plugin status', description: 'Plugin toggled successfully' }),
 		400: 'error',
+		404: 'error',
+		500: 'error',
 	},
-}).patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, mh, db, HttpError }) => {
-	const { pluginId, procedureName } = params
+}).patch('/toggle/:pluginId/procedure/:procedureName', async ({ params, body, log, mh, HttpError }) => {
+	const { pluginId, procedureName } = params, { active } = body
 	const p = mh.getPlugin(pluginId)
 	if (!p) throw HttpError.NotFound('Plugin not found')
-	const tool = p.tools.find(t => t.name === procedureName)
-	const form = p.forms.find(f => f.name === procedureName)
-	if (!tool && !form) throw HttpError.NotFound('Procedure not found')
-	if (tool) tool.active = !tool.active
-	if (form) form.active = !form.active
-	db.update((db) => {
-		if (tool) {
-			if (tool.active) db.activeTools.push(procedureName)
-			else db.activeTools = db.activeTools.filter(t => t !== procedureName)
-		}
-		else if (form) {
-			if (form.active) db.activeForms.push(procedureName)
-			else db.activeForms = db.activeForms.filter(f => f !== procedureName)
-		}
-	})
+
+	const proc = p.tools.find(t => t.name === procedureName)
+		|| p.forms.find(f => f.name === procedureName)
+	if (!proc) throw HttpError.NotFound('Procedure not found')
+
+	proc.active = active
+
+	log.debug(`Toggled procedure ${procedureName} of plugin ${pluginId} to ${active}`)
+
 	return {
-		active: (tool?.active ?? form?.active) ?? false,
+		active: proc.active,
 	}
 }, {
 	detail: {
@@ -182,18 +178,25 @@ export const pluginsRoutes = new Elysia({
 	params: t.Object({
 		pluginId: t.String(),
 		procedureName: t.String(),
+	}, {
+		title: 'Plugin and procedure',
+		description: 'ID of the plugin and name of the procedure to toggle',
 	}),
+	body: t.Object({ active: t.Boolean({ default: true }) }, { title: 'Procedure status', description: 'Status of the procedure' }),
 	response: {
 		200: t.Object({ active: t.Boolean() }, { title: 'Procedure activation status', description: 'Procedure toggled successfully' }),
-		404: 'error',
 		400: 'error',
+		404: 'error',
 	},
 }).get('/settings', ({ mh }) => {
-	const ps = mh.installedPlugins.map(p => ({
-		name: p.id,
-		value: p.settings,
-		schema: zodToJsonSchema(p.schema),
-	}))
+	const ps = mh.installedPlugins.map(({ id }) => {
+		const p = mh.getPlugin(id)!
+		return {
+			name: p.id,
+			value: p.settings,
+			schema: zodToJsonSchema(p.schema),
+		}
+	})
 	return {
 		settings: ps,
 	}
@@ -204,11 +207,13 @@ export const pluginsRoutes = new Elysia({
 	},
 	response: {
 		200: 'pluginsSettings',
+		400: 'error',
 	},
 }).get('/settings/:pluginId', ({ mh, params, HttpError }) => {
 	const id = params.pluginId
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
+
 	return {
 		name: id,
 		schema: zodToJsonSchema(p.schema),
@@ -219,18 +224,21 @@ export const pluginsRoutes = new Elysia({
 		description: 'Returns the settings of the specified plugin.',
 		summary: 'Get plugin settings',
 	},
-	params: t.Object({ pluginId: t.String() }),
+	params: t.Object({ pluginId: t.String({ title: 'Plugin ID', description: 'ID of the plugin whose settings will be retrieved' }) }),
 	response: {
 		200: 'pluginSettings',
+		400: 'error',
 		404: 'error',
 	},
 }).put('/settings/:pluginId', ({ body, params, mh, HttpError }) => {
 	const id = params.pluginId
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
+
 	const parsed = p.schema.safeParse(body)
 	if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
 	p.settings = parsed.data
+
 	return {
 		name: id,
 		value: parsed.data,
@@ -240,11 +248,17 @@ export const pluginsRoutes = new Elysia({
 		description: 'Updates the settings of the specified plugin.',
 		summary: 'Update plugin settings',
 	},
-	params: t.Object({ pluginId: t.String() }),
-	body: t.Record(t.String(), t.Any()),
+	params: t.Object({ pluginId: t.String({ title: 'Plugin ID', description: 'ID of the plugin whose settings will be set' }) }),
+	body: t.Record(t.String(), t.Any(), {
+		title: 'Plugin settings',
+		description: 'New settings for the plugin',
+		examples: [{
+			foo: 'bar',
+		}],
+	}),
 	response: {
 		200: 'customSetting',
-		404: 'error',
 		400: 'error',
+		404: 'error',
 	},
 })
