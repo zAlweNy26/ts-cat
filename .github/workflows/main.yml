@@ -1,22 +1,27 @@
-name: Lint and Test
+name: Release
+
+env:
+  HUSKY: 0
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-    paths-ignore:
-      - '**.md'
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths-ignore:
-      - '**.md'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver version
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  check:
-    name: Lint and Test
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,10 +29,6 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        run: bun install
-      - name: Typecheck
-        run: bun run typecheck
-      - name: Lint
-        run: bun run lint
-      - name: Tests
-        run: bun run test
+        run: bun install --frozen-lockfile
+      - name: Release
+        run: bunx changelogen --release --push --${{ github.event.inputs.version }}
