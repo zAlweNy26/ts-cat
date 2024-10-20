@@ -133,6 +133,9 @@
 	"patchedDependencies": {
 		"langchain@0.3.2": "patches/langchain@0.3.2.patch"
 	},
+	"workspaces": [
+		"src/plugins/*"
+	],
 	"changelog": {
 		"types": {
 			"feat": {

@@ -1,0 +1,9 @@
+{
+	"name": "My plugin",
+	"description": "Description of my plugin for the Cheshire Cat!",
+	"authorName": "Me",
+	"authorUrl": "https://me.github.io",
+	"pluginUrl": "https://github.com/me/my_plugin",
+	"tags": ["mine", "cat", "useful", "funny"],
+	"version": "1.0.0"
+}
