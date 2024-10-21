@@ -1,4 +1,3 @@
-import { semver } from 'bun'
 import isDocker from 'is-docker'
 import nodemon from 'nodemon'
 import { log } from './logger.ts'
@@ -7,7 +6,7 @@ import { parsedEnv } from './utils.ts'
 const inDocker = isDocker()
 const { watch, verbose } = parsedEnv
 
-if (!semver.satisfies(Bun.version, '>=1.1.19')) {
+if (!Bun.semver.satisfies(Bun.version, '>=1.1.19')) {
 	log.error('The Cat requires Bun version 1.1.19 or higher.')
 	process.exit(1)
 }

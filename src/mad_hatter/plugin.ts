@@ -1,11 +1,11 @@
-import type { Dirent } from 'node:fs'
+import type { PackageJson } from 'pkg-types'
 import { rm } from 'node:fs/promises'
-import { basename, extname, join, relative } from 'node:path'
+import { basename, join } from 'node:path'
 import { log } from '@logger'
-import { deepDefaults, existsDir, getFilesRecursively, getRandomString, getZodDefaults } from '@utils'
+import { deepDefaults, existsDir, getZodDefaults } from '@utils'
 import { destr } from 'destr'
-import { diffLines } from 'diff'
 import _CloneDeep from 'lodash/cloneDeep.js'
+import _SampleSize from 'lodash/sampleSize.js'
 import { titleCase } from 'scule'
 import { z } from 'zod'
 import { type Form, isForm } from './form.ts'
@@ -47,6 +47,11 @@ function isPluginEvent(event: any): event is PluginEvent {
 		&& ['installed', 'enabled', 'disabled', 'removed'].includes(event.name)
 }
 
+function getRandomString(length: number) {
+	const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	return _SampleSize(letters, length).join('')
+}
+
 export const CatPlugin = Object.freeze({
 	/**
 	 * Add some settings to the plugin
@@ -74,7 +79,6 @@ export class Plugin<
 	private _id: string
 	private _reloading = false
 	private _active = false
-	#oldRequirements = ''
 	#hooks: Hook[] = []
 	#fileUrls: string[] = []
 	tools: Tool[] = []
@@ -95,12 +99,20 @@ export class Plugin<
 	}
 
 	async reload() {
-		const tsFiles = (await getFilesRecursively(this.path)).filter(file => extname(file.name) === '.ts')
+		const glob = new Bun.Glob('**/*.ts')
+		const tsFiles = await Array.fromAsync(glob.scan({
+			cwd: this.path,
+			followSymlinks: true,
+			throwErrorOnBrokenSymlink: true,
+		}))
 		if (tsFiles.length === 0) log.error(new Error('Plugin must contain at least one .ts file'))
 
 		if (this._reloading) return
 
 		this._reloading = true
+		this.tools = []
+		this.forms = []
+		this.#hooks = []
 		await this.installRequirements()
 		await this.importAll(tsFiles)
 		await this.loadManifest()
@@ -212,28 +224,22 @@ export class Plugin<
 
 	private async installRequirements() {
 		log.debug('Installing plugin requirements...')
-		const file = Bun.file(join(this.path, 'requirements.txt'))
+		const file = Bun.file(join(this.path, 'package.json'))
 		if (await file.exists()) {
-			const newRequirements = await file.text()
-			const differences = diffLines(this.#oldRequirements, newRequirements)
-			const newPkgs = differences.filter(d => d.added).map(d => d.value.trim())
-			const oldPkgs = differences.filter(d => d.removed).map(d => d.value.trim().split('@')[0]).filter(p => p !== undefined)
-			this.#oldRequirements = newRequirements
-			try { Bun.spawnSync(['bun', 'remove', ...oldPkgs]) }
-			catch (error) { log.error(`Error uninstalling requirements for ${this.id}: ${error}`) }
-			try { Bun.spawnSync(['bun', 'i', ...newPkgs]) }
+			const requirements = await file.json() as PackageJson
+			const deps = Object.entries(requirements).filter(([key]) => key.toLowerCase().includes('dependencies')).map<string>(([_, value]) => value)
+			try { Bun.spawnSync(['bun', 'add', ...deps]) }
 			catch (error) { log.error(`Error installing requirements for ${this.id}: ${error}`) }
 		}
 	}
 
-	private async importAll(files: Dirent[]) {
+	private async importAll(files: string[]) {
 		log.debug(`Importing plugin features...`)
 		for (const file of files) {
-			const normalizedPath = relative(process.cwd(), file.path)
-			const content = await Bun.file(normalizedPath).text()
+			const content = await Bun.file(join(this.path, file)).text()
 			const replaced = content.replace(/^Cat(Hook|Tool|Form|Plugin)\.(add|on|settings).*/gm, (match) => {
 				if (match.startsWith('export')) return match
-				else if (match.startsWith('const') || match.startsWith('let')) return `export ${match}`
+				else if (/^(?:const|let|var)\b/.test(match)) return `export ${match}`
 				else return `export const ${getRandomString(8)} = ${match}`
 			})
 			const jsCode = transpiler.transformSync(replaced)
@@ -263,17 +269,17 @@ export class Plugin<
 	 * This method performs the following actions:
 	 * 1. Triggers the 'removed' event.
 	 * 2. Revokes all object URLs stored.
-	 * 3. If `requirements.txt` exists, attempts to remove the packages.
+	 * 3. If any dependencies are found in the plugin's package.json file, they are uninstalled.
 	 * 4. Deletes the plugin's directory and its contents.
 	 */
 	async remove() {
 		this.triggerEvent('removed')
 		this.#fileUrls.forEach(u => URL.revokeObjectURL(u))
-		const file = Bun.file(join(this.path, 'requirements.txt'))
+		const file = Bun.file(join(this.path, 'package.json'))
 		if (await file.exists()) {
-			const requirements = await file.text()
-			const pkgs = requirements.split('\n').map(req => req.trim().split('@')[0]).filter(p => p !== undefined)
-			try { Bun.spawnSync(['bun', 'remove', ...pkgs]) }
+			const requirements = await file.json() as PackageJson
+			const deps = Object.entries(requirements).filter(([key]) => key.toLowerCase().includes('dependencies')).map<string>(([_, value]) => value)
+			try { Bun.spawnSync(['bun', 'remove', ...deps]) }
 			catch (error) { log.error(`Error uninstalling requirements for ${this.id}: ${error}`) }
 		}
 		await rm(this.path, { recursive: true, force: true })

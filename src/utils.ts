@@ -1,10 +1,9 @@
 import type { BaseMessageChunk } from '@langchain/core/messages'
-import { readdir, stat } from 'node:fs/promises'
+import { stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { safeDestr } from 'destr'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import _DefaultsDeep from 'lodash/defaultsDeep.js'
-import _SampleSize from 'lodash/sampleSize.js'
 import { z } from 'zod'
 
 export const LogLevel = ['error', 'warning', 'normal', 'info', 'debug'] as const
@@ -117,17 +116,6 @@ export async function logWelcome() {
 }
 
 /**
- * Retrieves all files recursively from the specified path.
- * @param path The path to search for files.
- * @returns An array of Dirent objects representing the files found.
- */
-export async function getFilesRecursively(path: string) {
-	const dirents = await readdir(path, { withFileTypes: true, recursive: true, encoding: 'utf-8' })
-	for (const dirent of dirents) dirent.path = join(dirent.path, dirent.name)
-	return dirents
-}
-
-/**
  * Compares two strings using an evaluator.
  * @param input The input string to compare.
  * @param prediction The prediction string to use for comparison.
@@ -172,15 +160,6 @@ export async function existsDir(path: string) {
 	if (scans.length === 0) return false
 	const stats = await stat(scans[0]!)
 	return stats.isDirectory()
-}
-
-/**
- * Generates a random string of the specified length.
- * @param length The length of the random string to generate.
- */
-export function getRandomString(length: number) {
-	const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-	return _SampleSize(letters, length).join('')
 }
 
 /**
