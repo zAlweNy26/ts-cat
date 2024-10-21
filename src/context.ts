@@ -59,7 +59,7 @@ export const memoryMessage = t.Object({
 	why: t.Optional(t.Object({
 		input: t.String(),
 		intermediateSteps: t.Array(t.Object({
-			tool: t.String(),
+			procedure: t.String(),
 			input: t.Union([t.String(), t.Null()]),
 			observation: t.String(),
 		})),

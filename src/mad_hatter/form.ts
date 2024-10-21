@@ -2,7 +2,7 @@ import type { AgentFastReply } from '@dto/agent.ts'
 import type { StrayCat } from '@lg'
 import { catchError } from '@/errors.ts'
 import { db } from '@db'
-import { ChatPromptTemplate } from '@langchain/core/prompts'
+import { PromptTemplate } from '@langchain/core/prompts'
 import { log } from '@logger'
 import { normalizeMessageChunks, parseJson } from '@utils'
 import _Merge from 'lodash/merge.js'
@@ -48,10 +48,6 @@ interface FormActionOptions<T extends TModel = TModel> {
 	 * The invalid fields of the form
 	 */
 	invalidFields: string[]
-	/**
-	 * The missing fields of the form
-	 */
-	missingFields: string[]
 }
 
 type FormSubmit<T extends TModel = TModel> = (output: T, cat: StrayCat) => Promise<AgentFastReply>
@@ -124,7 +120,6 @@ export class Form<
 	startExamples: string[]
 	stopExamples: string[]
 	invalidFields: string[] = []
-	missingFields: string[] = []
 
 	constructor(name: string, schema: T, options: FormOptions<S>) {
 		const { askConfirm = false, description, startExamples, stopExamples = [], onAction, onSubmit } = options
@@ -163,7 +158,6 @@ export class Form<
 		this.model = {} as S
 		this.#state = FormState.INCOMPLETE
 		this.invalidFields = []
-		this.missingFields = []
 	}
 
 	async next(): Promise<AgentFastReply> {
@@ -193,18 +187,15 @@ export class Form<
 			model: this.model,
 			state: this.state,
 			invalidFields: this.invalidFields,
-			missingFields: this.missingFields,
 		})
 	}
 
 	private async message(current: FormActionOptions<S>): Promise<AgentFastReply> {
-		const { invalidFields, missingFields, model, state, cat } = current
+		const { invalidFields, model, state, cat } = current
 
 		if (state === FormState.CLOSED) return await this.submit(model, cat)
 
 		let infoOutput = `Info until now:\n${JSON.stringify(model, null, 4)}`
-
-		if (missingFields.length > 0) infoOutput += `\nMissing fields: \n - ${missingFields.join('\n - ')}`
 
 		if (invalidFields.length > 0) infoOutput += `\nInvalid fields: \n - ${invalidFields.join('\n - ')}`
 
@@ -232,19 +223,22 @@ The JSON must have this format:
 
 This is the current JSON:
 \`\`\`json
-${JSON.stringify(this.model, null, 4).replace('{', '{{').replace('}', '}}')}
+{model}
 \`\`\`
 
 This is the conversation:
 
-${history}
+{history}
 
 Updated JSON:
 \`\`\`json`
 
 		log.debug(template)
 
-		const prompt = ChatPromptTemplate.fromTemplate(template)
+		const prompt = new PromptTemplate({
+			template,
+			inputVariables: ['structure', 'model', 'history'],
+		})
 		const chain = prompt.pipe(this.#cat.currentLLM)
 
 		let structure = '{'
@@ -254,7 +248,7 @@ Updated JSON:
 		}
 		structure += '\n}'
 
-		const [chainError, chainResponse] = await catchError(chain.invoke({ structure, start: ['```'] }))
+		const [chainError, chainResponse] = await catchError(chain.invoke({ structure, history, model: this.model }))
 
 		if (chainError) {
 			log.error(chainError)
@@ -328,14 +322,13 @@ JSON:
 		const userMsg = this.#cat.lastUserMessage.text
 		const chatHistory = this.#cat.getHistory(10)
 
-		let history = chatHistory.map(m => `- ${m.who}: ${m.what}`).join('\n')
+		let history = chatHistory.map(m => `- ${m.role}: ${m.what}`).join('\n')
 		history += `\nHuman: ${userMsg}`
 
 		return history
 	}
 
 	private validate(model: S) {
-		this.missingFields = []
 		this.invalidFields = []
 
 		const result = this.schema.safeParse(model)
@@ -346,9 +339,9 @@ JSON:
 		}
 		else {
 			this.#state = FormState.INCOMPLETE
-			this.invalidFields = result.error.errors.map(e => e.message)
-			this.missingFields = result.error.errors.map(e => e.path.join('.'))
-			for (const key of this.missingFields) _Unset(model, key)
+			this.invalidFields = result.error.errors.map(e =>
+				`${e.path.join('.')} (${e.message}, expected ${(e as any).expected})`,
+			)
 			return model
 		}
 	}

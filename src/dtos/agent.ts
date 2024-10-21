@@ -14,7 +14,7 @@ export interface ContextInput {
  * The intermediate step of the agent.
  */
 export interface IntermediateStep {
-	tool: string
+	procedure: string
 	input: string | null
 	observation: string
 }

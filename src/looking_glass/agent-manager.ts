@@ -106,7 +106,7 @@ export class AgentManager {
 			const { tool, toolInput } = action
 			if (returnDirectTools.includes(tool)) result.returnDirect = true
 			intermediateSteps.push({
-				tool,
+				procedure: tool,
 				input: typeof toolInput === 'string' ? toolInput : null,
 				observation,
 			})
@@ -119,7 +119,7 @@ export class AgentManager {
 			result = await form.next()
 			result.returnDirect = true
 			intermediateSteps.push({
-				tool: result.form,
+				procedure: form.name,
 				input: null,
 				observation: result.output,
 			})
@@ -177,7 +177,7 @@ export class AgentManager {
 			const output = await calledTool.invoke(toolInput)
 			return {
 				output,
-				intermediateSteps: [{ tool: calledTool.name, input: toolInput, observation: output }],
+				intermediateSteps: [{ procedure: calledTool.name, input: toolInput, observation: output }],
 			}
 		}
 		return undefined
@@ -216,7 +216,7 @@ export class AgentManager {
 				intermediateSteps = afterProcedures.intermediateSteps ?? []
 				if (intermediateSteps.length > 0) {
 					agentInput.tools_output = `## Tools output: \n`
-					agentInput.tools_output += intermediateSteps.reduce((acc, { tool, observation }) => `${acc}\t- ${tool}: ${observation}\n`, '')
+					agentInput.tools_output += intermediateSteps.reduce((acc, { procedure, observation }) => `${acc}\t- ${procedure}: ${observation}\n`, '')
 				}
 			}
 			catch (error) {

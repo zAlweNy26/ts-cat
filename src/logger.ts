@@ -40,11 +40,13 @@ export const log = Object.freeze({
 		})
 		table.printTable()
 	},
-	dir: (content: any) => console.dir(content, {
-		colors: true,
-		depth: null,
-		breakLength: 120,
-	}),
+	dir: (content: any) => LogLevel.indexOf(parsedEnv.logLevel) >= 4
+		? console.dir(content, {
+			colors: true,
+			depth: null,
+			breakLength: 120,
+		})
+		: void 0,
 	/**
 	 * Logs an error message.
 	 * @param message The error message to be logged.
