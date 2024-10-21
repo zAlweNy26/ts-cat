@@ -37,7 +37,7 @@ export class HttpError extends Error {
 		public cause: string,
 		public data: any = undefined,
 	) {
-		super(message, data)
+		super(message, { cause })
 	}
 
 	public static BadRequest(message: string, data?: any) {
@@ -122,9 +122,9 @@ export const httpError = new Elysia({ name: 'http-error' })
 		}),
 	})
 	.onError({ as: 'global' }, ({ code, error, set }) => {
+		set.headers['content-type'] = 'application/json'
 		if (code === 'HTTP_ERROR') {
 			set.status = error.status
-			set.headers['content-type'] = 'application/json'
 			return {
 				code: error.message,
 				status: error.status,
