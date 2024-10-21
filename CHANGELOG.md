@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.5.4
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.3...v1.5.4)
+
+### 🚀 Enhancements
+
+- Add plugin template, fix #37 ([#37](https://github.com/zAlweNy26/ts-cat/issues/37))
+
+### 🩹 Fixes
+
+- Fix docker compose ([6fa894c](https://github.com/zAlweNy26/ts-cat/commit/6fa894c))
+- Improve plugin class ([7613684](https://github.com/zAlweNy26/ts-cat/commit/7613684))
+
+### 🌊 Types
+
+- Update executeHook method ([fcd7065](https://github.com/zAlweNy26/ts-cat/commit/fcd7065))
+
+### 🏡 Chore
+
+- Add pre-commit hooks and improve linting ([6b5ae1e](https://github.com/zAlweNy26/ts-cat/commit/6b5ae1e))
+- Update dependencies ([7feb33b](https://github.com/zAlweNy26/ts-cat/commit/7feb33b))
+
+### 🤖 CI
+
+- Fix lockfile ([b6828bf](https://github.com/zAlweNy26/ts-cat/commit/b6828bf))
+- Fix lockfile ([3d5a9f0](https://github.com/zAlweNy26/ts-cat/commit/3d5a9f0))
+- Add permission to push commits ([d4af4c5](https://github.com/zAlweNy26/ts-cat/commit/d4af4c5))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.5.3
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.2...v1.5.3)
