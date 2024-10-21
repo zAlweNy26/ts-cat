@@ -25,11 +25,11 @@ export interface MemoryRecallConfigs {
 /**
  * A memory document.
  */
-export type MemoryDocument = {
+export type MemoryDocument = DocumentInput & {
 	id: string
 	vector: number[]
 	score: number
-} & DocumentInput
+}
 
 /**
  * The working memory of the cat.

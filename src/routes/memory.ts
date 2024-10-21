@@ -1,4 +1,4 @@
-import type { MemoryDocument } from '@dto/message.ts'
+import type { WorkingMemory } from '@dto/message.ts'
 import type { FilterMatch } from '@dto/vector-memory.ts'
 import { memoryMessage, serverContext, swaggerTags } from '@/context'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
@@ -13,7 +13,11 @@ export const memoryRoutes = new Elysia({
 	const userId = stray.userId
 
 	const queryEmbedding = await cat.currentEmbedder.embedQuery(text)
-	const recalled: Record<string, MemoryDocument[]> = {}
+	const recalled: WorkingMemory = {
+		declarative: [],
+		procedural: [],
+		episodic: [],
+	}
 
 	for (const collection of Object.values(cat.vectorMemory.collections)) {
 		recalled[collection.name] = []
