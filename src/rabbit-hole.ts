@@ -8,7 +8,7 @@ import { basename, extname, resolve } from 'node:path'
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv'
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx'
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
-import { PPTXLoader } from '@langchain/community/document_loaders/fs/pptx'
+import { PPTXLoader as OfficeLoader } from '@langchain/community/document_loaders/fs/pptx'
 import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio'
 import { Document } from '@langchain/core/documents'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
@@ -48,7 +48,10 @@ export class RabbitHole {
 		'application/json': JSONLoader,
 		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': CSVLoader,
 		'application/vnd.openxmlformats-officedocument.wordprocessingml.document': DocxLoader,
-		'application/vnd.openxmlformats-officedocument.presentationml.presentation': PPTXLoader,
+		'application/vnd.openxmlformats-officedocument.presentationml.presentation': OfficeLoader,
+		'application/vnd.oasis.opendocument.text': OfficeLoader,
+		'application/vnd.oasis.opendocument.presentation': OfficeLoader,
+		'application/vnd.oasis.opendocument.spreadsheet': OfficeLoader,
 	}
 
 	private constructor() {
