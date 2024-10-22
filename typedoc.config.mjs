@@ -1,5 +1,6 @@
 /** @type {import('typedoc').TypeDocOptions & import('typedoc-plugin-merge-modules').Config & import('typedoc-plugin-markdown').PluginOptions} */
 export default {
+	name: 'Cheshire Cat',
 	entryPoints: ['./src'],
 	entryPointStrategy: 'expand',
 	tsconfig: 'tsconfig.json',
@@ -21,7 +22,6 @@ export default {
 	githubPages: false,
 	useCodeBlocks: false,
 	disableSources: true,
-	excludeExternals: true,
 	excludePrivate: true,
 	categorizeByGroup: false,
 	hidePageHeader: true,

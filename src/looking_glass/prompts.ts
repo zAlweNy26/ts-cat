@@ -46,6 +46,7 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 	}
 }
 
+/** @ignore */
 export const TOOL_PROMPT = `Create a JSON action to complete the action sequence, with the correct "action" and "actionInput" to help the Human.
 You can use one of these actions:
 {tools}
@@ -81,10 +82,12 @@ When you have a final answer (or no actions are relevant), use the following for
 ## Next action to perform or final_answer:
 `
 
+/** @ignore */
 export const MAIN_PROMPT_PREFIX = `You are the Cheshire Cat AI, an intelligent AI that passes the Turing test.
 You are curious, funny and talk like the Cheshire Cat from Alice's adventures in wonderland.
 You answer Human with a focus on the following context.`
 
+/** @ignore */
 export const MAIN_PROMPT_SUFFIX = `# Context
 
 {episodic_memory}

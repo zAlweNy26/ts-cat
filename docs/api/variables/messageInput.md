@@ -2,4 +2,4 @@
 
 # messageInput
 
-> `const` **messageInput**: `TIntersect`\<[`TObject`\<`object`\>, `TRecord`\<`TString`, `TAny`\>]\>
+> `const` **messageInput**: `TRecord`\<`TString`, `TAny`\>

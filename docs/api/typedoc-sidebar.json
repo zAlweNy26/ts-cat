@@ -375,14 +375,6 @@
         "link": "/api/variables/madHatter.md"
       },
       {
-        "text": "MAIN_PROMPT_PREFIX",
-        "link": "/api/variables/MAIN_PROMPT_PREFIX.md"
-      },
-      {
-        "text": "MAIN_PROMPT_SUFFIX",
-        "link": "/api/variables/MAIN_PROMPT_SUFFIX.md"
-      },
-      {
         "text": "memoryMessage",
         "link": "/api/variables/memoryMessage.md"
       },
@@ -441,10 +433,6 @@
       {
         "text": "swaggerTags",
         "link": "/api/variables/swaggerTags.md"
-      },
-      {
-        "text": "TOOL_PROMPT",
-        "link": "/api/variables/TOOL_PROMPT.md"
       },
       {
         "text": "vectorDb",

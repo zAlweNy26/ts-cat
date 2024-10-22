@@ -111,8 +111,6 @@
 | [log](variables/log.md) | The logger module provides various logging functions. |
 | [LogLevel](variables/LogLevel.md) | - |
 | [madHatter](variables/madHatter.md) | - |
-| [MAIN\_PROMPT\_PREFIX](variables/MAIN_PROMPT_PREFIX.md) | - |
-| [MAIN\_PROMPT\_SUFFIX](variables/MAIN_PROMPT_SUFFIX.md) | - |
 | [memoryMessage](variables/memoryMessage.md) | - |
 | [memoryRecall](variables/memoryRecall.md) | - |
 | [memoryRoutes](variables/memoryRoutes.md) | - |
@@ -128,7 +126,6 @@
 | [serverContext](variables/serverContext.md) | - |
 | [settingsRoutes](variables/settingsRoutes.md) | - |
 | [swaggerTags](variables/swaggerTags.md) | - |
-| [TOOL\_PROMPT](variables/TOOL_PROMPT.md) | - |
 | [vectorDb](variables/vectorDb.md) | - |
 | [whiteRabbit](variables/whiteRabbit.md) | I'm late, I'm late, for a very important date! |
 | [zodBoolean](variables/zodBoolean.md) | A Zod schema for fixing coercion of boolean value. |
