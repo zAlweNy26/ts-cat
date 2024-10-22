@@ -9,6 +9,7 @@ export default defineConfig({
 	head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
 	lastUpdated: true,
 	cleanUrls: true,
+	base: '/ts-cat/',
 	themeConfig: {
 		logo: {
 			dark: '/logo-dark.svg',
