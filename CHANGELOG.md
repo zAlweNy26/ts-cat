@@ -1,5 +1,34 @@
 # Changelog
 
+## v1.5.5
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.4...v1.5.5)
+
+### 🩹 Fixes
+
+- Improve form class, fix #32 ([#32](https://github.com/zAlweNy26/ts-cat/issues/32))
+- Correct error checking in url ingestion ([042334c](https://github.com/zAlweNy26/ts-cat/commit/042334c))
+
+### 📖 Documentation
+
+- Initialize docs with vitepress and typedoc ([fbd4401](https://github.com/zAlweNy26/ts-cat/commit/fbd4401))
+- Fix base url for docs ([f5c3072](https://github.com/zAlweNy26/ts-cat/commit/f5c3072))
+- Ignore prompts ([2f4ab11](https://github.com/zAlweNy26/ts-cat/commit/2f4ab11))
+
+### 🌊 Types
+
+- Update types ([8294287](https://github.com/zAlweNy26/ts-cat/commit/8294287))
+
+### 🏡 Chore
+
+- Update error schema ([206b360](https://github.com/zAlweNy26/ts-cat/commit/206b360))
+- Update parsers ([859bc1f](https://github.com/zAlweNy26/ts-cat/commit/859bc1f))
+- Temporary fix messageInput schema ([99ef2bb](https://github.com/zAlweNy26/ts-cat/commit/99ef2bb))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.5.4
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.3...v1.5.4)
