@@ -54,11 +54,14 @@
 		"./src/**/*.ts",
 		"./src/**/*",
 		"./test/**/*.ts",
+		"src/globals.d.ts",
 		"eslint.config.mjs",
-		"vitest.config.ts",
-		"globals.d.ts"
+		"vitest.config.ts"
 	],
 	"exclude": [
 		"dist"
-	]
+	],
+	"vueCompilerOptions": {
+		"vitePressExtensions": ["./docs/**/*.md"]
+	}
 }

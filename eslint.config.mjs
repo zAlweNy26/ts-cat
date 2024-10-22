@@ -9,7 +9,7 @@ export default antfu({
 	typescript: true,
 	yaml: true,
 	markdown: true,
-	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/'],
+	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/', 'docs/api/**'],
 	rules: {
 		'unused-imports/no-unused-vars': 'warn',
 		'style/max-statements-per-line': 'off',

@@ -30,7 +30,7 @@ const app = new Elysia()
 			searchHotKey: 'f',
 			isEditable: false,
 			showSidebar: true,
-			favicon: './assets/favicon.png',
+			favicon: './assets/favicon.ico',
 		},
 		exclude: ['/docs', '/docs/json'],
 		autoDarkMode: true,

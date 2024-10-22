@@ -1,0 +1,565 @@
+[
+  {
+    "text": "Namespaces",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "NodeJS",
+        "link": "/api/namespaces/NodeJS/",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "Interfaces",
+            "collapsed": true,
+            "items": [
+              {
+                "text": "ProcessEnv",
+                "link": "/api/namespaces/NodeJS/interfaces/ProcessEnv.md"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "text": "Enumerations",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "FormState",
+        "link": "/api/enumerations/FormState.md"
+      }
+    ]
+  },
+  {
+    "text": "Classes",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "AgentManager",
+        "link": "/api/classes/AgentManager.md"
+      },
+      {
+        "text": "ChatModelConfig",
+        "link": "/api/classes/ChatModelConfig.md"
+      },
+      {
+        "text": "CheshireCat",
+        "link": "/api/classes/CheshireCat.md"
+      },
+      {
+        "text": "CustomChat",
+        "link": "/api/classes/CustomChat.md"
+      },
+      {
+        "text": "CustomChatOllama",
+        "link": "/api/classes/CustomChatOllama.md"
+      },
+      {
+        "text": "CustomChatOpenAI",
+        "link": "/api/classes/CustomChatOpenAI.md"
+      },
+      {
+        "text": "CustomOpenAIEmbeddings",
+        "link": "/api/classes/CustomOpenAIEmbeddings.md"
+      },
+      {
+        "text": "Database",
+        "link": "/api/classes/Database.md"
+      },
+      {
+        "text": "EmbedderConfig",
+        "link": "/api/classes/EmbedderConfig.md"
+      },
+      {
+        "text": "FakeChat",
+        "link": "/api/classes/FakeChat.md"
+      },
+      {
+        "text": "FastEmbedEmbeddings",
+        "link": "/api/classes/FastEmbedEmbeddings.md"
+      },
+      {
+        "text": "Form",
+        "link": "/api/classes/Form.md"
+      },
+      {
+        "text": "HttpError",
+        "link": "/api/classes/HttpError.md"
+      },
+      {
+        "text": "MadHatter",
+        "link": "/api/classes/MadHatter.md"
+      },
+      {
+        "text": "ModelInteractionHandler",
+        "link": "/api/classes/ModelInteractionHandler.md"
+      },
+      {
+        "text": "NewTokenHandler",
+        "link": "/api/classes/NewTokenHandler.md"
+      },
+      {
+        "text": "Plugin",
+        "link": "/api/classes/Plugin.md"
+      },
+      {
+        "text": "ProceduresOutputParser",
+        "link": "/api/classes/ProceduresOutputParser.md"
+      },
+      {
+        "text": "RabbitHole",
+        "link": "/api/classes/RabbitHole.md"
+      },
+      {
+        "text": "RateLimitHandler",
+        "link": "/api/classes/RateLimitHandler.md"
+      },
+      {
+        "text": "StrayCat",
+        "link": "/api/classes/StrayCat.md"
+      },
+      {
+        "text": "Tool",
+        "link": "/api/classes/Tool.md"
+      },
+      {
+        "text": "ToolPromptTemplate",
+        "link": "/api/classes/ToolPromptTemplate.md"
+      },
+      {
+        "text": "VectorMemory",
+        "link": "/api/classes/VectorMemory.md"
+      },
+      {
+        "text": "VectorMemoryCollection",
+        "link": "/api/classes/VectorMemoryCollection.md"
+      },
+      {
+        "text": "WhiteRabbit",
+        "link": "/api/classes/WhiteRabbit.md"
+      }
+    ]
+  },
+  {
+    "text": "Interfaces",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "AgentFastReply",
+        "link": "/api/interfaces/AgentFastReply.md"
+      },
+      {
+        "text": "ContextInput",
+        "link": "/api/interfaces/ContextInput.md"
+      },
+      {
+        "text": "HookTypes",
+        "link": "/api/interfaces/HookTypes.md"
+      },
+      {
+        "text": "Interaction",
+        "link": "/api/interfaces/Interaction.md"
+      },
+      {
+        "text": "IntermediateStep",
+        "link": "/api/interfaces/IntermediateStep.md"
+      },
+      {
+        "text": "MemoryJson",
+        "link": "/api/interfaces/MemoryJson.md"
+      },
+      {
+        "text": "MemoryMessage",
+        "link": "/api/interfaces/MemoryMessage.md"
+      },
+      {
+        "text": "MemoryRecallConfig",
+        "link": "/api/interfaces/MemoryRecallConfig.md"
+      },
+      {
+        "text": "MemoryRecallConfigs",
+        "link": "/api/interfaces/MemoryRecallConfigs.md"
+      },
+      {
+        "text": "Message",
+        "link": "/api/interfaces/Message.md"
+      },
+      {
+        "text": "VectorMemoryCollections",
+        "link": "/api/interfaces/VectorMemoryCollections.md"
+      },
+      {
+        "text": "VectorMemoryConfig",
+        "link": "/api/interfaces/VectorMemoryConfig.md"
+      },
+      {
+        "text": "WorkingMemory",
+        "link": "/api/interfaces/WorkingMemory.md"
+      }
+    ]
+  },
+  {
+    "text": "Type Aliases",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "BetterReadonly",
+        "link": "/api/type-aliases/BetterReadonly.md"
+      },
+      {
+        "text": "DatabaseConfig",
+        "link": "/api/type-aliases/DatabaseConfig.md"
+      },
+      {
+        "text": "EmbeddedVector",
+        "link": "/api/type-aliases/EmbeddedVector.md"
+      },
+      {
+        "text": "EmbedderInteraction",
+        "link": "/api/type-aliases/EmbedderInteraction.md"
+      },
+      {
+        "text": "FileParsers",
+        "link": "/api/type-aliases/FileParsers.md"
+      },
+      {
+        "text": "Filter",
+        "link": "/api/type-aliases/Filter.md"
+      },
+      {
+        "text": "FilterCondition",
+        "link": "/api/type-aliases/FilterCondition.md"
+      },
+      {
+        "text": "FilterMatch",
+        "link": "/api/type-aliases/FilterMatch.md"
+      },
+      {
+        "text": "Hook",
+        "link": "/api/type-aliases/Hook.md"
+      },
+      {
+        "text": "HookNames",
+        "link": "/api/type-aliases/HookNames.md"
+      },
+      {
+        "text": "Hooks",
+        "link": "/api/type-aliases/Hooks.md"
+      },
+      {
+        "text": "InstantToolTrigger",
+        "link": "/api/type-aliases/InstantToolTrigger.md"
+      },
+      {
+        "text": "Json",
+        "link": "/api/type-aliases/Json.md"
+      },
+      {
+        "text": "LLMInteraction",
+        "link": "/api/type-aliases/LLMInteraction.md"
+      },
+      {
+        "text": "MaybePromise",
+        "link": "/api/type-aliases/MaybePromise.md"
+      },
+      {
+        "text": "MemoryDocument",
+        "link": "/api/type-aliases/MemoryDocument.md"
+      },
+      {
+        "text": "ModelInteraction",
+        "link": "/api/type-aliases/ModelInteraction.md"
+      },
+      {
+        "text": "Nullable",
+        "link": "/api/type-aliases/Nullable.md"
+      },
+      {
+        "text": "PointData",
+        "link": "/api/type-aliases/PointData.md"
+      },
+      {
+        "text": "Primitive",
+        "link": "/api/type-aliases/Primitive.md"
+      },
+      {
+        "text": "TODO",
+        "link": "/api/type-aliases/TODO.md"
+      },
+      {
+        "text": "WebParser",
+        "link": "/api/type-aliases/WebParser.md"
+      },
+      {
+        "text": "WS",
+        "link": "/api/type-aliases/WS.md"
+      },
+      {
+        "text": "WSMessage",
+        "link": "/api/type-aliases/WSMessage.md"
+      }
+    ]
+  },
+  {
+    "text": "Variables",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "app",
+        "link": "/api/variables/app.md"
+      },
+      {
+        "text": "CatForm",
+        "link": "/api/variables/CatForm.md"
+      },
+      {
+        "text": "CatHook",
+        "link": "/api/variables/CatHook.md"
+      },
+      {
+        "text": "catPaths",
+        "link": "/api/variables/catPaths.md"
+      },
+      {
+        "text": "CatPlugin",
+        "link": "/api/variables/CatPlugin.md"
+      },
+      {
+        "text": "CatTool",
+        "link": "/api/variables/CatTool.md"
+      },
+      {
+        "text": "chatMessage",
+        "link": "/api/variables/chatMessage.md"
+      },
+      {
+        "text": "cheshireCat",
+        "link": "/api/variables/cheshireCat.md"
+      },
+      {
+        "text": "db",
+        "link": "/api/variables/db.md"
+      },
+      {
+        "text": "embedderRoutes",
+        "link": "/api/variables/embedderRoutes.md"
+      },
+      {
+        "text": "generalRoutes",
+        "link": "/api/variables/generalRoutes.md"
+      },
+      {
+        "text": "httpError",
+        "link": "/api/variables/httpError.md"
+      },
+      {
+        "text": "httpLogger",
+        "link": "/api/variables/httpLogger.md"
+      },
+      {
+        "text": "llmRoutes",
+        "link": "/api/variables/llmRoutes.md"
+      },
+      {
+        "text": "log",
+        "link": "/api/variables/log.md"
+      },
+      {
+        "text": "LogLevel",
+        "link": "/api/variables/LogLevel.md"
+      },
+      {
+        "text": "madHatter",
+        "link": "/api/variables/madHatter.md"
+      },
+      {
+        "text": "MAIN_PROMPT_PREFIX",
+        "link": "/api/variables/MAIN_PROMPT_PREFIX.md"
+      },
+      {
+        "text": "MAIN_PROMPT_SUFFIX",
+        "link": "/api/variables/MAIN_PROMPT_SUFFIX.md"
+      },
+      {
+        "text": "memoryMessage",
+        "link": "/api/variables/memoryMessage.md"
+      },
+      {
+        "text": "memoryRecall",
+        "link": "/api/variables/memoryRecall.md"
+      },
+      {
+        "text": "memoryRoutes",
+        "link": "/api/variables/memoryRoutes.md"
+      },
+      {
+        "text": "messageInput",
+        "link": "/api/variables/messageInput.md"
+      },
+      {
+        "text": "modelInfo",
+        "link": "/api/variables/modelInfo.md"
+      },
+      {
+        "text": "parsedEnv",
+        "link": "/api/variables/parsedEnv.md"
+      },
+      {
+        "text": "pluginInfo",
+        "link": "/api/variables/pluginInfo.md"
+      },
+      {
+        "text": "pluginManifest",
+        "link": "/api/variables/pluginManifest.md"
+      },
+      {
+        "text": "pluginSettings",
+        "link": "/api/variables/pluginSettings.md"
+      },
+      {
+        "text": "pluginsRoutes",
+        "link": "/api/variables/pluginsRoutes.md"
+      },
+      {
+        "text": "rabbitHole",
+        "link": "/api/variables/rabbitHole.md"
+      },
+      {
+        "text": "rabbitHoleRoutes",
+        "link": "/api/variables/rabbitHoleRoutes.md"
+      },
+      {
+        "text": "serverContext",
+        "link": "/api/variables/serverContext.md"
+      },
+      {
+        "text": "settingsRoutes",
+        "link": "/api/variables/settingsRoutes.md"
+      },
+      {
+        "text": "swaggerTags",
+        "link": "/api/variables/swaggerTags.md"
+      },
+      {
+        "text": "TOOL_PROMPT",
+        "link": "/api/variables/TOOL_PROMPT.md"
+      },
+      {
+        "text": "vectorDb",
+        "link": "/api/variables/vectorDb.md"
+      },
+      {
+        "text": "whiteRabbit",
+        "link": "/api/variables/whiteRabbit.md"
+      },
+      {
+        "text": "zodBoolean",
+        "link": "/api/variables/zodBoolean.md"
+      },
+      {
+        "text": "zodJson",
+        "link": "/api/variables/zodJson.md"
+      },
+      {
+        "text": "zodPrimitive",
+        "link": "/api/variables/zodPrimitive.md"
+      }
+    ]
+  },
+  {
+    "text": "Functions",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "addChatModel",
+        "link": "/api/functions/addChatModel.md"
+      },
+      {
+        "text": "addEmbeddings",
+        "link": "/api/functions/addEmbeddings.md"
+      },
+      {
+        "text": "catchError",
+        "link": "/api/functions/catchError.md"
+      },
+      {
+        "text": "compareStrings",
+        "link": "/api/functions/compareStrings.md"
+      },
+      {
+        "text": "deepDefaults",
+        "link": "/api/functions/deepDefaults.md"
+      },
+      {
+        "text": "embedderCache",
+        "link": "/api/functions/embedderCache.md"
+      },
+      {
+        "text": "existsDir",
+        "link": "/api/functions/existsDir.md"
+      },
+      {
+        "text": "getAllowedEmbedders",
+        "link": "/api/functions/getAllowedEmbedders.md"
+      },
+      {
+        "text": "getAllowedLLMs",
+        "link": "/api/functions/getAllowedLLMs.md"
+      },
+      {
+        "text": "getEmbedder",
+        "link": "/api/functions/getEmbedder.md"
+      },
+      {
+        "text": "getEmbedderSettings",
+        "link": "/api/functions/getEmbedderSettings.md"
+      },
+      {
+        "text": "getLLM",
+        "link": "/api/functions/getLLM.md"
+      },
+      {
+        "text": "getLLMSettings",
+        "link": "/api/functions/getLLMSettings.md"
+      },
+      {
+        "text": "getVectorMemory",
+        "link": "/api/functions/getVectorMemory.md"
+      },
+      {
+        "text": "getZodDefaults",
+        "link": "/api/functions/getZodDefaults.md"
+      },
+      {
+        "text": "isForm",
+        "link": "/api/functions/isForm.md"
+      },
+      {
+        "text": "isHook",
+        "link": "/api/functions/isHook.md"
+      },
+      {
+        "text": "isTool",
+        "link": "/api/functions/isTool.md"
+      },
+      {
+        "text": "llmCache",
+        "link": "/api/functions/llmCache.md"
+      },
+      {
+        "text": "logWelcome",
+        "link": "/api/functions/logWelcome.md"
+      },
+      {
+        "text": "normalizeMessageChunks",
+        "link": "/api/functions/normalizeMessageChunks.md"
+      },
+      {
+        "text": "parseJson",
+        "link": "/api/functions/parseJson.md"
+      }
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+[Overview](../index.md) / TOOL\_PROMPT
+
+# TOOL\_PROMPT
+
+> `const` **TOOL\_PROMPT**: "Create a JSON action to complete the action sequence, with the correct \"action\" and \"actionInput\" to help the Human.\nYou can use one of these actions:\n\{tools\}\n\t- \"final-answer\": Use this action to finish or no relevant action is available. Input is always null.\n\n## To add an action, use only the following format:\n\{\{\n\t\"action\": // string - represents the name of the action to take, should be one of \[\{tool\_names\}, \"final-answer\"\]\n\t\"actionInput\": // string or null - represents the input to the action\n\}\}\n\n\{examples\}\n\n## Action output\nAfter each action there will be an action output in this format:\n\{\{\n    \"actionOutput\": // Output of the previous action\n\}\}\n\n## Final answer / no action available\nWhen you have a final answer (or no actions are relevant), use the following format:\n\{\{\n    \"action\": \"final-answer\",\n    \"actionInput\": null\n\}\}\n\n## Conversation with Human\n\{chat\_history\}\n\n## Actions sequence used until now\n\{scratchpad\}\n\n## Next action to perform or final\_answer:\n"
