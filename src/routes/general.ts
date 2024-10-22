@@ -44,7 +44,7 @@ export const generalRoutes = new Elysia({
 	message: ({ data: { params, body, query } }) => {
 		const user = params.userId
 		const stray = cat.getStray(user)!
-		stray.run(body, query.save).then(stray.send).catch(log.error)
+		stray.run(body as any, query.save).then(stray.send).catch(log.error)
 	},
 	error: ({ error }) => {
 		log.dir(error)
@@ -76,7 +76,7 @@ export const generalRoutes = new Elysia({
 	},
 }).post('/chat', async ({ stray, body, query }) => {
 	const { save, why } = query
-	const res = await stray.run(body, save, why)
+	const res = await stray.run(body as any, save, why)
 	return res
 }, {
 	body: 'messageInput',

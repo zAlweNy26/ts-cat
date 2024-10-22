@@ -40,15 +40,12 @@ export const swaggerTags = {
 
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
-export const messageInput = t.Intersect([
-	t.Object({
-		text: t.String(),
-	}),
-	t.Record(t.String(), t.Any()),
-], {
+// TODO: Wait until https://github.com/elysiajs/elysia/issues/848 is fixed, to use t.Intersect()
+export const messageInput = t.Record(t.String(), t.Any(), {
 	$id: 'messageInput',
 	title: 'Message Input',
 	description: 'Message to pass to the cat',
+	default: { text: 'Hello, world' },
 })
 
 export const memoryMessage = t.Object({
