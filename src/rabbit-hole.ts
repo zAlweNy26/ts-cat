@@ -197,12 +197,14 @@ export class RabbitHole {
 			await this.storeDocuments(stray, docs, url.href, metadata)
 		}
 		catch (error) {
-			if (error instanceof TypeError) log.info('The string is not a valid URL, trying with a file-system path...')
+			if (error instanceof TypeError) {
+				log.info('The string is not a valid URL, trying with a file-system path...')
+				if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
+				const data = await Bun.file(resolve(path)).text()
+				const file = new File([data], basename(path), { type: extname(path) })
+				await this.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
+			}
 			else if (error instanceof Error) log.error(error.message)
-			if (!(await Bun.file(path).exists())) throw new Error('The file path does not exist. Skipping ingestion...')
-			const data = await Bun.file(resolve(path)).text()
-			const file = new File([data], basename(path), { type: extname(path) })
-			await this.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
 		}
 	}
 
