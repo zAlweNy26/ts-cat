@@ -7,7 +7,6 @@ declare module 'nodemon' {
 }
 
 declare global {
-	type TODO = any
 	type Nullable<T> = T | null | undefined
 	type MaybePromise<T> = T | Promise<T>
 	type BetterReadonly<T, Deep extends boolean = true> = {

@@ -220,7 +220,7 @@ const bedrockEmbedderConfig = addEmbeddings({
 })
 
 export function getAllowedEmbedders() {
-	const allowedEmbeddersModels: EmbedderConfig<TODO>[] = [
+	const allowedEmbeddersModels: EmbedderConfig<any>[] = [
 		fakeEmbedderConfig,
 		openAIEmbedderConfig,
 		azureOpenAIEmbedderConfig,

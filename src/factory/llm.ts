@@ -217,7 +217,7 @@ const bedrockChatLLMConfig = addChatModel({
 })
 
 export function getAllowedLLMs() {
-	const allowedLLMs: ChatModelConfig<TODO>[] = [
+	const allowedLLMs: ChatModelConfig<any>[] = [
 		fakeLLMConfig,
 		customLLMConfig,
 		customOllamaLLMConfig,
