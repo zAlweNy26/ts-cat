@@ -230,7 +230,7 @@ export class AgentManager {
 			output: memoryOutput,
 			intermediateSteps,
 		}
-		const afterMemory = madHatter.executeHook('afterMemoryChain', reply, stray)
+		const afterMemory = await madHatter.executeHook('afterMemoryChain', reply, stray)
 
 		return afterMemory
 	}

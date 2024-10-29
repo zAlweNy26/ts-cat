@@ -132,7 +132,7 @@ export class StrayCat {
 			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
 			this.wsQueue.push(msg)
 		}
-		madHatter.executeHook('afterSendMessage', msg, this)
+		madHatter.executeHook('afterSendMessage', msg, this) // QUESTION: Should we introduce MaybePromise also here?
 	}
 
 	/**
@@ -148,7 +148,7 @@ export class StrayCat {
 
 		const response = this.userMessage = await madHatter.executeHook('beforeReadMessage', msg, this)
 
-		// TODO: Find another way to handle this
+		// FEATURE: Find another way to handle this
 		if (response.text.length > cheshireCat.embedderSize) {
 			log.warn(`The input is too long. Storing it as document...`)
 			await rabbitHole.ingestContent(this, response.text)
@@ -257,7 +257,7 @@ ${labelsList}${examplesList}
 	async queryDb<T extends Exclude<SqlDialect, 'sap hana'>>(
 		question: string,
 		type: T,
-		source: Omit<Extract<DataSourceOptions, { type: T }>, 'type'>, // TODO: Fix type inference
+		source: Omit<Extract<DataSourceOptions, { type: T }>, 'type'>, // BUG: Fix type inference
 	) {
 		const appDataSource = new DataSource({ type, ...source } as DataSourceOptions)
 		const db = await SqlDatabase.fromDataSourceParams({ appDataSource })
@@ -316,7 +316,7 @@ ${labelsList}${examplesList}
 	 */
 	addInteraction(interaction: ModelInteraction) {
 		this.modelsInteractions.push(interaction)
-		madHatter.executeHook('afterModelInteraction', interaction, this)
+		madHatter.executeHook('afterModelInteraction', interaction, this) // QUESTION: Should we introduce MaybePromise also here?
 	}
 
 	/**
@@ -386,7 +386,7 @@ ${labelsList}${examplesList}
 			log.info(`Recalled ${memories.length} memories for ${key} collection.`)
 			this.workingMemory[key] = memories
 		}
-		madHatter.executeHook('afterRecallMemories', structuredClone(this.workingMemory), this)
+		await madHatter.executeHook('afterRecallMemories', structuredClone(this.workingMemory), this)
 
 		interaction.reply = queryEmbedding
 		interaction.endedAt = Date.now()

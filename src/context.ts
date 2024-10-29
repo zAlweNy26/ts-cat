@@ -238,7 +238,7 @@ export const pluginSettings = t.Object({
 })
 
 export const serverContext = new Elysia({ name: 'server-context' }).use(httpError).decorate({
-	// cat: cheshireCat, // TODO: Fix RangeError: Maximum call stack size exceeded.
+	// cat: cheshireCat, // FIXME: Fix RangeError: Maximum call stack size exceeded.
 	mh: madHatter,
 	rh: rabbitHole,
 	log,

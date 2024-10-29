@@ -157,7 +157,7 @@ export class CheshireCat {
 			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
 		)
 
-		// TODO: Should we also set it in the db?
+		// QUESTION: Should we also set it in the db?
 		if (error) this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
 
 		this._embedderSize = vector.length
