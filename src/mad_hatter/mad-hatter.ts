@@ -52,6 +52,7 @@ export class MadHatter {
 		// First argument is the pipeable one
 		let teaCup = args[0]
 		for (const h of hook) {
+			// FIXME: We are not awaiting the hooks, should we?
 			const teaSpoon = (h.fn as (...args: any[]) => any)(teaCup, ...args.slice(1))
 			teaCup ||= teaSpoon
 		}

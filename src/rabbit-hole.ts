@@ -25,12 +25,16 @@ export type WebParser = [RegExp, new (url: string) => BaseDocumentLoader]
 
 export type FileParsers = Record<`${string}/${string}`, new (content: string | Blob) => BaseDocumentLoader>
 
-function isMemoryJson(json: any): json is MemoryJson {
-	return json && typeof json == 'object' && 'embedder' in json && 'collections' in json
+function assertMemoryJson(json: any): asserts json is MemoryJson {
+	// TODO: Add further validation (e.g. check if collections are PointData[])
+	const res = json && typeof json == 'object' && 'embedder' in json && 'collections' in json
 		&& typeof json.embedder == 'string' && typeof json.collections == 'object'
 		&& Object.keys(json.collections).every(k => typeof k === 'string')
 		&& Object.values(json.collections).every(v => Array.isArray(v))
-	// TODO: Add further validation (e.g. check if collections are PointData[])
+	if (!res) {
+		log.error('The JSON file does not contain valid memories. Skipping ingestion...')
+		throw new Error('The JSON file does not contain valid memories')
+	}
 }
 
 export class RabbitHole {
@@ -111,10 +115,7 @@ export class RabbitHole {
 		}
 		else content = json
 
-		if (!isMemoryJson(content)) {
-			log.error('The JSON file does not contain valid memories. Skipping ingestion...')
-			throw new Error('The JSON file does not contain valid memories')
-		}
+		assertMemoryJson(content)
 
 		if (!content.embedder || content.embedder !== db.data.selectedEmbedder) {
 			log.error('The embedder used to export the memories is different from the one currently used.')
