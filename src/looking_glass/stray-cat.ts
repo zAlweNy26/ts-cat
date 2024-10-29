@@ -257,7 +257,7 @@ ${labelsList}${examplesList}
 	async queryDb<T extends Exclude<SqlDialect, 'sap hana'>>(
 		question: string,
 		type: T,
-		source: Omit<Extract<DataSourceOptions, { type: T }>, 'type'>, // TODO: Fix type inference for `mysql`
+		source: Omit<Extract<DataSourceOptions, { type: T }>, 'type'>, // TODO: Fix type inference
 	) {
 		const appDataSource = new DataSource({ type, ...source } as DataSourceOptions)
 		const db = await SqlDatabase.fromDataSourceParams({ appDataSource })
