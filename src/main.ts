@@ -37,8 +37,8 @@ const app = new Elysia()
 		path: '/docs',
 		documentation: {
 			info: {
-				title: '😸 Cheshire Cat API',
-				description: pkg.description,
+				title: 'Cheshire Cat API',
+				description: `${pkg.description} 😸`,
 				version: pkg.version,
 			},
 			tags: Object.values(swaggerTags),

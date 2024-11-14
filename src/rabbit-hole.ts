@@ -92,6 +92,9 @@ export class RabbitHole {
 		return [...this.webHandlers]
 	}
 
+	/**
+	 * Get the text splitter
+	 */
 	get textSplitter() {
 		return this.splitter
 	}

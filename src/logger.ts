@@ -119,8 +119,8 @@ export const httpLogger = new Logestic({
 		const baseUrl = url.substring(catPaths.baseUrl.length - 1)
 		const dateTime = chalk.gray(format(datetime, 'dd/MM/yyyy HH:mm:ss'))
 		const methodPath = chalk.red(`${method} ${decodeURIComponent(baseUrl)}`)
-		const errorCode = chalk.bgRed(`[${err.status} - ${err.message}]`)
-		const errorText = `${errorCode} ${chalk.red(err.cause)}`
+		const errorCode = chalk.bgRed(`[${err.status}]`)
+		const errorText = `${errorCode} ${chalk.red(err.message, err.cause)}`
 		return `${dateTime} ${methodPath}\n${errorText}`
 	},
 })
