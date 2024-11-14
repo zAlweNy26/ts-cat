@@ -76,7 +76,7 @@ export const generalRoutes = new Elysia({
 	},
 }).post('/chat', async ({ stray, body, query }) => {
 	const { save, why } = query
-	const res = await stray.run(body as any, save, why)
+	const res = await stray.run(body, save, why)
 	return res
 }, {
 	body: 'messageInput',

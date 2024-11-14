@@ -65,18 +65,22 @@ export type ModelInteraction = LLMInteraction | EmbedderInteraction
 /**
  * The content of a memory message.
  */
-export interface MemoryMessage {
+export type MemoryMessage = {
 	role: 'AI' | 'User'
 	what: string
 	who: string
 	when: number
+} & ({
+	role: 'AI'
 	why?: {
 		input: string
 		intermediateSteps: IntermediateStep[]
-		memory?: WorkingMemory
-		interactions?: ModelInteraction[]
+		memory: WorkingMemory
+		interactions: ModelInteraction[]
 	}
-}
+} | {
+	role: 'User'
+})
 
 /**
  * A message object sent by the user.

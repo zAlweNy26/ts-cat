@@ -40,12 +40,19 @@ export const swaggerTags = {
 
 const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 
-// TODO: Wait until https://github.com/elysiajs/elysia/issues/848 is fixed, to use t.Intersect()
-export const messageInput = t.Record(t.String(), t.Any(), {
+export const messageInput = t.Intersect([
+	t.Object({
+		text: t.String(),
+	}),
+	t.Record(t.String(), t.Any()),
+], {
 	$id: 'messageInput',
 	title: 'Message Input',
 	description: 'Message to pass to the cat',
 	default: { text: 'Hello, world' },
+	examples: [{
+		text: 'Hello, world',
+	}],
 })
 
 export const memoryMessage = t.Object({
@@ -60,15 +67,15 @@ export const memoryMessage = t.Object({
 			input: t.Union([t.String(), t.Null()]),
 			observation: t.String(),
 		})),
-		memory: t.Optional(t.Intersect([
+		memory: t.Intersect([
 			t.Object({
 				episodic: t.Array(t.Record(t.String(), t.Any())),
 				declarative: t.Array(t.Record(t.String(), t.Any())),
 				procedural: t.Array(t.Record(t.String(), t.Any())),
 			}),
 			t.Record(t.String(), t.Array(t.Record(t.String(), t.Any()))),
-		])),
-		interactions: t.Optional(t.Array(t.Record(t.String(), t.Any()))),
+		]),
+		interactions: t.Array(t.Record(t.String(), t.Any())),
 	})),
 }, {
 	$id: 'memoryMessage',

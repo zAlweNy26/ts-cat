@@ -148,6 +148,14 @@ export class StrayCat {
 
 		const response = this.userMessage = await madHatter.executeHook('beforeReadMessage', msg, this)
 
+		if (!('text' in response)) {
+			log.warn('The message does not contain any text. Ignoring it...')
+			return {
+				type: 'notification',
+				content: 'The message does not contain any text. Ignoring it...',
+			}
+		}
+
 		// FEATURE: Find another way to handle this
 		if (response.text.length > cheshireCat.embedderSize) {
 			log.warn(`The input is too long. Storing it as document...`)
@@ -206,7 +214,7 @@ export class StrayCat {
 
 		if (save) this.chatHistory.push(structuredClone(finalOutput))
 
-		if (!returnWhy) delete finalOutput.why
+		if (!returnWhy && finalOutput.role === 'AI') delete finalOutput.why
 
 		this.modelsInteractions = []
 
