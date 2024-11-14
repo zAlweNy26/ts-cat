@@ -42,11 +42,13 @@ const envSchema = z.object({
 	QDRANT_HOST: z.string().default('localhost'),
 	QDRANT_PORT: z.coerce.number().default(6333),
 	QDRANT_API_KEY: z.string().optional(),
+	REDIS_URL: z.string().optional(),
 	API_KEY: z.string().optional(),
 	CORS_ALLOWED_ORIGINS: z.string().transform(v => v.split(',')).default('*'),
 	LOG_LEVEL: z.preprocess(v => String(v).toLowerCase(), z.enum(LogLevel).default('normal')).default(LogLevel[2]),
 	SAVE_MEMORY_SNAPSHOTS: zodBoolean,
 	WATCH: zodBoolean,
+	CACHE: zodBoolean,
 }).transform(s => ({
 	host: s.CORE_HOST,
 	port: s.CORE_PORT,
@@ -59,6 +61,8 @@ const envSchema = z.object({
 	logLevel: s.LOG_LEVEL,
 	saveMemorySnapshots: s.SAVE_MEMORY_SNAPSHOTS,
 	watch: s.WATCH,
+	redisUrl: s.REDIS_URL,
+	cache: s.CACHE,
 	verbose: LogLevel.indexOf(s.LOG_LEVEL) > LogLevel.indexOf(LogLevel[2]),
 }))
 

@@ -16,10 +16,6 @@ const defaultDbKeys = z.object({
 		maxBucketSize: z.number().default(1000),
 		tokensPerSecond: z.number().default(1000),
 	}),
-	cache: z.object({
-		enabled: z.boolean().default(true),
-		redisUrl: z.string().url().optional(),
-	}),
 	llms: z.array(z.object({
 		name: z.string(),
 		value: z.record(z.any()),

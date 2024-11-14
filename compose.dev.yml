@@ -29,3 +29,9 @@ services:
     volumes:
       - ./data/long_term_memory:/qdrant/storage
     restart: unless-stopped
+  cache:
+    image: redis:7.4.1-bookworm
+    container_name: ccat_ts_cache_dev
+    expose:
+      - 6379
+    restart: unless-stopped
