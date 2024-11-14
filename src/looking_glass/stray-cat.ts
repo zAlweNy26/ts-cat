@@ -128,11 +128,11 @@ export class StrayCat {
 
 		const response = this.userMessage = await madHatter.executeHook('beforeReadMessage', msg, this)
 
-		if (!('text' in response)) {
-			log.warn('The message does not contain any text. Ignoring it...')
+		if (Object.keys(response).length === 0) {
+			log.warn('The message does not contain any content. Ignoring it...')
 			return {
 				type: 'notification',
-				content: 'The message does not contain any text. Ignoring it...',
+				content: 'The message does not contain any content. Ignoring it...',
 			}
 		}
 
@@ -146,7 +146,14 @@ export class StrayCat {
 			}
 		}
 
-		if (save) this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
+		if (save) {
+			this.chatHistory.push({
+				role: 'User',
+				what: [response.text, response.audio, response.image, response.video].filter(Boolean),
+				who: this.userId,
+				when: Date.now(),
+			})
+		}
 
 		try { await this.recallRelevantMemories() }
 		catch (error) {
