@@ -18,7 +18,7 @@ services:
     depends_on:
       - vector-memory
   vector-memory:
-    image: qdrant/qdrant:v1.12.0
+    image: qdrant/qdrant:v1.13.0
     container_name: ccat_ts_vector_memory_dev
     env_file:
       - .env

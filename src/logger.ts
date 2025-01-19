@@ -42,10 +42,10 @@ export const log = Object.freeze({
 	},
 	dir: (content: any) => LogLevel.indexOf(parsedEnv.logLevel) >= 4
 		? console.dir(content, {
-			colors: true,
-			depth: null,
-			breakLength: 120,
-		})
+				colors: true,
+				depth: null,
+				breakLength: 120,
+			})
 		: void 0,
 	/**
 	 * Logs an error message.
@@ -121,6 +121,7 @@ export const httpLogger = new Logestic({
 		const methodPath = chalk.red(`${method} ${decodeURIComponent(baseUrl)}`)
 		const errorCode = chalk.bgRed(`[${err.status}]`)
 		const errorText = `${errorCode} ${chalk.red(err.message, err.cause)}`
+		log.error(error)
 		return `${dateTime} ${methodPath}\n${errorText}`
 	},
 })

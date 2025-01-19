@@ -1,6 +1,7 @@
 import type { PointData } from '@dto/vector-memory.ts'
 import type { Embeddings } from '@langchain/core/embeddings'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import type { ElysiaWS as WS } from 'elysia/ws'
 import { catchError } from '@/errors.ts'
 import { rabbitHole } from '@/rabbit-hole.ts'
 import { db } from '@db'
@@ -9,7 +10,7 @@ import { log } from '@logger'
 import { getVectorMemory, type VectorMemory } from '@memory'
 import { type Form, isForm, isTool, madHatter, type Tool } from '@mh'
 import { AgentManager } from './agent-manager.ts'
-import { StrayCat, type WS } from './stray-cat.ts'
+import { StrayCat } from './stray-cat.ts'
 import { whiteRabbit } from './white-rabbit.ts'
 
 type ProcedureHash = Record<string, {

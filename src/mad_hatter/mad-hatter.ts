@@ -7,7 +7,6 @@ import { db } from '@db'
 import { log } from '@logger'
 import { catPaths, existsDir } from '@utils'
 import chokidar from 'chokidar'
-import _CloneDeep from 'lodash/cloneDeep.js'
 import { Plugin } from './plugin.ts'
 
 const { basePath, pluginsPath } = catPaths
@@ -54,7 +53,7 @@ export class MadHatter {
 		for (const h of hook) {
 			// FIXME: We are not awaiting the hooks, should we?
 			const teaSpoon = (h.fn as (...args: any[]) => any)(teaCup, ...args.slice(1))
-			teaCup ||= teaSpoon
+			teaCup = teaSpoon || teaCup
 		}
 		const timeEnd = performance.now()
 		const hookTime = (timeEnd - timeStart).toFixed(2)
@@ -66,7 +65,7 @@ export class MadHatter {
 	 * Gets a copy of the installed plugins.
 	 */
 	get installedPlugins() {
-		return [..._CloneDeep(this.plugins.values().map(p => p.info))]
+		return [...this.plugins.values().map(p => p.info)]
 	}
 
 	/**

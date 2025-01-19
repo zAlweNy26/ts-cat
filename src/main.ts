@@ -21,16 +21,16 @@ const app = new Elysia()
 		allowedHeaders: '*',
 		credentials: true,
 	}))
-	.use(staticPlugin({
+	.use(await staticPlugin({ // TODO: NOT_FOUND error reference at https://github.com/elysiajs/elysia/issues/739
 		prefix: '/assets',
 		assets: resolve(process.cwd(), 'src', 'assets'),
 	}))
-	.use(swagger({
+	.use(await swagger({
 		scalarConfig: {
 			searchHotKey: 'f',
 			isEditable: false,
 			showSidebar: true,
-			favicon: './assets/favicon.ico',
+			favicon: '/assets/favicon.ico',
 		},
 		exclude: ['/docs', '/docs/json'],
 		autoDarkMode: true,

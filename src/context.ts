@@ -97,7 +97,7 @@ export const chatMessage = t.Union([
 		t.Object({
 			type: t.Literal('chat'),
 		}),
-		memoryMessage,
+		t.Ref('memoryMessage'),
 	]),
 ], {
 	$id: 'chatMessage',
@@ -199,7 +199,7 @@ export const pluginInfo = t.Object({
 	id: t.String(),
 	active: t.Boolean(),
 	upgradable: t.Boolean(),
-	manifest: t.Ref(pluginManifest),
+	manifest: t.Ref('pluginManifest'),
 	forms: t.Array(t.Object({
 		name: t.String(),
 		description: t.String(),
@@ -286,30 +286,30 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		description: 'Custom setting for the cat',
 	}),
 	messageInput,
-	chatMessage,
 	memoryMessage,
-	chatHistory: t.Object({
-		history: t.Array(t.Ref(memoryMessage)),
-	}, {
-		$id: 'ChatHistory',
-		title: 'Chat History',
-		description: 'Chat messages history',
-	}),
 	memoryRecall,
 	modelInfo,
 	pluginManifest,
 	pluginInfo,
 	pluginSettings,
+	chatMessage,
+	chatHistory: t.Object({
+		history: t.Array(t.Ref('memoryMessage')),
+	}, {
+		$id: 'ChatHistory',
+		title: 'Chat History',
+		description: 'Chat messages history',
+	}),
 	modelsInfo: t.Object({
 		selected: t.String(),
-		options: t.Array(t.Ref(modelInfo)),
+		options: t.Array(t.Ref('modelInfo')),
 	}, {
 		$id: 'ModelsInfo',
 		title: 'Models Information',
 		description: 'Information about available models and the selected model',
 	}),
 	pluginsInfo: t.Object({
-		installed: t.Array(t.Ref(pluginInfo)),
+		installed: t.Array(t.Ref('pluginInfo')),
 		registry: t.Array(t.Pick(pluginInfo, ['id', 'manifest'])),
 	}, {
 		$id: 'PluginsInfo',
@@ -317,7 +317,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		description: 'Information about installed and available plugins from registry',
 	}),
 	pluginsSettings: t.Object({
-		settings: t.Array(t.Ref(pluginSettings)),
+		settings: t.Array(t.Ref('pluginSettings')),
 	}, {
 		$id: 'PluginsSettings',
 		title: 'Plugins Settings',

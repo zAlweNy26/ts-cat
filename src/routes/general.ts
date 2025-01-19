@@ -18,6 +18,7 @@ export const generalRoutes = new Elysia({
 		token: t.String({ default: true }),
 	}),
 	body: 'messageInput',
+	response: 'chatMessage',
 	idleTimeout: 300, // TODO: Set a proper idle timeout
 	beforeHandle: ({ query, HttpError }) => {
 		const apiKey = query.token, realKey = parsedEnv.apiKey

@@ -1,20 +1,10 @@
 # Cheshire Cat (Stregatto)
 
-<a href="https://github.com/zAlweNy26/ts-cat">
-    <img alt="GitHub Stars" src="https://img.shields.io/github/stars/zAlweNy26/ts-cat">
-</a>
-<a href="https://discord.gg/bHX5sNFCYU">
-    <img alt="Discord Server" src="https://img.shields.io/discord/1092359754917089350?logo=discord">
-</a>
-<a href="https://github.com/zAlweNy26/ts-cat/issues">
-    <img alt="GitHub Issues" src="https://img.shields.io/github/issues/zAlweNy26/ts-cat">
-</a>
-<a href="https://github.com/zAlweNy26/ts-cat/tags">
-    <img alt="GitHub Latest Tag" src="https://img.shields.io/github/v/tag/zAlweNy26/ts-cat">
-</a>
-<a href="https://github.com/zAlweNy26/ts-cat">
-    <img alt="GitHub Top Language" src="https://img.shields.io/github/languages/top/zAlweNy26/ts-cat">
-</a>
+[![GitHub Stars](https://img.shields.io/github/stars/zAlweNy26/ts-cat)](https://github.com/zAlweNy26/ts-cat)
+[![Discord Server](https://img.shields.io/discord/1092359754917089350?logo=discord)](https://discord.gg/bHX5sNFCYU)
+[![GitHub Issues](https://img.shields.io/github/issues/zAlweNy26/ts-cat)](https://github.com/zAlweNy26/ts-cat/issues)
+[![GitHub Latest Tag](https://img.shields.io/github/v/tag/zAlweNy26/ts-cat)](https://github.com/zAlweNy26/ts-cat/tags)
+[![GitHub Top Language](https://img.shields.io/github/languages/top/zAlweNy26/ts-cat)](https://github.com/zAlweNy26/ts-cat)
 
 TypeScript version of the [Cheshire Cat AI](https://github.com/cheshire-cat-ai/core) framework originally made in Python.
 
@@ -50,11 +40,13 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Cache support for LLM and Embedder responses
 - [ ] External plugins registry support
 - [ ] Built-in CLI
-- [ ] Supports multimodality
+- [ ] Add multimodality support
+- [ ] Add multitenancy support
+- [ ] Add multichat support
 
 ## Pre-requisites
 
-- Bun (>= 1.1.19) (for local development)
+- Bun (>= 1.0.0) (for local development)
 - Docker
 
 ## Installation

@@ -1,11 +1,7 @@
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WorkingMemory, WSMessage } from '@dto/message.ts'
 import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import type { BaseLanguageModelInput } from '@langchain/core/language_models/base'
-import type { ServerWebSocket } from 'bun'
-import type { TSchema } from 'elysia'
-import type { TypeCheck } from 'elysia/type-system'
-import type { ElysiaWS } from 'elysia/ws'
-import { resolveObjectURL } from 'node:buffer'
+import type { ElysiaWS as WS } from 'elysia/ws'
 import { catchError } from '@/errors.ts'
 import { Document } from '@langchain/core/documents'
 import { AIMessageChunk } from '@langchain/core/messages'
@@ -17,21 +13,12 @@ import { log } from '@logger'
 import { madHatter } from '@mh'
 import { rabbitHole } from '@rh'
 import { deepDefaults, normalizeMessageChunks } from '@utils'
-import callsites from 'callsites'
 import { createSqlQueryChain, type SqlDialect } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
 import { QuerySqlTool } from 'langchain/tools/sql'
 import { DataSource, type DataSourceOptions } from 'typeorm'
 import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
 import { cheshireCat } from './cheshire-cat.ts'
-
-export type WS = ElysiaWS<
-	ServerWebSocket<{
-		validator?: TypeCheck<TSchema>
-	}>,
-	any,
-	any
->
 
 /**
  * The stray cat goes around tools and hook, making troubles
@@ -83,20 +70,13 @@ export class StrayCat {
 	}
 
 	/**
-	 * Retrieves information about a plugin based on where it's executed.
+	 * Retrieves information about a plugin.
+	 * @param id The ID of the plugin.
 	 * @returns An object containing the plugin's active status, manifest, and settings.
 	 *
 	 * Returns undefined if the plugin is not found.
 	 */
-	async getPluginInfo() {
-		const paths = callsites().map(site => site.getFileName())
-		const tmp = paths.find(path => path?.includes('blob:'))
-		if (!tmp) return undefined
-		const blob = resolveObjectURL(tmp)
-		if (!blob) return undefined
-		const text = await blob.text()
-		const id = text.match(/^\/\/ ID:\s*(\S+)/)?.[1]
-		if (!id) return undefined
+	getPluginInfo(id: string) {
 		const plugin = madHatter.getPlugin(id)
 		if (!plugin) return undefined
 		const { active, manifest, settings } = plugin
