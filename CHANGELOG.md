@@ -1,5 +1,34 @@
 # Changelog
 
+## v1.6.0
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.5...v1.6.0)
+
+### 🩹 Fixes
+
+- Add missing await in some hooks ([fff6240](https://github.com/zAlweNy26/ts-cat/commit/fff6240))
+- Switch cache options from db to env file ([c695bc4](https://github.com/zAlweNy26/ts-cat/commit/c695bc4))
+
+### 🌊 Types
+
+- Small tweaks ([bb29c47](https://github.com/zAlweNy26/ts-cat/commit/bb29c47))
+
+### 🏡 Chore
+
+- Update deps ([13eef38](https://github.com/zAlweNy26/ts-cat/commit/13eef38))
+- Use assertion for memory json ([4900f90](https://github.com/zAlweNy26/ts-cat/commit/4900f90))
+- Update deps ([a74fa39](https://github.com/zAlweNy26/ts-cat/commit/a74fa39))
+- Fix lockfile ([eddd277](https://github.com/zAlweNy26/ts-cat/commit/eddd277))
+- ⚠️  Update deps and overall tweaks ([2457774](https://github.com/zAlweNy26/ts-cat/commit/2457774))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Update deps and overall tweaks ([2457774](https://github.com/zAlweNy26/ts-cat/commit/2457774))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.5.5
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.4...v1.5.5)
