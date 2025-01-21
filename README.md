@@ -40,9 +40,9 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Cache support for LLM and Embedder responses
 - [ ] External plugins registry support
 - [ ] Built-in CLI
-- [ ] Add multimodality support
-- [ ] Add multitenancy support
-- [ ] Add multichat support
+- [ ] Add multi-modality support
+- [ ] Add multi-agent support
+- [ ] Add multi-chat support
 
 ## Pre-requisites
 
