@@ -26,6 +26,27 @@ export const rabbitHoleRoutes = new Elysia({
 		}),
 		400: 'error',
 	},
+}).get('/allowed-uris', ({ rh }) => {
+	return {
+		allowedURIs: rh.webParsers.map(p => p[0].source),
+	}
+}, {
+	detail: {
+		description: 'Retrieve the allowed URIs RegEx that can be ingested by the Rabbit Hole.',
+		summary: 'Get allowed URIs',
+	},
+	response: {
+		200: t.Object({
+			allowedURIs: t.Array(t.String()),
+		}, {
+			title: 'Allowed URIs',
+			description: 'List of allowed URIs RegEx that can be ingested',
+			examples: [{
+				allowedURIs: ['^.*$', '^https:\/\/(www\.)?.*\/.*\.xml$'],
+			}],
+		}),
+		400: 'error',
+	},
 }).post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
 	const { sync, source } = query, { chunk, metadata } = body
 	try {
