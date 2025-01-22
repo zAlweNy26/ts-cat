@@ -103,7 +103,7 @@ export class StrayCat {
 	 * If the message is of type 'chat', it is also stored in the chat history.
 	 * @param msg The message to send.
 	 */
-	send(msg: WSMessage) {
+	async send(msg: WSMessage) {
 		if (this.ws) {
 			this.ws.send(JSON.stringify(msg))
 			if (msg.type === 'chat') this.chatHistory.push(msg)
@@ -112,7 +112,7 @@ export class StrayCat {
 			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
 			this.wsQueue.push(msg)
 		}
-		madHatter.executeHook('afterSendMessage', msg, this) // QUESTION: Should we introduce MaybePromise also here?
+		await madHatter.executeHook('afterSendMessage', msg, this)
 	}
 
 	/**
@@ -302,9 +302,9 @@ ${labelsList}${examplesList}
 	 * Adds an interaction to the working memory.
 	 * @param interaction the interaction to add
 	 */
-	addInteraction(interaction: ModelInteraction) {
+	async addInteraction(interaction: ModelInteraction) {
 		this.modelsInteractions.push(interaction)
-		madHatter.executeHook('afterModelInteraction', interaction, this) // QUESTION: Should we introduce MaybePromise also here?
+		await madHatter.executeHook('afterModelInteraction', interaction, this)
 	}
 
 	/**
@@ -378,7 +378,7 @@ ${labelsList}${examplesList}
 
 		interaction.reply = queryEmbedding
 		interaction.endedAt = Date.now()
-		this.addInteraction(interaction)
+		await this.addInteraction(interaction)
 	}
 
 	/**

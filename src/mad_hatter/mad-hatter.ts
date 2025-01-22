@@ -44,21 +44,20 @@ export class MadHatter {
 	 * @param args The arguments to pass to the hook function.
 	 * @returns The result of executing the hook methods sequentially.
 	 */
-	executeHook<T extends HookNames = HookNames>(name: T, ...args: Parameters<HookTypes[T]>) {
+	async executeHook<T extends HookNames = HookNames>(name: T, ...args: Parameters<HookTypes[T]>) {
 		const hook = this.hooks[name]
 		if (!hook || hook.length === 0) throw new Error(`Hook "${name}" not found in any plugin`)
 		const timeStart = performance.now()
 		// First argument is the pipeable one
 		let teaCup = args[0]
 		for (const h of hook) {
-			// FIXME: We are not awaiting the hooks, should we?
-			const teaSpoon = (h.fn as (...args: any[]) => any)(teaCup, ...args.slice(1))
+			const teaSpoon = await (h.fn as (...args: any[]) => any)(teaCup, ...args.slice(1))
 			teaCup = teaSpoon || teaCup
 		}
 		const timeEnd = performance.now()
 		const hookTime = (timeEnd - timeStart).toFixed(2)
 		log.tag('bgGreenBright', 'HOOK', name, `executed in ${hookTime}ms`)
-		return teaCup as ReturnType<HookTypes[T]>
+		return teaCup as Awaited<ReturnType<HookTypes[T]>>
 	}
 
 	/**

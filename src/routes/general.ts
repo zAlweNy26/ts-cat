@@ -34,7 +34,7 @@ export const generalRoutes = new Elysia({
 		log.debug(`User ${user} connected to the WebSocket.`)
 		while (stray.wsQueue.length) {
 			const message = stray.wsQueue.shift()
-			if (message) stray.send(message)
+			if (message) await stray.send(message)
 		}
 	},
 	close: ({ data: { params } }) => {

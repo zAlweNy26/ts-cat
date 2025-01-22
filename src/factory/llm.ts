@@ -216,7 +216,7 @@ const bedrockChatLLMConfig = addChatModel({
 	model: BedrockChat,
 })
 
-export function getAllowedLLMs() {
+export async function getAllowedLLMs() {
 	const allowedLLMs: ChatModelConfig<any>[] = [
 		fakeLLMConfig,
 		customLLMConfig,
@@ -231,7 +231,7 @@ export function getAllowedLLMs() {
 		geminiChatLLMConfig,
 		bedrockChatLLMConfig,
 	]
-	const models = madHatter.executeHook('allowedLLMs', allowedLLMs, addChatModel)
+	const models = await madHatter.executeHook('allowedLLMs', allowedLLMs, addChatModel)
 	db.update((db) => {
 		db.llms = models.map(m => ({
 			name: m.info.id,
@@ -241,7 +241,7 @@ export function getAllowedLLMs() {
 	return models as ChatModelConfig[]
 }
 
-export const getLLM = (llm: string) => getAllowedLLMs().find(e => e.info.id === llm)
+export const getLLM = async (llm: string) => (await getAllowedLLMs()).find(e => e.info.id === llm)
 
 export function getLLMSettings(llm?: string) {
 	llm ||= db.data.selectedLLM

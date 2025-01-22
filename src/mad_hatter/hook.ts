@@ -10,10 +10,10 @@ import type { TextSplitter } from 'langchain/text_splitter'
 
 export interface HookTypes {
 	// Cheshire Cat hooks
-	beforeBootstrap: (db: Readonly<DatabaseConfig>) => DatabaseConfig
-	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => DatabaseConfig
-	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => EmbedderConfig<any>[]
-	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => ChatModelConfig<any>[]
+	beforeBootstrap: (db: Readonly<DatabaseConfig>) => NotPromise<DatabaseConfig>
+	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => NotPromise<DatabaseConfig>
+	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => MaybePromise<EmbedderConfig<any>[]>
+	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => MaybePromise<ChatModelConfig<any>[]>
 	// Agent Manager hooks
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
 	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>
@@ -32,13 +32,13 @@ export interface HookTypes {
 	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
 	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>
 	afterRecallMemories: (memory: BetterReadonly<WorkingMemory>, stray: StrayCat) => MaybePromise<BetterReadonly<WorkingMemory>>
-	afterModelInteraction: (interaction: ModelInteraction, stray: StrayCat) => ModelInteraction
+	afterModelInteraction: (interaction: ModelInteraction, stray: StrayCat) => MaybePromise<ModelInteraction>
 	// Vector Memory hooks
 	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => MaybePromise<Record<string, VectorMemoryCollection>>
 	// Rabbit Hole hooks
-	fileParsers: (loaders: FileParsers) => FileParsers
-	webParsers: (loaders: WebParser[]) => WebParser[]
-	textSplitter: (splitter: TextSplitter) => TextSplitter
+	fileParsers: (loaders: FileParsers) => MaybePromise<FileParsers>
+	webParsers: (loaders: WebParser[]) => MaybePromise<WebParser[]>
+	textSplitter: (splitter: TextSplitter) => MaybePromise<TextSplitter>
 	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	afterStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
 	beforeInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>

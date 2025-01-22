@@ -39,7 +39,13 @@ function assertMemoryJson(json: any): asserts json is MemoryJson {
 
 export class RabbitHole {
 	private static instance: RabbitHole
-	private splitter: TextSplitter
+
+	private splitter: TextSplitter = new RecursiveCharacterTextSplitter({
+		separators: ['\\n\\n', '\n\n', '.\\n', '.\n', '\\n', '\n', ' ', ''],
+		keepSeparator: true,
+		lengthFunction: text => getEncoding('cl100k_base').encode(text).length,
+	})
+
 	private webHandlers: WebParser[] = [
 		[/^.*$/g, CheerioWebBaseLoader],
 	]
@@ -60,13 +66,6 @@ export class RabbitHole {
 
 	private constructor() {
 		log.silent('Initializing the Rabbit Hole...')
-		this.fileHandlers = madHatter.executeHook('fileParsers', this.fileHandlers)
-		this.webHandlers = madHatter.executeHook('webParsers', this.webHandlers)
-		this.splitter = madHatter.executeHook('textSplitter', new RecursiveCharacterTextSplitter({
-			separators: ['\\n\\n', '\n\n', '.\\n', '.\n', '\\n', '\n', ' ', ''],
-			keepSeparator: true,
-			lengthFunction: text => getEncoding('cl100k_base').encode(text).length,
-		}))
 	}
 
 	/**
@@ -74,7 +73,12 @@ export class RabbitHole {
 	 * @returns The Rabbit Hole class as a singleton
 	 */
 	static async getInstance() {
-		if (!RabbitHole.instance) RabbitHole.instance = new RabbitHole()
+		if (!RabbitHole.instance) {
+			RabbitHole.instance = new RabbitHole()
+			RabbitHole.instance.fileHandlers = await madHatter.executeHook('fileParsers', RabbitHole.instance.fileHandlers)
+			RabbitHole.instance.webHandlers = await madHatter.executeHook('webParsers', RabbitHole.instance.webHandlers)
+			RabbitHole.instance.splitter = await madHatter.executeHook('textSplitter', RabbitHole.instance.splitter)
+		}
 		return RabbitHole.instance
 	}
 
@@ -169,9 +173,9 @@ export class RabbitHole {
 
 		log.info('Ingesting file...')
 		const loader = new this.fileHandlers[mime]!(file as unknown as Blob)
-		stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
+		await stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 		const content = await loader.load()
-		stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
+		await stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
 		const docs = await this.splitDocs(stray, content, chunkSize, chunkOverlap)
 		await this.storeDocuments(stray, docs, file.name, metadata)
 	}
@@ -194,9 +198,9 @@ export class RabbitHole {
 			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href))
 			if (!webHandler) throw new Error(`No matching regex found for "${path}". Skipping URL ingestion...`)
 			const loader = new webHandler[1](url.href)
-			stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
+			await stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 			const content = await loader.load()
-			stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
+			await stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
 			const docs = await this.splitDocs(stray, content, chunkSize, chunkOverlap)
 			await this.storeDocuments(stray, docs, url.href, metadata)
 		}
@@ -228,7 +232,7 @@ export class RabbitHole {
 			const index = i + 1
 			const percRead = Math.round((index / docs.length) * 100)
 			const readMsg = `Read ${percRead}% of ${source}`
-			stray.send({ type: 'notification', content: readMsg })
+			await stray.send({ type: 'notification', content: readMsg })
 			log.info(readMsg)
 			doc.metadata = {
 				...metadata,
@@ -261,7 +265,7 @@ export class RabbitHole {
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 		}
 		docs = await madHatter.executeHook('afterStoreDocuments', docs, stray)
-		stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
+		await stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
 		log.info(`Done uploading ${source}`)
 	}
 

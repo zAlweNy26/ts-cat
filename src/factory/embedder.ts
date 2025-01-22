@@ -219,7 +219,7 @@ const bedrockEmbedderConfig = addEmbeddings({
 	model: BedrockEmbeddings,
 })
 
-export function getAllowedEmbedders() {
+export async function getAllowedEmbedders() {
 	const allowedEmbeddersModels: EmbedderConfig<any>[] = [
 		fakeEmbedderConfig,
 		openAIEmbedderConfig,
@@ -233,7 +233,7 @@ export function getAllowedEmbedders() {
 		googleEmbedderSettings,
 		bedrockEmbedderConfig,
 	]
-	const models = madHatter.executeHook('allowedEmbedders', allowedEmbeddersModels, addEmbeddings)
+	const models = await madHatter.executeHook('allowedEmbedders', allowedEmbeddersModels, addEmbeddings)
 	db.update((db) => {
 		db.embedders = models.map(m => ({
 			name: m.info.id,
@@ -243,7 +243,7 @@ export function getAllowedEmbedders() {
 	return models as EmbedderConfig[]
 }
 
-export const getEmbedder = (embedder: string) => getAllowedEmbedders().find(e => e.info.id === embedder)
+export const getEmbedder = async (embedder: string) => (await getAllowedEmbedders()).find(e => e.info.id === embedder)
 
 export function getEmbedderSettings(emb?: string) {
 	emb ||= db.data.selectedEmbedder

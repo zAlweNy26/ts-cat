@@ -8,8 +8,8 @@ export const embedderRoutes = new Elysia({
 	name: 'embedder',
 	prefix: '/embedder',
 	detail: { tags: [swaggerTags.embedder.name] },
-}).use(serverContext).get('/settings', ({ db }) => {
-	const allowedEmbedders = getAllowedEmbedders()
+}).use(serverContext).get('/settings', async ({ db }) => {
+	const allowedEmbedders = await getAllowedEmbedders()
 	const options = allowedEmbedders.map(({ config, info }) => ({
 		...info,
 		schema: zodToJsonSchema(config),
@@ -28,9 +28,9 @@ export const embedderRoutes = new Elysia({
 		200: 'modelsInfo',
 		400: 'error',
 	},
-}).get('/settings/:embedderId', ({ params, HttpError }) => {
+}).get('/settings/:embedderId', async ({ params, HttpError }) => {
 	const id = params.embedderId
-	const emb = getEmbedder(id)
+	const emb = await getEmbedder(id)
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const value = getEmbedderSettings(id) ?? {}
 	return {
@@ -51,7 +51,7 @@ export const embedderRoutes = new Elysia({
 	},
 }).put('/settings/:embedderId', async ({ mh, db, params, body, log, HttpError }) => {
 	const id = params.embedderId
-	const emb = getEmbedder(id)
+	const emb = await getEmbedder(id)
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const parsed = emb.config.safeParse(body)
 	if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())

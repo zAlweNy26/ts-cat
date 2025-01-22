@@ -8,8 +8,8 @@ export const llmRoutes = new Elysia({
 	name: 'llm',
 	prefix: '/llm',
 	detail: { tags: [swaggerTags.llm.name] },
-}).use(serverContext).get('/settings', ({ db }) => {
-	const allowedLlms = getAllowedLLMs()
+}).use(serverContext).get('/settings', async ({ db }) => {
+	const allowedLlms = await getAllowedLLMs()
 	const options = allowedLlms.map(({ config, info }) => ({
 		...info,
 		schema: zodToJsonSchema(config),
@@ -28,9 +28,9 @@ export const llmRoutes = new Elysia({
 		200: 'modelsInfo',
 		400: 'error',
 	},
-}).get('/settings/:llmId', ({ params, HttpError }) => {
+}).get('/settings/:llmId', async ({ params, HttpError }) => {
 	const id = params.llmId
-	const llm = getLLM(id)
+	const llm = await getLLM(id)
 	if (!llm) throw HttpError.NotFound(`The passed LLM id '${id}' doesn't exist in the list of available LLMs.`)
 	const value = getLLMSettings(id) ?? {}
 	return {
@@ -51,7 +51,7 @@ export const llmRoutes = new Elysia({
 	},
 }).put('/settings/:llmId', async ({ mh, db, params, body, log, HttpError }) => {
 	const id = params.llmId
-	const llm = getLLM(id)
+	const llm = await getLLM(id)
 	if (!llm) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const parsed = llm.config.safeParse(body)
 	if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())

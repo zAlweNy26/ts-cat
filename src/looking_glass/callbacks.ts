@@ -14,8 +14,8 @@ export class NewTokenHandler extends BaseCallbackHandler {
 		super(input)
 	}
 
-	handleLLMNewToken(token: string) {
-		this.stray.send({
+	async handleLLMNewToken(token: string) {
+		await this.stray.send({
 			type: 'token',
 			content: token,
 		})
@@ -56,7 +56,7 @@ export class ModelInteractionHandler extends BaseCallbackHandler {
 		this.lastInteraction.reply = output.generations[0]?.[0]?.text ?? ''
 		this.lastInteraction.outputTokens = await this.countTokens(this.lastInteraction.reply)
 		this.lastInteraction.endedAt = Date.now()
-		this.stray.addInteraction(this.lastInteraction)
+		await this.stray.addInteraction(this.lastInteraction)
 	}
 }
 

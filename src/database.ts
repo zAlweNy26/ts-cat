@@ -100,7 +100,7 @@ export class Database {
 	 * Updates the database configuration and reads the updated configuration.
 	 * @param fn A function that takes the current database configuration as a parameter and updates it.
 	 */
-	update(fn: (db: DatabaseConfig) => void) {
+	update(fn: (db: DatabaseConfig) => NotPromise<void>) {
 		this._db.update(fn)
 		this._db.read()
 	}

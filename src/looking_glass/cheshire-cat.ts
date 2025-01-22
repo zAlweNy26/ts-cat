@@ -31,9 +31,6 @@ export class CheshireCat {
 
 	private constructor() {
 		log.silent('Initializing the Cheshire Cat...')
-		db.update(db => madHatter.executeHook('beforeBootstrap', db))
-		this.loadNaturalLanguage()
-		madHatter.onPluginsSyncCallback = () => this.embedProcedures()
 		this.manager = new AgentManager()
 	}
 
@@ -44,9 +41,13 @@ export class CheshireCat {
 	static async getInstance() {
 		if (!CheshireCat.instance) {
 			CheshireCat.instance = new CheshireCat()
+			db.update(db => madHatter.executeHook('beforeBootstrap', db))
+			await CheshireCat.instance.loadNaturalLanguage()
+			madHatter.onPluginsSyncCallback = () => CheshireCat.instance.embedProcedures()
 			await CheshireCat.instance.loadMemory()
 			await CheshireCat.instance.embedProcedures()
 			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
+			log.success('Cheshire Cat is ready.')
 		}
 		return CheshireCat.instance
 	}
@@ -111,15 +112,15 @@ export class CheshireCat {
 	 * Load the Large Language Model (LLM) and the Embedder from the database.
 	 * If the selected LLM or Embedder is not found, it falls back to the default one.
 	 */
-	loadNaturalLanguage() {
-		this.llm = this.loadLanguageModel()
-		this.embedder = this.loadLanguageEmbedder()
+	async loadNaturalLanguage() {
+		this.llm = await this.loadLanguageModel()
+		this.embedder = await this.loadLanguageEmbedder()
 	}
 
-	private loadLanguageModel() {
+	private async loadLanguageModel() {
 		const selected = db.data.selectedLLM
 		try {
-			const llm = getLLM(selected)
+			const llm = await getLLM(selected)
 			if (!llm) throw new Error('LLM not found')
 			const settings = getLLMSettings(selected)
 			if (!settings) throw new Error('LLM settings not found')
@@ -128,14 +129,14 @@ export class CheshireCat {
 		catch (error) {
 			log.error(error)
 			log.warn(`The selected LLM "${selected}" does not exist. Falling back to the default LLM.`)
-			return getLLM('FakeChat')!.initModel({})
+			return (await getLLM('FakeChat'))!.initModel({})
 		}
 	}
 
-	private loadLanguageEmbedder() {
+	private async loadLanguageEmbedder() {
 		const selected = db.data.selectedEmbedder
 		try {
-			const embedder = getEmbedder(selected)
+			const embedder = await getEmbedder(selected)
 			if (!embedder) throw new Error('Embedder not found')
 			const settings = getEmbedderSettings(selected)
 			if (!settings) throw new Error('Embedder settings not found')
@@ -144,7 +145,7 @@ export class CheshireCat {
 		catch (error) {
 			log.error(error)
 			log.warn(`The selected Embedder "${selected}" does not exist. Falling back to the default Embedder.`)
-			return getEmbedder('FakeEmbeddings')!.initModel({})
+			return (await getEmbedder('FakeEmbeddings'))!.initModel({})
 		}
 	}
 
@@ -159,7 +160,7 @@ export class CheshireCat {
 		)
 
 		// QUESTION: Should we also set it in the db?
-		if (error) this.embedder = getEmbedder('FakeEmbeddings')!.initModel({})
+		if (error) this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
 
 		this._embedderSize = vector.length
 		if (this._embedderSize === 0) {
