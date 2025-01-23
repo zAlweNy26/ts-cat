@@ -1,10 +1,12 @@
-import app from '@/main.ts'
+import type { App } from '@/main'
 import { treaty } from '@elysiajs/eden'
-import { parsedEnv } from '@utils'
+import { catPaths, parsedEnv } from '@utils'
 import { describe, expect, it } from 'bun:test'
 import pkg from '~/package.json'
 
-const api = treaty(app)
+const { hostname, port } = catPaths.realDomain
+
+const api = treaty<App>(`${hostname}:${port}`)
 
 describe('api status', () => {
 	it('return correct response', async () => {

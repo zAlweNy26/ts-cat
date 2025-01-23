@@ -31,6 +31,7 @@
         "@smithy/util-utf8": "3.0.0",
         "cheerio": "1.0.0",
         "chokidar": "^4.0.3",
+        "citty": "0.1.6",
         "consola": "^3.4.0",
         "console-table-printer": "^2.12.1",
         "croner": "9.0.0",
