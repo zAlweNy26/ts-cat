@@ -1,3 +1,26 @@
+diff --git a/node_modules/langchain/.bun-tag-4db83b22e23a56a9 b/.bun-tag-4db83b22e23a56a9
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/dist/agents/index.d.ts b/dist/agents/index.d.ts
+index 05f874b2341e529f1f7b79d8ff227935a312d160..c502d3c269f3bff0249abb3ef4d88de243c3b6d9 100644
+--- a/dist/agents/index.d.ts
++++ b/dist/agents/index.d.ts
+@@ -1,4 +1,4 @@
+-export { Agent, type AgentArgs, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, type LLMSingleActionAgentInput, type OutputParserArgs, type AgentRunnableSequence, } from "./agent.js";
++export { Agent, AgentRunnableSequence, type AgentArgs, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, type LLMSingleActionAgentInput, type OutputParserArgs, } from "./agent.js";
+ export { JsonToolkit, OpenApiToolkit, RequestsToolkit, type VectorStoreInfo, VectorStoreRouterToolkit, VectorStoreToolkit, createJsonAgent, createOpenApiAgent, createVectorStoreAgent, createVectorStoreRouterAgent, } from "./toolkits/index.js";
+ export { Toolkit } from "./toolkits/base.js";
+ export { ChatAgent, type ChatAgentInput, type ChatCreatePromptArgs, } from "./chat/index.js";
+diff --git a/dist/agents/index.js b/dist/agents/index.js
+index ca4a1ab41dabd8cf4f3874c24ad39a93279a6bd1..16ef45bcb06fb40b1e68d7793cee426bff56a792 100644
+--- a/dist/agents/index.js
++++ b/dist/agents/index.js
+@@ -1,4 +1,4 @@
+-export { Agent, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, } from "./agent.js";
++export { Agent, AgentRunnableSequence, BaseSingleActionAgent, BaseMultiActionAgent, RunnableAgent, LLMSingleActionAgent, } from "./agent.js";
+ export { JsonToolkit, OpenApiToolkit, RequestsToolkit, VectorStoreRouterToolkit, VectorStoreToolkit, createJsonAgent, createOpenApiAgent, createVectorStoreAgent, createVectorStoreRouterAgent, } from "./toolkits/index.js";
+ export { Toolkit } from "./toolkits/base.js";
+ export { ChatAgent, } from "./chat/index.js";
 diff --git a/dist/chains/sql_db/index.d.ts b/dist/chains/sql_db/index.d.ts
 index 1e80d04027f2d5d86a987d27432906c0af5f7ef3..61e6df2ae320993c799038a84d9d633ad22a827c 100644
 --- a/dist/chains/sql_db/index.d.ts

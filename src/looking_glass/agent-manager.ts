@@ -5,12 +5,12 @@ import { db } from '@db'
 import { AIMessage, HumanMessage } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { ChatPromptTemplate, interpolateFString, SystemMessagePromptTemplate } from '@langchain/core/prompts'
-import { RunnableLambda, RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables'
+import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
 import { log } from '@logger'
 import { type Form, FormState, isTool, madHatter, type Tool } from '@mh'
 import { parsedEnv } from '@utils'
 import { formatDistanceToNow } from 'date-fns'
-import { AgentExecutor, type AgentStep } from 'langchain/agents'
+import { AgentExecutor, AgentRunnableSequence, type AgentStep } from 'langchain/agents'
 import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
 import _Random from 'lodash/random.js'
 import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
@@ -73,7 +73,7 @@ export class AgentManager {
 			examples,
 		})
 
-		const agent = RunnableSequence.from([
+		const agent = AgentRunnableSequence.fromRunnables([
 			RunnablePassthrough.assign({
 				agent_scratchpad: x => ((x.intermediateSteps ?? []) as AgentStep[]).reduce((acc, { action, observation }) => {
 					let thought = `${action.log}\n`
@@ -85,7 +85,7 @@ export class AgentManager {
 			this.verboseRunnable,
 			stray.currentLLM,
 			new ProceduresOutputParser(),
-		])
+		], { singleAction: true })
 
 		const agentExecutor = AgentExecutor.fromAgentAndTools({
 			agent,
