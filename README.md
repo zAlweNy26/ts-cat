@@ -38,7 +38,7 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Supports streaming both in WebSocket and HTTP
 - [x] Tokens usage visible through model interactions
 - [x] Cache support for LLM and Embedder responses
-- [ ] Built-in CLI
+- [x] Built-in CLI
 - [ ] External plugins registry support
 - [ ] Add multi-modality support
 - [ ] Add multi-agent support

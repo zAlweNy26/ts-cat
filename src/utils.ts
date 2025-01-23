@@ -2,6 +2,7 @@ import type { BaseMessageChunk } from '@langchain/core/messages'
 import { stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { safeDestr } from 'destr'
+import isDocker from 'is-docker'
 import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
 import _DefaultsDeep from 'lodash/defaultsDeep.js'
 import { z } from 'zod'
@@ -81,9 +82,26 @@ function getBaseUrl() {
 }
 
 /**
+ * Retrieves the real domain of the application.
+ */
+function getRealDomain() {
+	const inDocker = isDocker()
+	const port = inDocker ? 80 : parsedEnv.port
+	const hostname = inDocker ? '0.0.0.0' : parsedEnv.host
+	return {
+		hostname,
+		port,
+	}
+}
+
+/**
  * It contains various paths and URLs used in the application.
  */
 export const catPaths = {
+	/**
+	 * The real domain of the application.
+	 */
+	realDomain: getRealDomain(),
 	/**
 	 * The base path of the application.
 	 */

@@ -6,11 +6,10 @@ import { swagger } from '@elysiajs/swagger'
 import { embedderRoutes, generalRoutes, llmRoutes, memoryRoutes, pluginsRoutes, rabbitHoleRoutes, settingsRoutes } from '@routes'
 import { Elysia } from 'elysia'
 import { checkPort } from 'get-port-please'
-import isDocker from 'is-docker'
 import pkg from '~/package.json'
 import { serverContext, swaggerTags } from './context.ts'
 import { httpLogger, log } from './logger.ts'
-import { logWelcome, parsedEnv } from './utils.ts'
+import { catPaths, logWelcome, parsedEnv } from './utils.ts'
 
 const app = new Elysia()
 	.use(httpLogger)
@@ -74,11 +73,9 @@ const app = new Elysia()
 	.use(rabbitHoleRoutes)
 	.use(pluginsRoutes)
 
-const inDocker = isDocker()
+const { hostname, port } = catPaths.realDomain
 
 try {
-	const port = inDocker ? 80 : parsedEnv.port
-	const hostname = inDocker ? '0.0.0.0' : parsedEnv.host
 	await checkPort(port, hostname)
 	app.listen({ hostname, port })
 	await logWelcome()
@@ -89,4 +86,10 @@ catch (error) {
 	process.exit(1)
 }
 
-export default app
+export type App = typeof generalRoutes &
+	typeof settingsRoutes &
+	typeof llmRoutes &
+	typeof embedderRoutes &
+	typeof memoryRoutes &
+	typeof rabbitHoleRoutes &
+	typeof pluginsRoutes
