@@ -1,5 +1,39 @@
 # Changelog
 
+## v1.6.1
+
+[compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.6.0...v1.6.1)
+
+### 🚀 Enhancements
+
+- Support async tools ([f03c8e2](https://github.com/zAlweNy26/ts-cat/commit/f03c8e2))
+- Add endpoint to retrieve regex of webParsers ([d5f3d00](https://github.com/zAlweNy26/ts-cat/commit/d5f3d00))
+- ⚠️  Use new Bun v1.2 ([60dcc2f](https://github.com/zAlweNy26/ts-cat/commit/60dcc2f))
+
+### 🩹 Fixes
+
+- AgentRunnableSequence not executing tools ([776a064](https://github.com/zAlweNy26/ts-cat/commit/776a064))
+
+### 📖 Documentation
+
+- Update README ([f7da2c0](https://github.com/zAlweNy26/ts-cat/commit/f7da2c0))
+
+### 🏡 Chore
+
+- Update deps ([2743f4e](https://github.com/zAlweNy26/ts-cat/commit/2743f4e))
+
+### 🤖 CI
+
+- Fix release action ([2f21e62](https://github.com/zAlweNy26/ts-cat/commit/2f21e62))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Use new Bun v1.2 ([60dcc2f](https://github.com/zAlweNy26/ts-cat/commit/60dcc2f))
+
+### ❤️ Contributors
+
+- Dany <zdanymc@gmail.com>
+
 ## v1.6.0
 
 [compare changes](https://github.com/zAlweNy26/ts-cat/compare/v1.5.5...v1.6.0)
