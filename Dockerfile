@@ -3,7 +3,7 @@ FROM oven/bun AS build
 WORKDIR /app
 
 # Cache packages installation
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 COPY ./patches ./patches
 
 RUN bun install --ignore-scripts --production

@@ -7,18 +7,9 @@ To let the Cheshire Cat detect your plugin, you need to create at least one `.ts
 To scaffold a new plugin, you can use the following command:
 
 ```bash
-# inside the plugins directory
-cp -r ../../.bun-create/plugin <your_plugin_id> # linux/macos
-xcopy ..\..\.bun-create\plugin <your_plugin_id> /E /I /H /K # windows (cmd)
-Copy-Item -Recurse -Force ..\..\.bun-create\plugin <your_plugin_id> # windows (powershell)
+# inside the root project directory
+bun create ./plugin ./src/plugins/<your_plugin_id>
 ```
-
-<!-- TODO: When Bun fixes `bun create` command, use this instead:
-```bash
-# inside the plugins directory
-bun create /plugin <your_plugin_id>
-```
--->
 
 This will create for you all the necessary files to start creating your plugin!
 

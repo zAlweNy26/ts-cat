@@ -21,7 +21,7 @@ const app = new Elysia()
 		allowedHeaders: '*',
 		credentials: true,
 	}))
-	.use(await staticPlugin({ // TODO: NOT_FOUND error reference at https://github.com/elysiajs/elysia/issues/739
+	.use(await staticPlugin({ // BUG: NOT_FOUND error reference at https://github.com/elysiajs/elysia/issues/739
 		prefix: '/assets',
 		assets: resolve(process.cwd(), 'src', 'assets'),
 	}))

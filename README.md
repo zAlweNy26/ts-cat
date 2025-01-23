@@ -38,15 +38,15 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 - [x] Supports streaming both in WebSocket and HTTP
 - [x] Tokens usage visible through model interactions
 - [x] Cache support for LLM and Embedder responses
-- [ ] External plugins registry support
 - [ ] Built-in CLI
+- [ ] External plugins registry support
 - [ ] Add multi-modality support
 - [ ] Add multi-agent support
 - [ ] Add multi-chat support
 
 ## Pre-requisites
 
-- Bun (>= 1.0.0) (for local development)
+- Bun (>= 1.2) (for local development)
 - Docker
 
 ## Installation
@@ -54,7 +54,6 @@ Check out the [linked project](https://github.com/zAlweNy26/ts-cat/projects?quer
 ```bash
 # (for development)
 bun install
-rm -f .git/hooks/pre-commit && ln -s ../../pre-commit .git/hooks/pre-commit
 
 # (for production)
 docker compose build --no-cache
@@ -66,19 +65,32 @@ docker compose build --no-cache
 # (for development)
 docker run -p 6333:6333 qdrant/qdrant
 bun run dev
-# OR
-docker compose build -f compose.dev.yml --no-cache # (if you want to use Docker for development)
+# OR (if you are using the dev docker compose)
+docker compose -f compose.dev.yml build --no-cache
+docker compose -f compose.dev.yml up -d
 
 # (for production)
 docker compose up
+```
+
+## How to run CLI
+
+```bash
+bun run cli <command>
+# OR (if you are using the dev compose)
+docker exec ccat_ts_dev bun run cli <command>
+# OR (if you are using the prod compose)
+docker exec ccat_ts bun run cli <command>
 ```
 
 ## How to test
 
 ```bash
 bun run test
-# OR
-docker compose -f compose.dev.yml exec ccat-ts-dev bun run test
+# OR (if you are using the dev compose)
+docker exec ccat_ts_dev bun run test
+# OR (if you are using the prod compose)
+docker exec ccat_ts bun run test
 ```
 
 ## License
