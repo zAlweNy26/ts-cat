@@ -35,7 +35,7 @@ export class StrayCat {
 		procedural: [],
 	}
 
-	constructor(public userId: string, private ws?: WS) { }
+	constructor(public userId: string, private ws?: WS) {}
 
 	get lastUserMessage() {
 		return this.userMessage
@@ -104,10 +104,7 @@ export class StrayCat {
 	 * @param msg The message to send.
 	 */
 	async send(msg: WSMessage) {
-		if (this.ws) {
-			this.ws.send(JSON.stringify(msg))
-			if (msg.type === 'chat') this.chatHistory.push(msg)
-		}
+		if (this.ws) this.ws.send(JSON.stringify(msg))
 		else {
 			log.warn(`No websocket connection is open for "${this.userId}". Queuing the message...`)
 			this.wsQueue.push(msg)

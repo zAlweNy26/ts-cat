@@ -13,12 +13,11 @@ export const generalRoutes = new Elysia({
 		userId: t.String({ default: 'user' }),
 	}),
 	query: t.Object({
-		why: t.Boolean({ default: true }),
+		why: t.Boolean({ default: false }),
 		save: t.Boolean({ default: true }),
-		token: t.String({ default: true }),
+		token: t.Optional(t.String()),
 	}),
 	body: 'messageInput',
-	response: 'chatMessage',
 	idleTimeout: 300, // TODO: Set a proper idle timeout
 	beforeHandle: ({ query, HttpError }) => {
 		const apiKey = query.token, realKey = parsedEnv.apiKey
@@ -42,10 +41,18 @@ export const generalRoutes = new Elysia({
 		cat.removeStray(user)
 		log.debug(`User ${user} disconnected from the WebSocket.`)
 	},
-	message: ({ data: { params, body, query } }) => {
+	message: async ({ data: { params, query } }, body) => {
 		const user = params.userId
+		const { save, why } = query
 		const stray = cat.getStray(user)!
-		stray.run(body as any, query.save).then(stray.send).catch(log.error)
+		if (!body) return
+		try {
+			const res = await stray.run(body, save, why)
+			await stray.send(res)
+		}
+		catch (error) {
+			log.error(error)
+		}
 	},
 	error: ({ error }) => {
 		log.dir(error)

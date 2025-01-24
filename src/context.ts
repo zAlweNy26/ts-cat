@@ -244,6 +244,8 @@ export const pluginSettings = t.Object({
 	}],
 })
 
+const whitelistedPaths = ['/docs', '/assets', '/ws']
+
 export const serverContext = new Elysia({ name: 'server-context' }).use(httpError).decorate({
 	// cat: cheshireCat, // FIXME: Fix RangeError: Maximum call stack size exceeded.
 	mh: madHatter,
@@ -252,7 +254,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	db,
 }).onBeforeHandle({ as: 'scoped' }, ({ headers, path, HttpError }) => {
 	const apiKey = headers.token, realKey = parsedEnv.apiKey
-	if (path.startsWith('/docs') || path.startsWith('/assets')) return
+	if (whitelistedPaths.some(p => path.startsWith(p))) return
 	if (realKey && realKey !== apiKey)
 		throw HttpError.Unauthorized('Invalid API key')
 }).derive({ as: 'global' }, ({ headers }) => {
