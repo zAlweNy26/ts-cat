@@ -66,7 +66,12 @@ export class CustomChat extends BaseChatModel {
 export class CustomChatOpenAI extends ChatOpenAI {
 	constructor(params: ConstructorParameters<typeof ChatOpenAI>[0] & { baseUrl: string }) {
 		const { baseUrl, ...args } = params
-		super(args, { baseURL: baseUrl })
+		super({
+			...args,
+			configuration: {
+				baseURL: baseUrl,
+			},
+		})
 	}
 
 	_llmType(): string {
