@@ -1,8 +1,10 @@
+import type { BaseCache } from '@langchain/core/caches'
+import type { BaseStore } from '@langchain/core/stores'
 import { log } from '@/logger'
 import { RedisCache } from '@langchain/community/caches/ioredis'
 import { RedisByteStore } from '@langchain/community/storage/ioredis'
-import { type BaseCache, InMemoryCache } from '@langchain/core/caches'
-import { type BaseStore, InMemoryStore } from '@langchain/core/stores'
+import { InMemoryCache } from '@langchain/core/caches'
+import { InMemoryStore } from '@langchain/core/stores'
 import { parsedEnv } from '@utils'
 import { Redis } from 'ioredis'
 

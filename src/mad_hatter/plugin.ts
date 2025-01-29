@@ -1,4 +1,7 @@
 import type { PackageJson } from 'pkg-types'
+import type { Form } from './form.ts'
+import type { Hook } from './hook.ts'
+import type { Tool } from './tool.ts'
 import { rm } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { log } from '@logger'
@@ -8,9 +11,9 @@ import _CloneDeep from 'lodash/cloneDeep.js'
 import _SampleSize from 'lodash/sampleSize.js'
 import { titleCase } from 'scule'
 import { z } from 'zod'
-import { type Form, isForm } from './form.ts'
-import { type Hook, isHook } from './hook.ts'
-import { isTool, type Tool } from './tool.ts'
+import { isForm } from './form.ts'
+import { isHook } from './hook.ts'
+import { isTool } from './tool.ts'
 
 const pluginManifestSchema = z.object({
 	name: z.string().min(1).trim(),

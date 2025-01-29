@@ -1,8 +1,9 @@
 import type { BaseMessageChunk } from '@langchain/core/messages'
+import type { CriteriaLike } from 'langchain/evaluation'
 import { stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { safeDestr } from 'destr'
-import { type CriteriaLike, loadEvaluator } from 'langchain/evaluation'
+import { loadEvaluator } from 'langchain/evaluation'
 import _DefaultsDeep from 'lodash/defaultsDeep.js'
 import { z } from 'zod'
 
