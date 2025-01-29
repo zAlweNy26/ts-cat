@@ -37,34 +37,58 @@ export class StrayCat {
 
 	constructor(public userId: string, private ws?: WS) {}
 
+	/**
+	 * Get the last user message.
+	 */
 	get lastUserMessage() {
 		return this.userMessage
 	}
 
+	/**
+	 * Get the current installed plugins.
+	 */
 	get plugins() {
 		return madHatter.installedPlugins
 	}
 
+	/**
+	 * Get the current instance of the LLM selected.
+	 */
 	get currentLLM() {
 		return cheshireCat.currentLLM
 	}
 
+	/**
+	 * Get the current instance of the Embedder selected.
+	 */
 	get currentEmbedder() {
 		return cheshireCat.currentEmbedder
 	}
 
-	get vectorMemory() {
-		return cheshireCat.vectorMemory
-	}
-
+	/**
+	 * Get the AgentManager instance.
+	 */
 	get agentManager() {
 		return cheshireCat.agentManager
 	}
 
+	/**
+	 * Get the memory instance.
+	 */
+	get vectorMemory() {
+		return cheshireCat.vectorMemory
+	}
+
+	/**
+	 * Get the WhiteRabbit instance.
+	 */
 	get whiteRabbit() {
 		return cheshireCat.whiteRabbit
 	}
 
+	/**
+	 * Get the RabbitHole instance.
+	 */
 	get rabbitHole() {
 		return cheshireCat.rabbitHole
 	}
@@ -99,8 +123,6 @@ export class StrayCat {
 	 * Sends a message through the websocket connection.
 	 *
 	 * If the websocket connection is not open, the message is queued.
-	 *
-	 * If the message is of type 'chat', it is also stored in the chat history.
 	 * @param msg The message to send.
 	 */
 	async send(msg: WSMessage) {

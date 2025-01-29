@@ -20,6 +20,9 @@ interface CronJob {
 	previousRun: Date | null
 }
 
+/**
+ * I'm late, I'm late, for a very important date!
+ */
 export class WhiteRabbit {
 	private static instance: WhiteRabbit
 	private jobs = new Map<string, Cron>()
@@ -28,6 +31,10 @@ export class WhiteRabbit {
 		log.silent('Initializing the White Rabbit...')
 	}
 
+	/**
+	 * Get the White Rabbit instance
+	 * @returns The White Rabbit class as a singleton
+	 */
 	static async getInstance() {
 		if (!WhiteRabbit.instance) WhiteRabbit.instance = new WhiteRabbit()
 		return WhiteRabbit.instance

@@ -20,6 +20,9 @@ type ProcedureHash = Record<string, {
 	trigger: 'startExample' | 'stopExample' | 'description'
 }>
 
+/**
+ * The Cheshire Cat is here to guide you through the looking glass.
+ */
 export class CheshireCat {
 	private static instance: CheshireCat
 	private llm!: BaseChatModel
@@ -52,30 +55,51 @@ export class CheshireCat {
 		return CheshireCat.instance
 	}
 
+	/**
+	 * Get the current instance of the LLM selected.
+	 */
 	get currentLLM() {
 		return this.llm
 	}
 
+	/**
+	 * Get the current instance of the Embedder selected.
+	 */
 	get currentEmbedder() {
 		return this.embedder
 	}
 
+	/**
+	 * Get the AgentManager instance.
+	 */
 	get agentManager() {
 		return this.manager
 	}
 
+	/**
+	 * Get the memory instance.
+	 */
 	get vectorMemory() {
 		return this.memory
 	}
 
+	/**
+	 * Get the WhiteRabbit instance.
+	 */
 	get whiteRabbit() {
 		return whiteRabbit
 	}
 
+	/**
+	 * Get the RabbitHole instance.
+	 */
 	get rabbitHole() {
 		return rabbitHole
 	}
 
+	/**
+	 * Get the embedder size.
+	 */
 	get embedderSize() {
 		return this._embedderSize
 	}
@@ -255,4 +279,7 @@ export class CheshireCat {
 	}
 }
 
+/**
+ * The Cheshire Cat is here to guide you through the looking glass.
+ */
 export const cheshireCat = await CheshireCat.getInstance()

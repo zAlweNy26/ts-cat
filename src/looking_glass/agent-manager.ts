@@ -30,6 +30,15 @@ export class AgentManager {
 		},
 	})
 
+	/**
+	 * Executes the procedures chain. It gets the tools and forms and passes them to the agent.
+	 *
+	 * @param agentInput The input context for the agent.
+	 * @param chatHistory The history of the chat as a string.
+	 * @param stray The `StrayCat` instance.
+	 *
+	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
+	 */
 	async executeProceduresChain(agentInput: ContextInput, chatHistory: string, stray: StrayCat) {
 		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
@@ -130,6 +139,14 @@ export class AgentManager {
 		return result as AgentFastReply
 	}
 
+	/**
+	 * Executes a memory chain. It uses the prompt prefix and suffix to format the prompt and then
+	 * passes it to the LLM.
+	 *
+	 * @param input The context input to be processed by the memory chain.
+	 * @param stray The `StrayCat` instance.
+	 * @returns A promise that resolves with the result of the memory chain invocation.
+	 */
 	async executeMemoryChain(input: ContextInput, stray: StrayCat) {
 		const prefix = await madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const suffix = await madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
@@ -146,6 +163,12 @@ export class AgentManager {
 		})
 	}
 
+	/**
+	 * Executes the form associated with the given stray cat.
+	 *
+	 * @param stray The `StrayCat` instance whose form is to be executed.
+	 * @returns The result of the next step of the form or `undefined` if no form is found.
+	 */
 	async executeFormAgent(stray: StrayCat) {
 		const form = madHatter.forms.find(f => f.name === stray.activeForm)
 		if (form) {
@@ -161,6 +184,13 @@ export class AgentManager {
 		}
 	}
 
+	/**
+	 * Executes a tool based on the provided input.
+	 *
+	 * @param input The context input containing the command or query.
+	 * @param stray The `StrayCat` instance to be used with the tool.
+	 * @returns An `AgentFastReply` containing the tool's output and intermediate steps, or `undefined` if no tool is executed.
+	 */
 	async executeTool(input: ContextInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
 		const instantTool = db.data.instantTool
 		if (!instantTool) return undefined
@@ -180,9 +210,16 @@ export class AgentManager {
 				intermediateSteps: [{ procedure: calledTool.name, input: toolInput, observation: output }],
 			}
 		}
+
 		return undefined
 	}
 
+	/**
+	 * Executes the agent's main logic flow, including hooks, tools, forms, procedures, and memory chains.
+	 *
+	 * @param stray The `StrayCat` instance.
+	 * @returns An `AgentFastReply` object containing the agent's output and any intermediate steps.
+	 */
 	async executeAgent(stray: StrayCat): Promise<AgentFastReply> {
 		const agentInput = await madHatter.executeHook('beforeAgentStarts', {
 			input: stray.lastUserMessage.text,
@@ -235,6 +272,13 @@ export class AgentManager {
 		return afterMemory
 	}
 
+	/**
+	 * Generates a prompt string that summarizes episodic memories from the provided documents.
+	 *
+	 * @param docs An array of `MemoryDocument` objects containing the episodic memories.
+	 * @returns A formatted string that includes the context of things the user said in the past.
+	 * 			If the contents of the documents are empty, an empty string is returned.
+	 */
 	getEpisodicMemoriesPrompt(docs: MemoryDocument[]) {
 		let memoryTexts = docs.map(d => d.pageContent.replace(/\n$/gm, '. '))
 		if (memoryTexts.length === 0) return ''
@@ -246,6 +290,13 @@ export class AgentManager {
 		return `## Context of things the Human said in the past:\n - ${memoryTexts.join('\n - ')}`
 	}
 
+	/**
+	 * Generates a prompt string that summarizes declarative memories from the provided documents.
+	 *
+	 * @param docs An array of `MemoryDocument` objects.
+	 * @returns A formatted string that includes the context of the documents with relevant information.
+	 *          If no documents are provided, an empty string is returned.
+	 */
 	getDeclarativeMemoriesPrompt(docs: MemoryDocument[]) {
 		let memoryTexts = docs.map(d => d.pageContent.replace(/\n$/gm, '. '))
 		if (memoryTexts.length === 0) return ''
@@ -254,10 +305,22 @@ export class AgentManager {
 		return `## Context of documents containing relevant information:\n - ${memoryTexts.join('\n - ')}`
 	}
 
+	/**
+	 * Converts an array of `MemoryMessage` objects into a formatted string.
+	 *
+	 * @param history An array of `MemoryMessage` objects representing the chat history.
+	 * @returns A string containing the formatted chat history.
+	 */
 	stringifyChatHistory(history: MemoryMessage[]) {
 		return history.map(m => `\n - ${m.role}: ${m.what}`).join('')
 	}
 
+	/**
+	 * Converts an array of `MemoryMessage` into LangChain `BaseMessage` objects.
+	 *
+	 * @param history An array of `MemoryMessage` objects representing the chat history.
+	 * @returns An array of messages from the LangChain's `ChatMessageHistory` instance.
+	 */
 	getLangchainChatHistory(history: MemoryMessage[]) {
 		const chatHistory = new ChatMessageHistory()
 		history.forEach((m) => {
