@@ -67,6 +67,7 @@
     "@langchain/cohere": "0.3.2",
     "@langchain/community": "0.3.27",
     "@langchain/core": "0.3.37",
+    "@langchain/deepseek": "0.0.1",
     "@langchain/google-genai": "0.1.7",
     "@langchain/mistralai": "0.2.0",
     "@langchain/ollama": "0.1.5",

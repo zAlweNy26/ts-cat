@@ -3,6 +3,7 @@ import { db } from '@db'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatCohere } from '@langchain/cohere'
 import { BedrockChat } from '@langchain/community/chat_models/bedrock'
+import { ChatDeepSeek } from '@langchain/deepseek'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
 import { ChatOllama } from '@langchain/ollama'
@@ -84,7 +85,7 @@ const customOllamaLLMConfig = addChatModel({
 
 const customOpenAILLMConfig = addChatModel({
 	name: 'Custom OpenAI-compatible API',
-	description: 'Configuration for self-hosted OpenAI-compatible API server, e.g. llama-cpp-python server, text-generation-webui, OpenRouter, TinyLLM, etc...',
+	description: 'Configuration for OpenAI-compatible API server, e.g. llama-cpp-python server, text-generation-webui, OpenRouter, TinyLLM, etc...',
 	config: z.object({
 		baseUrl: z.string().url(),
 		temperature: z.number().gte(0).lte(1).default(0.1),
@@ -106,8 +107,23 @@ const chatOpenAILLMConfig = addChatModel({
 		model: z.string().default('gpt-3.5-turbo'),
 		temperature: z.number().gte(0).lte(1).default(0.7),
 		streaming: z.boolean().default(false),
+		maxTokens: z.number().int().gte(1).default(2048),
 	}),
 	model: ChatOpenAI,
+})
+
+const chatDeepSeekLLMConfig = addChatModel({
+	name: 'DeepSeek',
+	description: 'Configuration for DeepSeek language model',
+	link: 'https://api-docs.deepseek.com/quick_start/pricing',
+	config: z.object({
+		apiKey: z.string(),
+		model: z.string().default('deepseek-chat'),
+		temperature: z.number().gte(0).lte(1).default(0.7),
+		streaming: z.boolean().default(false),
+		maxTokens: z.number().int().gte(1).default(2048),
+	}),
+	model: ChatDeepSeek,
 })
 
 const azureChatOpenAILLMConfig = addChatModel({
@@ -223,6 +239,7 @@ export async function getAllowedLLMs() {
 		customOllamaLLMConfig,
 		customOpenAILLMConfig,
 		chatOpenAILLMConfig,
+		chatDeepSeekLLMConfig,
 		azureChatOpenAILLMConfig,
 		cohereLLMConfig,
 		mistralAILLMConfig,
