@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  ccat-ts:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: ccat_ts
+    environment:
+      - CORE_HOST=${CORE_HOST:-localhost}
+      - CORE_PORT=${CORE_PORT:-1865}
+      - CORE_USE_SECURE_PROTOCOLS=${CORE_USE_SECURE_PROTOCOLS:-}
+      - QDRANT_HOST=${QDRANT_HOST:-ccat_ts_vector_memory}
+      - QDRANT_PORT=${QDRANT_PORT:-6333}
+      - API_KEY=${API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEBUG=${DEBUG:-true}
+      - SAVE_MEMORY_SNAPSHOTS=${SAVE_MEMORY_SNAPSHOTS:-false}
+    volumes:
+      - ./:/app
+    command: pnpm dev
+    restart: unless-stopped
+  ccat-ts-vector-memory:
+    image: qdrant/qdrant:v1.8.2
+    container_name: ccat_ts_vector_memory
+    environment:
+      - QDRANT__LOG_LEVEL=INFO
+    expose:
+      - 6333
+    volumes:
+      - ./data/long_term_memory:/qdrant/storage
+    restart: unless-stopped
+  nginx:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.nginx
+    container_name: ccat_ts_nginx
+    ports:
+      - 8080:80
+      - 44343:443
+    depends_on:
+      - ccat-ts

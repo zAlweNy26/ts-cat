@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ccat-ts
+  name: ccat-ts
+spec:
+  ports:
+    - name: "1865"
+      port: 1865
+      targetPort: 80
+  selector:
+    io.kompose.service: ccat-ts
+status:
+  loadBalancer: {}
