@@ -4,7 +4,7 @@ import type { Form, Tool } from '@mh'
 import type { AgentStep } from 'langchain/agents'
 import type { StrayCat } from './stray-cat.ts'
 import { db } from '@db'
-import { AIMessage, HumanMessage } from '@langchain/core/messages'
+import { AIMessage, HumanMessage, type MessageContent } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { ChatPromptTemplate, interpolateFString, SystemMessagePromptTemplate } from '@langchain/core/prompts'
 import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
@@ -314,7 +314,34 @@ export class AgentManager {
 	 * @returns A string containing the formatted chat history.
 	 */
 	stringifyChatHistory(history: MemoryMessage[]) {
-		return history.map(m => `\n - ${m.role}: ${m.what}`).join('')
+		let chat = ''
+		for (const turn of history) {
+			if (typeof turn.what === 'string') chat += `${turn.who}: ${turn.what}\n`
+			else if (Array.isArray(turn.what)) {
+				for (const msg of turn.what) {
+					if (msg instanceof File) chat += `${turn.who}: [${msg.name}]\n`
+					else chat += `${turn.who}: ${msg}\n`
+				}
+			}
+			else chat += `${turn.who}: [${turn.what.name}]\n`
+		}
+		return chat
+	}
+
+	private getLangchainMessage(content: MemoryMessage['what']) {
+		const msgs: MessageContent = []
+		if (typeof content === 'string') {
+			if (content.startsWith('http') || content.startsWith('base64')) msgs.push({ type: 'image_url', image_url: content })
+			else msgs.push({ type: 'text', text: content })
+		}
+		else if (content instanceof File) msgs.push({ type: 'file', content })
+		else if (Array.isArray(content)) {
+			for (const msg of content) {
+				if (typeof msg === 'string') msgs.push({ type: 'text', text: msg })
+				else msgs.push({ type: 'file', content: msg })
+			}
+		}
+		return msgs
 	}
 
 	/**
@@ -326,8 +353,8 @@ export class AgentManager {
 	getLangchainChatHistory(history: MemoryMessage[]) {
 		const chatHistory = new ChatMessageHistory()
 		history.forEach((m) => {
-			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: m.who, content: m.what }))
-			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: m.what }))
+			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: m.who, content: this.getLangchainMessage(m.what) }))
+			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: this.getLangchainMessage(m.what) }))
 		})
 		return chatHistory.getMessages()
 	}

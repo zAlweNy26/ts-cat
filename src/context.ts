@@ -43,6 +43,9 @@ const jsonLiterals = t.Union([t.String(), t.Number(), t.Boolean(), t.Null()])
 export const messageInput = t.Intersect([
 	t.Object({
 		text: t.String(),
+		image: t.Optional(t.Union([t.String({ format: 'uri' }), t.File()])),
+		audio: t.Optional(t.Union([t.String({ format: 'uri' }), t.File()])),
+		video: t.Optional(t.Union([t.String({ format: 'uri' }), t.File()])),
 	}),
 	t.Record(t.String(), t.Any()),
 ], {
@@ -52,12 +55,15 @@ export const messageInput = t.Intersect([
 	default: { text: 'Hello, world' },
 	examples: [{
 		text: 'Hello, world',
+		image: 'https://example.com/image.jpg',
+		audio: 'https://example.com/audio.mp3',
+		video: 'https://example.com/video.mp4',
 	}],
 })
 
 export const memoryMessage = t.Object({
 	role: t.Union([t.Literal('AI'), t.Literal('User')]),
-	what: t.String(),
+	what: t.Union([t.String(), t.File(), t.Array(t.Union([t.String(), t.File()]))]),
 	who: t.String(),
 	when: t.Number(),
 	why: t.Optional(t.Object({
