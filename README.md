@@ -73,16 +73,6 @@ docker compose -f compose.dev.yml up -d
 docker compose up
 ```
 
-## How to run CLI
-
-```bash
-bun run cli <command>
-# OR (if you are using the dev compose)
-docker exec ccat_ts_dev bun run cli <command>
-# OR (if you are using the prod compose)
-docker exec ccat_ts bun run cli <command>
-```
-
 ## How to test
 
 ```bash

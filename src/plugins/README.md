@@ -97,8 +97,55 @@ log.error('An error occurred!')
 To manage external packages, you can use the usual commands, but using Bun:
 
 ```bash
+# +++ Inside your plugin directory +++
 # Install a package
 bun add package-name
 # Uninstall a package
 bun remove package-name
+```
+
+## Examples
+
+```ts
+import { CatTool } from '@tool'
+
+// Example of a tool with a direct output
+CatTool.add('GetTime', 'Useful to get the current time when asked. Input is always null.', async () => {
+	return new Date().toLocaleString()
+}, {
+	direct: true,
+	startExamples: ['What time is it', 'Get the time'],
+})
+```
+
+```ts
+import { CatTool } from '@tool'
+import { normalizeMessageChunks } from '@utils'
+
+// Example of a tool with the output managed by the LLM
+CatTool.add('GenerateName', 'Useful to generate a random name when asked. Input is the country origin of the name.', async (input, cat) => {
+	return normalizeMessageChunks(await cat.llm(`Give me a name that is from ${input}`))
+}, {
+	startExamples: ['I want an african name', 'Generate an italian name'],
+})
+```
+
+```ts
+import { CatForm } from '@form'
+import { z } from 'zod'
+
+// Example of a form
+CatForm.add('PizzaForm', {
+	pizza: z.string().describe('The pizza you want to order'),
+	size: z.enum(['small', 'medium', 'large']).describe('The size of the pizza'),
+}, {
+	description: 'Useful when you want to order a pizza.',
+	startExamples: ['I want to order a pizza', 'Order a pizza'],
+	async onSubmit({ pizza, size }) {
+		console.log(`Pizza: ${pizza} | Size: ${size}`)
+		return {
+			output: 'Pizza form submitted successfully!',
+		}
+	},
+})
 ```
