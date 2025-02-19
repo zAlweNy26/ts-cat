@@ -47,18 +47,14 @@ export class ChatModelConfig<Config extends z.ZodTypeAny = z.ZodTypeAny> {
 	}
 }
 
-export function addChatModel<Config extends z.ZodTypeAny>(settings: LLMSettings<Config>) {
-	return new ChatModelConfig<Config>(settings)
-}
-
-const fakeLLMConfig = addChatModel({
+const fakeLLMConfig = new ChatModelConfig({
 	name: 'Default Language Model',
 	description: 'A dumb LLM just telling that the Cat is not configured. There will be a nice LLM here once consumer hardware allows it.',
 	config: z.object({}),
 	model: FakeChat,
 })
 
-const customLLMConfig = addChatModel({
+const customLLMConfig = new ChatModelConfig({
 	name: 'Custom Language Model',
 	description: 'Configuration for custom language model',
 	config: z.object({
@@ -69,7 +65,7 @@ const customLLMConfig = addChatModel({
 	model: CustomChat,
 })
 
-const customOllamaLLMConfig = addChatModel({
+const customOllamaLLMConfig = new ChatModelConfig({
 	name: 'Custom Ollama',
 	description: 'Configuration for Ollama language model',
 	config: z.object({
@@ -83,7 +79,7 @@ const customOllamaLLMConfig = addChatModel({
 	model: CustomChatOllama,
 })
 
-const customOpenAILLMConfig = addChatModel({
+const customOpenAILLMConfig = new ChatModelConfig({
 	name: 'Custom OpenAI-compatible API',
 	description: 'Configuration for OpenAI-compatible API server, e.g. llama-cpp-python server, text-generation-webui, OpenRouter, TinyLLM, etc...',
 	config: z.object({
@@ -98,7 +94,7 @@ const customOpenAILLMConfig = addChatModel({
 	model: CustomChatOpenAI,
 })
 
-const chatOpenAILLMConfig = addChatModel({
+const chatOpenAILLMConfig = new ChatModelConfig({
 	name: 'OpenAI ChatGPT',
 	description: 'Configuration for OpenAI ChatGPT language model',
 	link: 'https://platform.openai.com/docs/models/overview',
@@ -112,7 +108,7 @@ const chatOpenAILLMConfig = addChatModel({
 	model: ChatOpenAI,
 })
 
-const chatDeepSeekLLMConfig = addChatModel({
+const chatDeepSeekLLMConfig = new ChatModelConfig({
 	name: 'DeepSeek',
 	description: 'Configuration for DeepSeek language model',
 	link: 'https://api-docs.deepseek.com/quick_start/pricing',
@@ -126,7 +122,7 @@ const chatDeepSeekLLMConfig = addChatModel({
 	model: ChatDeepSeek,
 })
 
-const azureChatOpenAILLMConfig = addChatModel({
+const azureChatOpenAILLMConfig = new ChatModelConfig({
 	name: 'Azure OpenAI',
 	description: 'Chat model from Azure OpenAI',
 	link: 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
@@ -142,7 +138,7 @@ const azureChatOpenAILLMConfig = addChatModel({
 	model: AzureChatOpenAI,
 })
 
-const cohereLLMConfig = addChatModel({
+const cohereLLMConfig = new ChatModelConfig({
 	name: 'Cohere',
 	description: 'Configuration for Cohere language model',
 	link: 'https://docs.cohere.com/docs/models',
@@ -154,7 +150,7 @@ const cohereLLMConfig = addChatModel({
 	model: ChatCohere,
 })
 
-const mistralAILLMConfig = addChatModel({
+const mistralAILLMConfig = new ChatModelConfig({
 	name: 'MistralAI',
 	description: 'Configuration for MistralAI language model',
 	link: 'https://www.together.ai',
@@ -169,7 +165,7 @@ const mistralAILLMConfig = addChatModel({
 	model: ChatMistralAI,
 })
 
-const anthropicLLMConfig = addChatModel({
+const anthropicLLMConfig = new ChatModelConfig({
 	name: 'Anthropic',
 	description: 'Configuration for Anthropic Claude model',
 	link: 'https://www.anthropic.com/claude',
@@ -183,7 +179,7 @@ const anthropicLLMConfig = addChatModel({
 	model: ChatAnthropic,
 })
 
-const ollamaLLMConfig = addChatModel({
+const ollamaLLMConfig = new ChatModelConfig({
 	name: 'Ollama',
 	description: 'Configuration for Ollama',
 	link: 'https://ollama.ai/library',
@@ -198,7 +194,7 @@ const ollamaLLMConfig = addChatModel({
 	model: ChatOllama,
 })
 
-const geminiChatLLMConfig = addChatModel({
+const geminiChatLLMConfig = new ChatModelConfig({
 	name: 'Gemini',
 	description: 'Configuration for Google Gemini chat models',
 	link: 'https://deepmind.google/technologies/gemini',
@@ -213,7 +209,7 @@ const geminiChatLLMConfig = addChatModel({
 	model: ChatGoogleGenerativeAI,
 })
 
-const bedrockChatLLMConfig = addChatModel({
+const bedrockChatLLMConfig = new ChatModelConfig({
 	name: 'Amazon Bedrock',
 	description: 'Configuration for Amazon Bedrock chat models',
 	link: 'https://aws.amazon.com/bedrock',
@@ -248,7 +244,7 @@ export async function getAllowedLLMs() {
 		geminiChatLLMConfig,
 		bedrockChatLLMConfig,
 	]
-	const models = await madHatter.executeHook('allowedLLMs', allowedLLMs, addChatModel)
+	const models = await madHatter.executeHook('allowedLLMs', allowedLLMs)
 	db.update((db) => {
 		db.llms = models.map(m => ({
 			name: m.info.id,

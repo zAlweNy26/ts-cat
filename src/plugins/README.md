@@ -19,7 +19,7 @@ To import `tool`, `hook`, `form` or `plugin` methods, you need to:
 
 ```ts
 import { CatForm } from '@form'
-import { CatHook } from '@hook'
+import { addChatModel, addEmbeddings, CatHook } from '@hook'
 import { log } from '@logger' // To use the internal logger
 import { CatPlugin } from '@plugin'
 import { CatTool } from '@tool'

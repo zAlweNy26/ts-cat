@@ -1,7 +1,7 @@
 import type { DatabaseConfig } from '@db'
 import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agent.ts'
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WorkingMemory, WSMessage } from '@dto/message.ts'
-import type { addChatModel, addEmbeddings, ChatModelConfig, EmbedderConfig } from '@factory'
+import type { ChatModelConfig, EmbedderConfig } from '@factory'
 import type { Document } from '@langchain/core/documents'
 import type { CheshireCat, StrayCat } from '@lg'
 import type { VectorMemoryCollection } from '@memory'
@@ -12,8 +12,8 @@ export interface HookTypes {
 	// Cheshire Cat hooks
 	beforeBootstrap: (db: Readonly<DatabaseConfig>) => NotPromise<DatabaseConfig>
 	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => NotPromise<DatabaseConfig>
-	allowedEmbedders: (embedders: EmbedderConfig[], addEmbedder: typeof addEmbeddings) => MaybePromise<EmbedderConfig<any>[]>
-	allowedLLMs: (llms: ChatModelConfig[], addModel: typeof addChatModel) => MaybePromise<ChatModelConfig<any>[]>
+	allowedEmbedders: (embedders: EmbedderConfig[]) => MaybePromise<EmbedderConfig<any>[]>
+	allowedLLMs: (llms: ChatModelConfig[]) => MaybePromise<ChatModelConfig<any>[]>
 	// Agent Manager hooks
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
 	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>
@@ -91,3 +91,5 @@ export const CatHook = Object.freeze({
 		return hook
 	},
 })
+
+export { ChatModelConfig, EmbedderConfig } from '@factory'

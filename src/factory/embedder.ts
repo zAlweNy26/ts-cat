@@ -49,18 +49,14 @@ export class EmbedderConfig<Config extends z.ZodTypeAny = z.ZodTypeAny> {
 	}
 }
 
-export function addEmbeddings<Config extends z.ZodTypeAny>(settings: EmbedderSettings<Config>) {
-	return new EmbedderConfig<Config>(settings)
-}
-
-const fakeEmbedderConfig = addEmbeddings({
+const fakeEmbedderConfig = new EmbedderConfig({
 	name: 'Default Embedder',
 	description: 'Fake embeddings as fallback when no embedder is configured',
 	config: z.object({}),
 	model: FakeEmbeddings,
 })
 
-const customOpenAIEmbedderConfig = addEmbeddings({
+const customOpenAIEmbedderConfig = new EmbedderConfig({
 	name: 'Custom OpenAI-compatible API',
 	description: 'Configuration for self-hosted OpenAI-compatible API embeddings',
 	config: z.object({
@@ -105,7 +101,7 @@ function openAIEmbeddingModelsValidation(dimensions: number | undefined, model: 
 	}
 }
 
-const openAIEmbedderConfig = addEmbeddings({
+const openAIEmbedderConfig = new EmbedderConfig({
 	name: 'OpenAI',
 	description: 'Configuration for OpenAI embeddings',
 	link: 'https://platform.openai.com/docs/models/overview',
@@ -117,7 +113,7 @@ const openAIEmbedderConfig = addEmbeddings({
 	model: OpenAIEmbeddings,
 })
 
-const azureOpenAIEmbedderConfig = addEmbeddings({
+const azureOpenAIEmbedderConfig = new EmbedderConfig({
 	name: 'Azure OpenAI',
 	description: 'Configuration for Azure OpenAI embeddings',
 	link: 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
@@ -132,7 +128,7 @@ const azureOpenAIEmbedderConfig = addEmbeddings({
 	model: AzureOpenAIEmbeddings,
 })
 
-const togetherAIEmbedderConfig = addEmbeddings({
+const togetherAIEmbedderConfig = new EmbedderConfig({
 	name: 'TogetherAI',
 	description: 'Configuration for TogetherAI embeddings',
 	link: 'https://docs.together.ai/docs/embedding-models',
@@ -143,7 +139,7 @@ const togetherAIEmbedderConfig = addEmbeddings({
 	model: TogetherAIEmbeddings,
 })
 
-const fireworksEmbedderConfig = addEmbeddings({
+const fireworksEmbedderConfig = new EmbedderConfig({
 	name: 'Fireworks',
 	description: 'Configuration for Fireworks embeddings',
 	link: 'https://docs.together.ai/docs/embedding-models',
@@ -154,7 +150,7 @@ const fireworksEmbedderConfig = addEmbeddings({
 	model: FireworksEmbeddings,
 })
 
-const cohereEmbedderConfig = addEmbeddings({
+const cohereEmbedderConfig = new EmbedderConfig({
 	name: 'Cohere',
 	description: 'Configuration for Cohere embeddings',
 	link: 'https://docs.cohere.com/docs/models',
@@ -165,7 +161,7 @@ const cohereEmbedderConfig = addEmbeddings({
 	model: CohereEmbeddings,
 })
 
-const jinaEmbedderConfig = addEmbeddings({
+const jinaEmbedderConfig = new EmbedderConfig({
 	name: 'Jina',
 	description: 'Configuration for Jina embeddings',
 	link: 'https://jina.ai/embeddings/',
@@ -176,7 +172,7 @@ const jinaEmbedderConfig = addEmbeddings({
 	model: JinaEmbeddings,
 })
 
-const qdrantFastEmbedSettings = addEmbeddings({
+const qdrantFastEmbedSettings = new EmbedderConfig({
 	name: 'Qdrant FastEmbed (Local)',
 	description: 'Configuration for Qdrant FastEmbed',
 	link: 'https://qdrant.github.io/fastembed',
@@ -192,7 +188,7 @@ const qdrantFastEmbedSettings = addEmbeddings({
 
 const googleEmbeddingModels = ['embedding-gecko-001', 'embedding-gecko-002', 'embedding-gecko-003', 'embedding-gecko-multilingual-001'] as const
 
-const googleEmbedderSettings = addEmbeddings({
+const googleEmbedderSettings = new EmbedderConfig({
 	name: 'Google Gemini',
 	description: 'Configuration for Gemini Embedder',
 	link: 'https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/text-embeddings',
@@ -203,7 +199,7 @@ const googleEmbedderSettings = addEmbeddings({
 	model: GoogleGenerativeAIEmbeddings,
 })
 
-const bedrockEmbedderConfig = addEmbeddings({
+const bedrockEmbedderConfig = new EmbedderConfig({
 	name: 'Amazon Bedrock',
 	description: 'Configuration for Amazon Bedrock Embeddings',
 	link: 'https://aws.amazon.com/bedrock',
@@ -233,7 +229,7 @@ export async function getAllowedEmbedders() {
 		googleEmbedderSettings,
 		bedrockEmbedderConfig,
 	]
-	const models = await madHatter.executeHook('allowedEmbedders', allowedEmbeddersModels, addEmbeddings)
+	const models = await madHatter.executeHook('allowedEmbedders', allowedEmbeddersModels)
 	db.update((db) => {
 		db.embedders = models.map(m => ({
 			name: m.info.id,
