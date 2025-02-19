@@ -140,7 +140,7 @@ export const memoryRecall = t.Object({
 						vector: [0.1, 0.2, 0.3],
 						pageContent: 'Hello, John!',
 						metadata: {
-							source: 'user',
+							who: 'user',
 							when: 1712950290994,
 						},
 					},

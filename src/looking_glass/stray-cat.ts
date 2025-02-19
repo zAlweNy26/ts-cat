@@ -369,9 +369,6 @@ ${labelsList}${examplesList}
 				embedding: queryEmbedding,
 				k: 3,
 				threshold: 0.7,
-				filter: {
-					source: { any: [this.userId] },
-				},
 			},
 			episodic: {
 				embedding: queryEmbedding,

@@ -147,7 +147,7 @@ export class RabbitHole {
 	 * @param stray The StrayCat instance.
 	 * @param content The textual content to ingest.
 	 * @param source The source of the content (default: 'unknown').
-	 * @param metadata Additional metadata to store with the content.
+	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 */
 	async ingestContent(stray: StrayCat, content: string | string[], source = 'unknown', metadata?: Record<string, any>) {
 		log.info('Ingesting textual content...')
@@ -163,7 +163,7 @@ export class RabbitHole {
 	 * @param file The file to ingest.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
-	 * @param metadata Additional metadata to store with the content.
+	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 * @throws An error if the file type is not supported.
 	 */
 	async ingestFile(stray: StrayCat, file: File, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
@@ -188,7 +188,7 @@ export class RabbitHole {
 	 * @param path The path or URL to ingest.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
-	 * @param metadata Additional metadata to store with the content.
+	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 * @throws If the URL doesn't match any web handler or the path doesn't exist.
 	 */
 	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
@@ -223,7 +223,7 @@ export class RabbitHole {
 	 * @param stray The StrayCat instance.
 	 * @param docs An array of documents to store.
 	 * @param source The source of the documents.
-	 * @param metadata Additional metadata to store with the content.
+	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 */
 	async storeDocuments(stray: StrayCat, docs: Document[], source: string, metadata?: Record<string, any>) {
 		log.info(`Preparing to store ${docs.length} documents`)
@@ -237,6 +237,7 @@ export class RabbitHole {
 			doc.metadata = {
 				...metadata,
 				source,
+				who: stray.userId,
 				when: Date.now(),
 			}
 			doc = await madHatter.executeHook('beforeInsertInMemory', doc, stray)

@@ -189,7 +189,7 @@ export const memoryRoutes = new Elysia({
 		title: 'Metadata filter',
 		description: 'Filter documents by metadata',
 		examples: [{
-			source: {
+			who: {
 				any: ['user'],
 			},
 		}],
@@ -217,14 +217,14 @@ export const memoryRoutes = new Elysia({
 						id: '1da746f8-a832-4a45-a120-4549e17a1df7',
 						pageContent: 'Hello, John!',
 						metadata: {
-							source: 'user',
+							who: 'user',
 						},
 					},
 					{
 						id: '1da746f8-a832-4a45-a120-4549e17a1df8',
 						pageContent: 'Hello, Jane!',
 						metadata: {
-							source: 'user',
+							who: 'user',
 						},
 					},
 				],
@@ -336,7 +336,7 @@ export const memoryRoutes = new Elysia({
 				id: '1da746f8-a832-4a45-a120-4549e17a1df7',
 				vector: [0.1, 0.2, 0.3],
 				payload: {
-					source: 'user',
+					who: 'user',
 				},
 			}],
 		}),
@@ -375,7 +375,7 @@ export const memoryRoutes = new Elysia({
 			content: 'Hello, John!',
 			vector: [0.1, 0.2, 0.3],
 			payload: {
-				source: 'user',
+				who: 'user',
 			},
 		}],
 	}),
