@@ -25,6 +25,7 @@ const app = new Elysia()
 		prefix: '/assets',
 		assets: resolve(process.cwd(), 'src', 'assets'),
 	}))
+	.use(serverContext)
 	.use(await swagger({
 		scalarConfig: {
 			searchHotKey: 'f',
@@ -51,11 +52,15 @@ const app = new Elysia()
 						in: 'header',
 						description: 'Authorization header token',
 					},
-				},
-				parameters: {
-					userId: {
+					user: {
+						type: 'apiKey',
 						name: 'user',
 						in: 'header',
+						description: 'User ID header',
+					},
+				},
+				headers: { // BUGFIX: Headers not showing in Swagger UI
+					user: {
 						description: 'User ID header',
 						required: false,
 						schema: { type: 'string' },
@@ -65,7 +70,6 @@ const app = new Elysia()
 			},
 		},
 	}))
-	.use(serverContext)
 	.use(generalRoutes)
 	.use(settingsRoutes)
 	.use(llmRoutes)
