@@ -9,12 +9,12 @@ import { catPaths, existsDir } from '@utils'
 import chokidar from 'chokidar'
 import { Plugin } from './plugin.ts'
 
-const { basePath, pluginsPath } = catPaths
+const { pluginsPath } = catPaths
 
 export class MadHatter {
 	private static instance: MadHatter
 	private plugins = new Map<string, Plugin>()
-	private activePlugins: Set<string> = new Set(['core_plugin'])
+	private activePlugins: Set<string> = new Set([])
 	onPluginsSyncCallback?: () => Promise<void> = undefined
 	hooks: Partial<Hooks> = {}
 	tools: Tool[] = []
@@ -32,7 +32,6 @@ export class MadHatter {
 	static async getInstance() {
 		if (!MadHatter.instance) {
 			MadHatter.instance = new MadHatter()
-			await MadHatter.instance.installPlugin(`${basePath}/mad_hatter/core_plugin`)
 			await MadHatter.instance.findPlugins()
 		}
 		return MadHatter.instance
@@ -46,7 +45,8 @@ export class MadHatter {
 	 */
 	async executeHook<T extends HookNames = HookNames>(name: T, ...args: Parameters<HookTypes[T]>) {
 		const hook = this.hooks[name]
-		if (!hook || hook.length === 0) throw new Error(`Hook "${name}" not found in any plugin`)
+		// If no hook is found, return the pipeable argument
+		if (!hook || hook.length === 0) return args[0] as Awaited<ReturnType<HookTypes[T]>>
 		const timeStart = performance.now()
 		// First argument is the pipeable one
 		let teaCup = args[0]

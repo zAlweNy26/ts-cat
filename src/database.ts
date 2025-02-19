@@ -24,7 +24,7 @@ const defaultDbKeys = z.object({
 		name: z.string(),
 		value: z.record(z.any()),
 	})).default([{ name: 'FakeEmbeddings', value: {} }]),
-	activePlugins: z.set(z.string()).default(new Set(['core_plugin'])),
+	activePlugins: z.set(z.string()).default(new Set([])),
 	activeTools: z.set(z.string()).default(new Set()),
 	activeForms: z.set(z.string()).default(new Set()),
 }).passthrough()

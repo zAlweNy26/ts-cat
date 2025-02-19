@@ -82,7 +82,6 @@ dist
 .vscode-test
 
 **/tmp**
-src/mad_hatter/core_plugin/settings.json
 src/plugins/*
 src/assets/*
 data/*

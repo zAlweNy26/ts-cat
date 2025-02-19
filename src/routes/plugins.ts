@@ -1,6 +1,6 @@
 import { mkdir, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, join } from 'node:path'
+import { join } from 'node:path'
 import { serverContext, swaggerTags } from '@/context'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
@@ -43,7 +43,6 @@ export const pluginsRoutes = new Elysia({
 	const id = params.pluginId
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
-	if (p.id === 'core_plugin') throw HttpError.InternalServer('Cannot delete core_plugin')
 	try {
 		await mh.removePlugin(id)
 		set.status = 204
@@ -73,8 +72,6 @@ export const pluginsRoutes = new Elysia({
 	const extractDir = join(tmpdir(), 'ccat-plugin-extract')
 	await mkdir(extractDir, { recursive: true })
 	const tempFilePath = join(extractDir, file.name)
-
-	if (basename(tempFilePath) === 'core_plugin') throw HttpError.InternalServer('Cannot install a plugin with same id as core_plugin')
 
 	const decompressed = Bun.gunzipSync(await file.arrayBuffer())
 	await Bun.write(tempFilePath, decompressed)
@@ -136,7 +133,6 @@ export const pluginsRoutes = new Elysia({
 	},
 }).patch('/toggle/:pluginId', async ({ body, params, mh, HttpError }) => {
 	const id = params.pluginId, state = body.active
-	if (id === 'core_plugin') throw HttpError.InternalServer('Cannot toggle core_plugin')
 	const p = mh.getPlugin(id)
 	if (!p) throw HttpError.NotFound('Plugin not found')
 	const active = await mh.togglePlugin(id, state)

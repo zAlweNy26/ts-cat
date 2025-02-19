@@ -219,7 +219,7 @@ export const pluginInfo = t.Object({
 	title: 'Plugin Information',
 	description: 'Information about a plugin (including its manifest)',
 	examples: [{
-		id: 'core_plugin',
+		id: 'my_plugin',
 		active: true,
 		upgradable: false,
 		manifest: {},
