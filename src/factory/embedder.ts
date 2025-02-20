@@ -7,6 +7,7 @@ import { JinaEmbeddings } from '@langchain/community/embeddings/jina'
 import { TogetherAIEmbeddings } from '@langchain/community/embeddings/togetherai'
 import { FakeEmbeddings } from '@langchain/core/utils/testing'
 import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai'
+import { OllamaEmbeddings } from '@langchain/ollama'
 import { AzureOpenAIEmbeddings, OpenAIEmbeddings } from '@langchain/openai'
 import { embedderCache } from '@lg/cache.ts'
 import { madHatter } from '@mh'
@@ -139,6 +140,19 @@ const togetherAIEmbedderConfig = new EmbedderConfig({
 	model: TogetherAIEmbeddings,
 })
 
+const ollamaEmbedderConfig = new EmbedderConfig({
+	name: 'Ollama',
+	description: 'Configuration for Ollama embeddings API',
+	link: 'https://ollama.com/search?c=embedding',
+	config: z.object({
+		model: z.string().default('mxbai-embed-large'),
+		baseUrl: z.string().default('http://localhost:11434'),
+		keepAlive: z.union([z.string(), z.number()]).default('5m'),
+		truncate: z.boolean().default(false),
+	}),
+	model: OllamaEmbeddings,
+})
+
 const fireworksEmbedderConfig = new EmbedderConfig({
 	name: 'Fireworks',
 	description: 'Configuration for Fireworks embeddings',
@@ -222,6 +236,7 @@ export async function getAllowedEmbedders() {
 		azureOpenAIEmbedderConfig,
 		fireworksEmbedderConfig,
 		togetherAIEmbedderConfig,
+		ollamaEmbedderConfig,
 		jinaEmbedderConfig,
 		cohereEmbedderConfig,
 		customOpenAIEmbedderConfig,

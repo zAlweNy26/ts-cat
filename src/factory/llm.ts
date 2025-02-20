@@ -182,7 +182,7 @@ const anthropicLLMConfig = new ChatModelConfig({
 const ollamaLLMConfig = new ChatModelConfig({
 	name: 'Ollama',
 	description: 'Configuration for Ollama',
-	link: 'https://ollama.ai/library',
+	link: 'https://ollama.com/search',
 	config: z.object({
 		model: z.string().default('llama2'),
 		baseUrl: z.string().url(),
