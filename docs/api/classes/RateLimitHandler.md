@@ -34,13 +34,13 @@
 
 | Property | Type | Default value | Overrides |
 | ------ | ------ | ------ | ------ |
-| `availableTokens` | `number` | `0` | - |
-| `checkInterval` | `number` | `undefined` | - |
-| `enabled` | `boolean` | `false` | - |
-| `lastRequest` | `number` | `0` | - |
-| `maxBucketSize` | `number` | `undefined` | - |
-| `name` | `string` | `'RateLimit'` | `BaseCallbackHandler.name` |
-| `tokensPerSecond` | `number` | `undefined` | - |
+| <a id="availabletokens"></a> `availableTokens` | `number` | `0` | - |
+| <a id="checkinterval"></a> `checkInterval` | `number` | `undefined` | - |
+| <a id="enabled"></a> `enabled` | `boolean` | `false` | - |
+| <a id="lastrequest"></a> `lastRequest` | `number` | `0` | - |
+| <a id="maxbucketsize"></a> `maxBucketSize` | `number` | `undefined` | - |
+| <a id="name"></a> `name` | `string` | `'RateLimit'` | `BaseCallbackHandler.name` |
+| <a id="tokenspersecond"></a> `tokensPerSecond` | `number` | `undefined` | - |
 
 ## Methods
 

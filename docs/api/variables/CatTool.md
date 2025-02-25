@@ -2,10 +2,4 @@
 
 # CatTool
 
-> `const` **CatTool**: `Readonly`\<`object`\>
-
-## Type declaration
-
-| Name | Type | Description |
-| ------ | ------ | ------ |
-| `add()` | [`Tool`](../classes/Tool.md) | Add a tool to the plugin |
+> `const` **CatTool**: `Readonly`\<\{ `add`: [`Tool`](../classes/Tool.md); \}\>

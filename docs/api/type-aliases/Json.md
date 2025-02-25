@@ -2,4 +2,4 @@
 
 # Json
 
-> **Json**: `Literal` \| `object` \| [`Json`](Json.md)[]
+> **Json**: `Literal` \| \{\} \| [`Json`](Json.md)[]

@@ -8,5 +8,5 @@ The configuration of a vector memory.
 
 | Property | Type |
 | ------ | ------ |
-| `embedderName` | `string` |
-| `embedderSize` | `number` |
+| <a id="embeddername"></a> `embedderName` | `string` |
+| <a id="embeddersize"></a> `embedderSize` | `number` |

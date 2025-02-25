@@ -28,9 +28,11 @@
 
 ### config
 
-> `get` **config**(): `Config`
+#### Get Signature
 
-#### Returns
+> **get** **config**(): `Config`
+
+##### Returns
 
 `Config`
 
@@ -38,18 +40,20 @@
 
 ### info
 
-> `get` **info**(): `object`
+#### Get Signature
 
-#### Returns
+> **get** **info**(): `object`
+
+##### Returns
 
 `object`
 
 | Name | Type |
 | ------ | ------ |
-| `description` | `string` |
-| `id` | `string` |
-| `link` | `undefined` \| `string` |
-| `name` | `string` |
+| <a id="description"></a> `description` | `string` |
+| <a id="id"></a> `id` | `string` |
+| <a id="link"></a> `link` | `undefined` \| `string` |
+| <a id="name"></a> `name` | `string` |
 
 ## Methods
 

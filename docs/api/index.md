@@ -1,11 +1,5 @@
 # API Reference
 
-## Namespaces
-
-| Namespace | Description |
-| ------ | ------ |
-| [NodeJS](namespaces/NodeJS/index.md) | - |
-
 ## Enumerations
 
 | Enumeration | Description |
@@ -18,7 +12,7 @@
 | ------ | ------ |
 | [AgentManager](classes/AgentManager.md) | Manager of Langchain Agent. This class manages the Agent that uses the LLM. It takes care of formatting the prompt and filtering the tools before feeding them to the Agent. It also instantiates the Langchain Agent. |
 | [ChatModelConfig](classes/ChatModelConfig.md) | - |
-| [CheshireCat](classes/CheshireCat.md) | - |
+| [CheshireCat](classes/CheshireCat.md) | The Cheshire Cat is here to guide you through the looking glass. |
 | [CustomChat](classes/CustomChat.md) | - |
 | [CustomChatOllama](classes/CustomChatOllama.md) | - |
 | [CustomChatOpenAI](classes/CustomChatOpenAI.md) | - |
@@ -41,7 +35,7 @@
 | [ToolPromptTemplate](classes/ToolPromptTemplate.md) | - |
 | [VectorMemory](classes/VectorMemory.md) | - |
 | [VectorMemoryCollection](classes/VectorMemoryCollection.md) | - |
-| [WhiteRabbit](classes/WhiteRabbit.md) | - |
+| [WhiteRabbit](classes/WhiteRabbit.md) | I'm late, I'm late, for a very important date! |
 
 ## Interfaces
 
@@ -53,7 +47,6 @@
 | [Interaction](interfaces/Interaction.md) | - |
 | [IntermediateStep](interfaces/IntermediateStep.md) | The intermediate step of the agent. |
 | [MemoryJson](interfaces/MemoryJson.md) | The accepted JSON format for an imported memory. |
-| [MemoryMessage](interfaces/MemoryMessage.md) | The content of a memory message. |
 | [MemoryRecallConfig](interfaces/MemoryRecallConfig.md) | The configuration for memory recall. |
 | [MemoryRecallConfigs](interfaces/MemoryRecallConfigs.md) | The configurations for each memory recall. |
 | [Message](interfaces/Message.md) | A message object sent by the user. |
@@ -81,13 +74,13 @@
 | [LLMInteraction](type-aliases/LLMInteraction.md) | - |
 | [MaybePromise](type-aliases/MaybePromise.md) | - |
 | [MemoryDocument](type-aliases/MemoryDocument.md) | A memory document. |
+| [MemoryMessage](type-aliases/MemoryMessage.md) | The content of a memory message. |
 | [ModelInteraction](type-aliases/ModelInteraction.md) | - |
+| [NotPromise](type-aliases/NotPromise.md) | - |
 | [Nullable](type-aliases/Nullable.md) | - |
 | [PointData](type-aliases/PointData.md) | - |
 | [Primitive](type-aliases/Primitive.md) | - |
-| [TODO](type-aliases/TODO.md) | - |
 | [WebParser](type-aliases/WebParser.md) | - |
-| [WS](type-aliases/WS.md) | - |
 | [WSMessage](type-aliases/WSMessage.md) | A message object sent by the websocket. |
 
 ## Variables
@@ -101,7 +94,7 @@
 | [CatPlugin](variables/CatPlugin.md) | - |
 | [CatTool](variables/CatTool.md) | - |
 | [chatMessage](variables/chatMessage.md) | - |
-| [cheshireCat](variables/cheshireCat.md) | - |
+| [cheshireCat](variables/cheshireCat.md) | The Cheshire Cat is here to guide you through the looking glass. |
 | [db](variables/db.md) | - |
 | [embedderRoutes](variables/embedderRoutes.md) | - |
 | [generalRoutes](variables/generalRoutes.md) | - |
@@ -136,8 +129,6 @@
 
 | Function | Description |
 | ------ | ------ |
-| [addChatModel](functions/addChatModel.md) | - |
-| [addEmbeddings](functions/addEmbeddings.md) | - |
 | [catchError](functions/catchError.md) | Catches errors from a promise. |
 | [compareStrings](functions/compareStrings.md) | Compares two strings using an evaluator. |
 | [deepDefaults](functions/deepDefaults.md) | Merges the properties of the source objects into the target object, recursively applying defaults. |

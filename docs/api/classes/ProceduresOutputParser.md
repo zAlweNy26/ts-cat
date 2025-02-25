@@ -31,7 +31,7 @@
 
 | Property | Type | Description | Overrides |
 | ------ | ------ | ------ | ------ |
-| `lc_namespace` | `string`[] | A path to the module that contains the class, eg. ["langchain", "llms"] Usually should be the same as the entrypoint the class is exported from. | `AgentActionOutputParser.lc_namespace` |
+| <a id="lc_namespace"></a> `lc_namespace` | `string`[] | A path to the module that contains the class, eg. ["langchain", "llms"] Usually should be the same as the entrypoint the class is exported from. | `AgentActionOutputParser.lc_namespace` |
 
 ## Methods
 

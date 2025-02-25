@@ -2,4 +2,4 @@
 
 # rabbitHoleRoutes
 
-> `const` **rabbitHoleRoutes**: `Elysia`\<`"/rabbithole"`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **rabbitHoleRoutes**: `Elysia`\<`"/rabbithole"`, \{\}, \{\}, \{\}, `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object`, \{\}, \{\}\>

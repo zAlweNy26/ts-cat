@@ -2,4 +2,4 @@
 
 # settingsRoutes
 
-> `const` **settingsRoutes**: `Elysia`\<`"/settings"`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **settingsRoutes**: `Elysia`\<`"/settings"`, \{\}, \{\}, \{\}, `object` & `object` & `object` & `object` & `object` & `object`, \{\}, \{\}\>

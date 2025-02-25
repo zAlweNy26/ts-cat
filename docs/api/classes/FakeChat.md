@@ -16,7 +16,7 @@
 
 | Parameter | Type |
 | ------ | ------ |
-| `params`? | `BaseLanguageModelParams` |
+| `params`? | `BaseChatModelParams` |
 
 #### Returns
 

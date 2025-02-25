@@ -8,7 +8,7 @@ The configuration for memory recall.
 
 | Property | Type |
 | ------ | ------ |
-| `embedding` | `number`[] |
-| `filter?` | `Record`\<`string`, `undefined` \| `null` \| `object` \| `object` \| `object` \| `object` \| `Record`\<`string`, `unknown`\>\> |
-| `k` | `number` |
-| `threshold` | `number` |
+| <a id="embedding"></a> `embedding` | `number`[] |
+| <a id="filter"></a> `filter?` | `Record`\<`string`, `undefined` \| `null` \| \{\} \| \{\} \| \{\} \| \{\} \| `Record`\<`string`, `unknown`\>\> |
+| <a id="k"></a> `k` | `number` |
+| <a id="threshold"></a> `threshold` | `number` |

@@ -2,13 +2,19 @@
 
 # CheshireCat
 
+The Cheshire Cat is here to guide you through the looking glass.
+
 ## Accessors
 
 ### agentManager
 
-> `get` **agentManager**(): [`AgentManager`](AgentManager.md)
+#### Get Signature
 
-#### Returns
+> **get** **agentManager**(): [`AgentManager`](AgentManager.md)
+
+Get the AgentManager instance.
+
+##### Returns
 
 [`AgentManager`](AgentManager.md)
 
@@ -16,9 +22,13 @@
 
 ### currentEmbedder
 
-> `get` **currentEmbedder**(): `Embeddings`
+#### Get Signature
 
-#### Returns
+> **get** **currentEmbedder**(): `Embeddings`
+
+Get the current instance of the Embedder selected.
+
+##### Returns
 
 `Embeddings`
 
@@ -26,9 +36,13 @@
 
 ### currentLLM
 
-> `get` **currentLLM**(): `BaseChatModel`\<`BaseChatModelCallOptions`, `AIMessageChunk`\>
+#### Get Signature
 
-#### Returns
+> **get** **currentLLM**(): `BaseChatModel`\<`BaseChatModelCallOptions`, `AIMessageChunk`\>
+
+Get the current instance of the LLM selected.
+
+##### Returns
 
 `BaseChatModel`\<`BaseChatModelCallOptions`, `AIMessageChunk`\>
 
@@ -36,9 +50,13 @@
 
 ### embedderSize
 
-> `get` **embedderSize**(): `number`
+#### Get Signature
 
-#### Returns
+> **get** **embedderSize**(): `number`
+
+Get the embedder size.
+
+##### Returns
 
 `number`
 
@@ -46,9 +64,13 @@
 
 ### rabbitHole
 
-> `get` **rabbitHole**(): [`RabbitHole`](RabbitHole.md)
+#### Get Signature
 
-#### Returns
+> **get** **rabbitHole**(): [`RabbitHole`](RabbitHole.md)
+
+Get the RabbitHole instance.
+
+##### Returns
 
 [`RabbitHole`](RabbitHole.md)
 
@@ -56,9 +78,13 @@
 
 ### vectorMemory
 
-> `get` **vectorMemory**(): [`VectorMemory`](VectorMemory.md)
+#### Get Signature
 
-#### Returns
+> **get** **vectorMemory**(): [`VectorMemory`](VectorMemory.md)
+
+Get the memory instance.
+
+##### Returns
 
 [`VectorMemory`](VectorMemory.md)
 
@@ -66,9 +92,13 @@
 
 ### whiteRabbit
 
-> `get` **whiteRabbit**(): [`WhiteRabbit`](WhiteRabbit.md)
+#### Get Signature
 
-#### Returns
+> **get** **whiteRabbit**(): [`WhiteRabbit`](WhiteRabbit.md)
+
+Get the WhiteRabbit instance.
+
+##### Returns
 
 [`WhiteRabbit`](WhiteRabbit.md)
 
@@ -85,7 +115,7 @@ Add a StrayCat with the given userId to the collection of strays.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `userId` | `string` | The unique identifier of the stray cat. |
-| `ws`? | [`WS`](../type-aliases/WS.md) | - |
+| `ws`? | `ElysiaWS`\<`unknown`, \{\}\> | - |
 
 #### Returns
 
@@ -137,18 +167,22 @@ Loads the long term memory from the database.
 
 `Promise`\<`void`\>
 
+#### Throws
+
+An error if not able to retrieve the size of the embeddings.
+
 ***
 
 ### loadNaturalLanguage()
 
-> **loadNaturalLanguage**(): `void`
+> **loadNaturalLanguage**(): `Promise`\<`void`\>
 
 Load the Large Language Model (LLM) and the Embedder from the database.
 If the selected LLM or Embedder is not found, it falls back to the default one.
 
 #### Returns
 
-`void`
+`Promise`\<`void`\>
 
 ***
 

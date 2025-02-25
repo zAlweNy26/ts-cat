@@ -6,12 +6,12 @@ The configurations for each memory recall.
 
 ## Indexable
 
- \[`key`: `string`\]: [`MemoryRecallConfig`](MemoryRecallConfig.md)
+\[`key`: `string`\]: [`MemoryRecallConfig`](MemoryRecallConfig.md)
 
 ## Properties
 
 | Property | Type |
 | ------ | ------ |
-| `declarative` | [`MemoryRecallConfig`](MemoryRecallConfig.md) |
-| `episodic` | [`MemoryRecallConfig`](MemoryRecallConfig.md) |
-| `procedural` | [`MemoryRecallConfig`](MemoryRecallConfig.md) |
+| <a id="declarative"></a> `declarative` | [`MemoryRecallConfig`](MemoryRecallConfig.md) |
+| <a id="episodic"></a> `episodic` | [`MemoryRecallConfig`](MemoryRecallConfig.md) |
+| <a id="procedural"></a> `procedural` | [`MemoryRecallConfig`](MemoryRecallConfig.md) |

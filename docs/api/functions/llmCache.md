@@ -2,8 +2,8 @@
 
 # llmCache()
 
-> **llmCache**(): `BaseCache` \| `undefined`
+> **llmCache**(): `undefined` \| `BaseCache`\<`Generation`[]\>
 
 ## Returns
 
-`BaseCache` \| `undefined`
+`undefined` \| `BaseCache`\<`Generation`[]\>

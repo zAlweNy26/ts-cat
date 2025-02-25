@@ -31,41 +31,51 @@
 
 | Property | Type | Default value |
 | ------ | ------ | ------ |
-| `askConfirm` | `boolean` | `undefined` |
-| `description` | `string` | `undefined` |
-| `invalidFields` | `string`[] | `[]` |
-| `model` | `S` | `undefined` |
-| `name` | `string` | `undefined` |
-| `schema` | `ZodObject`\<`T`, `UnknownKeysParam`, `ZodTypeAny`, \{ \[k in string \| number \| symbol\]: addQuestionMarks\<baseObjectOutputType\<T\>, any\>\[k\] \}, \{ \[k in string \| number \| symbol\]: baseObjectInputType\<T\>\[k\] \}\> | `undefined` |
-| `startExamples` | `string`[] | `undefined` |
-| `stopExamples` | `string`[] | `undefined` |
-| `submit` | `FormSubmit`\<`S`\> | `undefined` |
+| <a id="askconfirm"></a> `askConfirm` | `boolean` | `undefined` |
+| <a id="description"></a> `description` | `string` | `undefined` |
+| <a id="invalidfields"></a> `invalidFields` | `string`[] | `[]` |
+| <a id="model"></a> `model` | `S` | `undefined` |
+| <a id="name-1"></a> `name` | `string` | `undefined` |
+| <a id="schema-1"></a> `schema` | `ZodObject`\<`T`\> | `undefined` |
+| <a id="startexamples"></a> `startExamples` | `string`[] | `undefined` |
+| <a id="stopexamples"></a> `stopExamples` | `string`[] | `undefined` |
+| <a id="submit"></a> `submit` | `FormSubmit`\<`S`\> | `undefined` |
 
 ## Accessors
 
 ### active
 
-> `get` **active**(): `boolean`
+#### Get Signature
 
-> `set` **active**(`active`): `void`
+> **get** **active**(): `boolean`
 
-#### Parameters
+##### Returns
+
+`boolean`
+
+#### Set Signature
+
+> **set** **active**(`active`): `void`
+
+##### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `active` | `boolean` |
 
-#### Returns
+##### Returns
 
-`boolean`
+`void`
 
 ***
 
 ### state
 
-> `get` **state**(): [`FormState`](../enumerations/FormState.md)
+#### Get Signature
 
-#### Returns
+> **get** **state**(): [`FormState`](../enumerations/FormState.md)
+
+##### Returns
 
 [`FormState`](../enumerations/FormState.md)
 

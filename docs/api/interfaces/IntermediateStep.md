@@ -8,6 +8,6 @@ The intermediate step of the agent.
 
 | Property | Type |
 | ------ | ------ |
-| `input` | `null` \| `string` |
-| `observation` | `string` |
-| `procedure` | `string` |
+| <a id="input"></a> `input` | `null` \| `string` |
+| <a id="observation"></a> `observation` | `string` |
+| <a id="procedure"></a> `procedure` | `string` |

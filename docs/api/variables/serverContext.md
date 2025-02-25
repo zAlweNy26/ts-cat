@@ -2,4 +2,4 @@
 
 # serverContext
 
-> `const` **serverContext**: `Elysia`\<`""`, `false`, `object`, `object`, `object`, `object`, `object`, `object`\>
+> `const` **serverContext**: `Elysia`\<`""`, \{\}, \{\}, \{\}, \{\}, \{\}, \{\}\>

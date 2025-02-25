@@ -6,8 +6,8 @@
 
 | Property | Type |
 | ------ | ------ |
-| `endedAt` | `number` |
-| `outputTokens` | `number` |
-| `prompt` | `string` |
-| `source` | `string` |
-| `startedAt` | `number` |
+| <a id="endedat"></a> `endedAt` | `number` |
+| <a id="outputtokens"></a> `outputTokens` | `number` |
+| <a id="prompt"></a> `prompt` | `string` |
+| <a id="source"></a> `source` | `string` |
+| <a id="startedat"></a> `startedAt` | `number` |

@@ -1,28 +1,5 @@
 [
   {
-    "text": "Namespaces",
-    "collapsed": true,
-    "items": [
-      {
-        "text": "NodeJS",
-        "link": "/api/namespaces/NodeJS/",
-        "collapsed": true,
-        "items": [
-          {
-            "text": "Interfaces",
-            "collapsed": true,
-            "items": [
-              {
-                "text": "ProcessEnv",
-                "link": "/api/namespaces/NodeJS/interfaces/ProcessEnv.md"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
     "text": "Enumerations",
     "collapsed": true,
     "items": [
@@ -171,10 +148,6 @@
         "link": "/api/interfaces/MemoryJson.md"
       },
       {
-        "text": "MemoryMessage",
-        "link": "/api/interfaces/MemoryMessage.md"
-      },
-      {
         "text": "MemoryRecallConfig",
         "link": "/api/interfaces/MemoryRecallConfig.md"
       },
@@ -269,8 +242,16 @@
         "link": "/api/type-aliases/MemoryDocument.md"
       },
       {
+        "text": "MemoryMessage",
+        "link": "/api/type-aliases/MemoryMessage.md"
+      },
+      {
         "text": "ModelInteraction",
         "link": "/api/type-aliases/ModelInteraction.md"
+      },
+      {
+        "text": "NotPromise",
+        "link": "/api/type-aliases/NotPromise.md"
       },
       {
         "text": "Nullable",
@@ -285,16 +266,8 @@
         "link": "/api/type-aliases/Primitive.md"
       },
       {
-        "text": "TODO",
-        "link": "/api/type-aliases/TODO.md"
-      },
-      {
         "text": "WebParser",
         "link": "/api/type-aliases/WebParser.md"
-      },
-      {
-        "text": "WS",
-        "link": "/api/type-aliases/WS.md"
       },
       {
         "text": "WSMessage",
@@ -460,14 +433,6 @@
     "text": "Functions",
     "collapsed": true,
     "items": [
-      {
-        "text": "addChatModel",
-        "link": "/api/functions/addChatModel.md"
-      },
-      {
-        "text": "addEmbeddings",
-        "link": "/api/functions/addEmbeddings.md"
-      },
       {
         "text": "catchError",
         "link": "/api/functions/catchError.md"

@@ -8,8 +8,8 @@ The accepted JSON format for an imported memory.
 
 | Property | Type |
 | ------ | ------ |
-| `collections` | `object` |
+| <a id="collections"></a> `collections` | `object` |
 | `collections.declarative` | `object`[] |
 | `collections.episodic` | `object`[] |
 | `collections.procedural` | `object`[] |
-| `embedder` | `string` |
+| <a id="embedder"></a> `embedder` | `string` |

@@ -31,13 +31,13 @@
 
 | Property | Type | Default value | Overrides |
 | ------ | ------ | ------ | ------ |
-| `name` | `string` | `'NewToken'` | `BaseCallbackHandler.name` |
+| <a id="name"></a> `name` | `string` | `'NewToken'` | `BaseCallbackHandler.name` |
 
 ## Methods
 
 ### handleLLMNewToken()
 
-> **handleLLMNewToken**(`token`): `void`
+> **handleLLMNewToken**(`token`): `Promise`\<`void`\>
 
 Called when an LLM/ChatModel in `streaming` mode produces a new token
 
@@ -49,7 +49,7 @@ Called when an LLM/ChatModel in `streaming` mode produces a new token
 
 #### Returns
 
-`void`
+`Promise`\<`void`\>
 
 #### Overrides
 

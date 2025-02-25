@@ -6,10 +6,10 @@ A message object sent by the user.
 
 ## Indexable
 
- \[`key`: `string`\]: `any`
+\[`key`: `string`\]: `any`
 
 ## Properties
 
 | Property | Type |
 | ------ | ------ |
-| `text` | `string` |
+| <a id="text"></a> `text` | `string` |

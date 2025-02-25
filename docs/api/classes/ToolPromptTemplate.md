@@ -23,8 +23,8 @@
 
 | Parameter | Type |
 | ------ | ------ |
-| `procedures` | `Record`\<`string`, [`Tool`](Tool.md) \| [`Form`](Form.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>\> |
-| `input` | `PromptTemplateInput`\<`RunInput`, `PartialVariableName`, `TemplateFormat`\> |
+| `procedures` | `Record`\<`string`, [`Tool`](Tool.md) \| [`Form`](Form.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>\> |
+| `input` | `PromptTemplateInput`\<`RunInput`, `PartialVariableName`\> |
 
 #### Returns
 

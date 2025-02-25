@@ -2,7 +2,7 @@
 
 # getEmbedder()
 
-> **getEmbedder**(`embedder`): `undefined` \| [`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>
+> **getEmbedder**(`embedder`): `Promise`\<`undefined` \| [`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>\>
 
 ## Parameters
 
@@ -12,4 +12,4 @@
 
 ## Returns
 
-`undefined` \| [`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>
+`Promise`\<`undefined` \| [`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>\>

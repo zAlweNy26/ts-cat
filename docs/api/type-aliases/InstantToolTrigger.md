@@ -2,4 +2,4 @@
 
 # InstantToolTrigger
 
-> **InstantToolTrigger**: \`$\{string\}\{name\}$\{string\}\`
+> **InstantToolTrigger**: `` `${string}{name}${string}` ``

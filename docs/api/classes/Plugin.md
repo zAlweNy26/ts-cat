@@ -13,35 +13,45 @@
 
 | Property | Modifier | Type | Default value |
 | ------ | ------ | ------ | ------ |
-| `forms` | `public` | [`Form`](Form.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>[] | `[]` |
-| `path` | `public` | `string` | `undefined` |
-| `tools` | `public` | [`Tool`](Tool.md)[] | `[]` |
+| <a id="forms"></a> `forms` | `public` | [`Form`](Form.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>[] | `[]` |
+| <a id="path"></a> `path` | `public` | `string` | `undefined` |
+| <a id="tools"></a> `tools` | `public` | [`Tool`](Tool.md)[] | `[]` |
 
 ## Accessors
 
 ### active
 
-> `get` **active**(): `boolean`
+#### Get Signature
 
-> `set` **active**(`active`): `void`
+> **get** **active**(): `boolean`
 
-#### Parameters
+##### Returns
+
+`boolean`
+
+#### Set Signature
+
+> **set** **active**(`active`): `void`
+
+##### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `active` | `boolean` |
 
-#### Returns
+##### Returns
 
-`boolean`
+`void`
 
 ***
 
 ### hooks
 
-> `get` **hooks**(): [`Hook`](../type-aliases/Hook.md)[]
+#### Get Signature
 
-#### Returns
+> **get** **hooks**(): [`Hook`](../type-aliases/Hook.md)[]
+
+##### Returns
 
 [`Hook`](../type-aliases/Hook.md)[]
 
@@ -49,9 +59,11 @@
 
 ### id
 
-> `get` **id**(): `string`
+#### Get Signature
 
-#### Returns
+> **get** **id**(): `string`
+
+##### Returns
 
 `string`
 
@@ -59,19 +71,21 @@
 
 ### info
 
-> `get` **info**(): `object`
+#### Get Signature
 
-#### Returns
+> **get** **info**(): `object`
+
+##### Returns
 
 `object`
 
 | Name | Type | Default value |
 | ------ | ------ | ------ |
-| `active` | `boolean` | - |
-| `forms` | `object`[] | - |
-| `hooks` | `object`[] | - |
-| `id` | `string` | - |
-| `manifest` | `object` | - |
+| <a id="active-4"></a> `active` | `boolean` | - |
+| <a id="forms-1"></a> `forms` | `object`[] | - |
+| <a id="hooks-2"></a> `hooks` | `object`[] | - |
+| <a id="id-2"></a> `id` | `string` | - |
+| <a id="manifest"></a> `manifest` | `object` | - |
 | `manifest.authorName` | `string` | - |
 | `manifest.authorUrl`? | `string` | - |
 | `manifest.description` | `string` | - |
@@ -80,37 +94,41 @@
 | `manifest.tags` | `string`[] | - |
 | `manifest.thumb`? | `string` | - |
 | `manifest.version` | `string` | - |
-| `tools` | `object`[] | - |
-| `upgradable` | `boolean` | false |
+| <a id="tools-1"></a> `tools` | `object`[] | - |
+| <a id="upgradable"></a> `upgradable` | `boolean` | false |
 
 ***
 
 ### manifest
 
-> `get` **manifest**(): `object`
+#### Get Signature
 
-#### Returns
+> **get** **manifest**(): `object`
+
+##### Returns
 
 `object`
 
 | Name | Type |
 | ------ | ------ |
-| `authorName` | `string` |
-| `authorUrl`? | `string` |
-| `description` | `string` |
-| `name` | `string` |
-| `pluginUrl`? | `string` |
-| `tags` | `string`[] |
-| `thumb`? | `string` |
-| `version` | `string` |
+| <a id="authorname"></a> `authorName` | `string` |
+| <a id="authorurl"></a> `authorUrl`? | `string` |
+| <a id="description"></a> `description` | `string` |
+| <a id="name"></a> `name` | `string` |
+| <a id="pluginurl"></a> `pluginUrl`? | `string` |
+| <a id="tags"></a> `tags` | `string`[] |
+| <a id="thumb"></a> `thumb`? | `string` |
+| <a id="version"></a> `version` | `string` |
 
 ***
 
 ### reloading
 
-> `get` **reloading**(): `boolean`
+#### Get Signature
 
-#### Returns
+> **get** **reloading**(): `boolean`
+
+##### Returns
 
 `boolean`
 
@@ -118,9 +136,11 @@
 
 ### schema
 
-> `get` **schema**(): `ZodObject`\<`T`, `UnknownKeysParam`, `ZodTypeAny`, \{ \[k in string \| number \| symbol\]: addQuestionMarks\<baseObjectOutputType\<T\>, any\>\[k\] \}, \{ \[k in string \| number \| symbol\]: baseObjectInputType\<T\>\[k\] \}\>
+#### Get Signature
 
-#### Returns
+> **get** **schema**(): `ZodObject`\<`T`, `UnknownKeysParam`, `ZodTypeAny`, \{ \[k in string \| number \| symbol\]: addQuestionMarks\<baseObjectOutputType\<T\>, any\>\[k\] \}, \{ \[k in string \| number \| symbol\]: baseObjectInputType\<T\>\[k\] \}\>
+
+##### Returns
 
 `ZodObject`\<`T`, `UnknownKeysParam`, `ZodTypeAny`, \{ \[k in string \| number \| symbol\]: addQuestionMarks\<baseObjectOutputType\<T\>, any\>\[k\] \}, \{ \[k in string \| number \| symbol\]: baseObjectInputType\<T\>\[k\] \}\>
 
@@ -128,19 +148,27 @@
 
 ### settings
 
-> `get` **settings**(): `S`
+#### Get Signature
 
-> `set` **settings**(`settings`): `void`
+> **get** **settings**(): `S`
 
-#### Parameters
+##### Returns
+
+`S`
+
+#### Set Signature
+
+> **set** **settings**(`settings`): `void`
+
+##### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `settings` | `S` |
 
-#### Returns
+##### Returns
 
-`S`
+`void`
 
 ## Methods
 
@@ -191,7 +219,7 @@ Triggers the specified event.
 
 ### new()
 
-> `static` **new**(`path`): `Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>\>
+> `static` **new**(`path`): `Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>\>
 
 #### Parameters
 
@@ -201,4 +229,4 @@ Triggers the specified event.
 
 #### Returns
 
-`Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>\>
+`Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>\>

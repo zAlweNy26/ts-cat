@@ -2,8 +2,8 @@
 
 # getAllowedEmbedders()
 
-> **getAllowedEmbedders**(): [`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>[]
+> **getAllowedEmbedders**(): `Promise`\<[`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>[]\>
 
 ## Returns
 
-[`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>[]
+`Promise`\<[`EmbedderConfig`](../classes/EmbedderConfig.md)\<`ZodTypeAny`\>[]\>

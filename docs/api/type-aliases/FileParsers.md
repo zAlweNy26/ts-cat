@@ -2,4 +2,4 @@
 
 # FileParsers
 
-> **FileParsers**: `Record`\<\`$\{string\}/$\{string\}\`, (`content`) => `BaseDocumentLoader`\>
+> **FileParsers**: `Record`\<`` `${string}/${string}` ``, (`content`) => `BaseDocumentLoader`\>

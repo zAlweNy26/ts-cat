@@ -6,20 +6,22 @@
 
 | Property | Type | Default value |
 | ------ | ------ | ------ |
-| `forms` | [`Form`](Form.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>[] | `[]` |
-| `hooks` | `Partial`\<[`Hooks`](../type-aliases/Hooks.md)\> | `{}` |
-| `onPluginsSyncCallback?` | () => `Promise`\<`void`\> | `undefined` |
-| `tools` | [`Tool`](Tool.md)[] | `[]` |
+| <a id="forms"></a> `forms` | [`Form`](Form.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>[] | `[]` |
+| <a id="hooks"></a> `hooks` | `Partial`\<[`Hooks`](../type-aliases/Hooks.md)\> | `{}` |
+| <a id="onpluginssynccallback"></a> `onPluginsSyncCallback?` | () => `Promise`\<`void`\> | `undefined` |
+| <a id="tools"></a> `tools` | [`Tool`](Tool.md)[] | `[]` |
 
 ## Accessors
 
 ### installedPlugins
 
-> `get` **installedPlugins**(): `object`[]
+#### Get Signature
+
+> **get** **installedPlugins**(): `object`[]
 
 Gets a copy of the installed plugins.
 
-#### Returns
+##### Returns
 
 `object`[]
 
@@ -27,7 +29,7 @@ Gets a copy of the installed plugins.
 
 ### executeHook()
 
-> **executeHook**\<`T`\>(`name`, ...`args`): `ReturnType`\<[`HookTypes`](../interfaces/HookTypes.md)\[`T`\]\>
+> **executeHook**\<`T`\>(`name`, ...`args`): `Promise`\<`ReturnType`\<[`HookTypes`](../interfaces/HookTypes.md)\[`T`\]\>\>
 
 Executes a hook method by name with the provided arguments.
 
@@ -46,7 +48,7 @@ Executes a hook method by name with the provided arguments.
 
 #### Returns
 
-`ReturnType`\<[`HookTypes`](../interfaces/HookTypes.md)\[`T`\]\>
+`Promise`\<`ReturnType`\<[`HookTypes`](../interfaces/HookTypes.md)\[`T`\]\>\>
 
 The result of executing the hook methods sequentially.
 
@@ -66,7 +68,7 @@ Finds and installs plugins present in the plugins path.
 
 ### getPlugin()
 
-> **getPlugin**(`id`): `undefined` \| [`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>
+> **getPlugin**(`id`): `undefined` \| [`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>
 
 Gets a plugin by its ID.
 
@@ -78,13 +80,13 @@ Gets a plugin by its ID.
 
 #### Returns
 
-`undefined` \| [`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>
+`undefined` \| [`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>
 
 ***
 
 ### installPlugin()
 
-> **installPlugin**(`path`): `Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>\>
+> **installPlugin**(`path`): `Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>\>
 
 Installs a plugin from the specified path.
 
@@ -96,7 +98,7 @@ Installs a plugin from the specified path.
 
 #### Returns
 
-`Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, `object`\>\>
+`Promise`\<[`Plugin`](Plugin.md)\<`Record`\<`string`, `ZodType`\<`any`, `ZodTypeDef`, `any`\>\>, \{\}\>\>
 
 The installed plugin.
 

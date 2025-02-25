@@ -2,7 +2,7 @@
 
 # isForm()
 
-> **isForm**(`form`): `form is Form<Record<string, ZodType<any, ZodTypeDef, any>>, Object>`
+> **isForm**(`form`): `form is Form<Record<string, ZodType<any, ZodTypeDef, any>>, (key: string) => any>`
 
 ## Parameters
 
@@ -12,4 +12,4 @@
 
 ## Returns
 
-`form is Form<Record<string, ZodType<any, ZodTypeDef, any>>, Object>`
+`form is Form<Record<string, ZodType<any, ZodTypeDef, any>>, (key: string) => any>`

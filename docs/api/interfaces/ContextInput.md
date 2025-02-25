@@ -6,14 +6,14 @@ The context input for the agent.
 
 ## Indexable
 
- \[`key`: `string`\]: `string`
+\[`key`: `string`\]: `string`
 
 ## Properties
 
 | Property | Type |
 | ------ | ------ |
-| `chat_history` | `string` |
-| `declarative_memory` | `string` |
-| `episodic_memory` | `string` |
-| `input` | `string` |
-| `tools_output` | `string` |
+| <a id="chat_history"></a> `chat_history` | `string` |
+| <a id="declarative_memory"></a> `declarative_memory` | `string` |
+| <a id="episodic_memory"></a> `episodic_memory` | `string` |
+| <a id="input"></a> `input` | `string` |
+| <a id="tools_output"></a> `tools_output` | `string` |
