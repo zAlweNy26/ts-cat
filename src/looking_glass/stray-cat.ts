@@ -13,7 +13,6 @@ import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables
 import { AsyncGeneratorWithSetup, IterableReadableStream } from '@langchain/core/utils/stream'
 import { log } from '@logger'
 import { madHatter } from '@mh'
-import { rabbitHole } from '@rh'
 import { deepDefaults, normalizeMessageChunks } from '@utils'
 import { createSqlQueryChain } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
@@ -158,14 +157,14 @@ export class StrayCat {
 		}
 
 		// FEATURE: Find another way to handle this
-		if (response.text.length > cheshireCat.embedderSize) {
-			log.warn(`The input is too long. Storing it as document...`)
-			await rabbitHole.ingestContent(this, response.text)
-			return {
-				type: 'notification',
-				content: 'The input is too long. Storing it as document...',
-			}
-		}
+		// if (response.text.length > cheshireCat.embedderSize) {
+		// 	log.warn(`The input is too long. Storing it as document...`)
+		// 	await rabbitHole.ingestContent(this, response.text)
+		// 	return {
+		// 		type: 'notification',
+		// 		content: 'The input is too long. Storing it as document...',
+		// 	}
+		// }
 
 		if (save) this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
 

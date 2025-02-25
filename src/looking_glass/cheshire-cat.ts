@@ -49,7 +49,8 @@ export class CheshireCat {
 			db.update(db => madHatter.executeHook('beforeBootstrap', db))
 			await CheshireCat.instance.loadNaturalLanguage()
 			madHatter.onPluginsSyncCallback = () => CheshireCat.instance.embedProcedures()
-			await CheshireCat.instance.loadMemory()
+			try { await CheshireCat.instance.loadMemory() }
+			catch (error) { log.dir(error) }
 			await CheshireCat.instance.embedProcedures()
 			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
 			log.success('Cheshire Cat is ready.')
@@ -177,16 +178,21 @@ export class CheshireCat {
 
 	/**
 	 * Loads the long term memory from the database.
+	 * @throws An error if not able to retrieve the size of the embeddings.
 	 */
 	async loadMemory() {
 		log.info('Loading memory...')
-		const [error, vector = [0.1, 0.2, 0.3, 0.4, 0.5]] = await catchError(
+		const [error, vector] = await catchError(
 			this.currentEmbedder.embedQuery('hello world'),
 			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
 		)
 
-		// QUESTION: Should we also set it in the db?
-		if (error) this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
+		if (error) {
+			// QUESTION: Should we also set it in the db?
+			this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
+			await this.loadMemory()
+			throw error
+		}
 
 		this._embedderSize = vector.length
 		if (this._embedderSize === 0) {
