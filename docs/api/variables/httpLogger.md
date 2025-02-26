@@ -2,4 +2,4 @@
 
 # httpLogger
 
-> `const` **httpLogger**: `Elysia`\<`""`, `false`, `object`, `object`, `object`, `object`, `object`, `object`\>
+> `const` **httpLogger**: `any`

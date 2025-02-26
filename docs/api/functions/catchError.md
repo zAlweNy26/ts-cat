@@ -2,7 +2,7 @@
 
 # catchError()
 
-> **catchError**\<`T`, `E`\>(`promise`, `options`?): `Promise`\<[`undefined`, `T`] \| [`InstanceType`\<`E`\>]\>
+> **catchError**\<`T`, `E`\>(`promise`, `options`?): `Promise`\<\[`undefined`, `T`\] \| \[`InstanceType`\<`E`\>\]\>
 
 Catches errors from a promise.
 
@@ -18,13 +18,13 @@ Catches errors from a promise.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `promise` | `Promise`\<`T`\> | The promise to handle. |
-| `options`? | `object` | Additional options for handling the promise. |
+| `options`? | \{ `errorsToCatch`: `E`[]; `logMessage`: `string`; \} | Additional options for handling the promise. |
 | `options.errorsToCatch`? | `E`[] | An optional array of error constructors to catch. |
 | `options.logMessage`? | `string` | An optional message to log when an error occurs. |
 
 ## Returns
 
-`Promise`\<[`undefined`, `T`] \| [`InstanceType`\<`E`\>]\>
+`Promise`\<\[`undefined`, `T`\] \| \[`InstanceType`\<`E`\>\]\>
 
 A tuple with either the error or the result of the promise.
 

@@ -33,10 +33,10 @@
 
 | Property | Modifier | Type | Default value | Inherited from |
 | ------ | ------ | ------ | ------ | ------ |
-| `cause` | `public` | `string` | `undefined` | `Error.cause` |
-| `data` | `public` | `any` | `undefined` | - |
-| `message` | `public` | `string` | `undefined` | `Error.message` |
-| `status` | `public` | `number` | `undefined` | - |
+| <a id="cause-1"></a> `cause` | `public` | `string` | `undefined` | `Error.cause` |
+| <a id="data-1"></a> `data` | `public` | `any` | `undefined` | - |
+| <a id="message-1"></a> `message` | `public` | `string` | `undefined` | `Error.message` |
+| <a id="status-1"></a> `status` | `public` | `number` | `undefined` | - |
 
 ## Methods
 

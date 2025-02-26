@@ -33,25 +33,33 @@
 
 | Property | Type |
 | ------ | ------ |
-| `startExamples` | `string`[] |
+| <a id="startexamples"></a> `startExamples` | `string`[] |
 
 ## Accessors
 
 ### active
 
-> `get` **active**(): `boolean`
+#### Get Signature
 
-> `set` **active**(`active`): `void`
+> **get** **active**(): `boolean`
 
-#### Parameters
+##### Returns
+
+`boolean`
+
+#### Set Signature
+
+> **set** **active**(`active`): `void`
+
+##### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `active` | `boolean` |
 
-#### Returns
+##### Returns
 
-`boolean`
+`void`
 
 ## Methods
 
@@ -81,7 +89,7 @@ Invokes the tool with the provided input and configuration.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `input` | `string` \| `object` | The input for the tool. |
+| `input` | `string` \| \{\} | The input for the tool. |
 | `config`? | `RunnableConfig`\<`Record`\<`string`, `any`\>\> | Optional configuration for the tool. |
 
 #### Returns

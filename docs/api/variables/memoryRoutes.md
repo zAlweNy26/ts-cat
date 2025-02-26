@@ -2,4 +2,4 @@
 
 # memoryRoutes
 
-> `const` **memoryRoutes**: `Elysia`\<`"/memory"`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **memoryRoutes**: `Elysia`\<`"/memory"`, \{\}, \{\}, \{\}, `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object`, \{\}, \{\}\>

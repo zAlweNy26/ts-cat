@@ -2,7 +2,7 @@
 
 # getLLM()
 
-> **getLLM**(`llm`): `undefined` \| [`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>
+> **getLLM**(`llm`): `Promise`\<`undefined` \| [`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>\>
 
 ## Parameters
 
@@ -12,4 +12,4 @@
 
 ## Returns
 
-`undefined` \| [`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>
+`Promise`\<`undefined` \| [`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>\>

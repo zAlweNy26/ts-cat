@@ -2,8 +2,8 @@
 
 # getAllowedLLMs()
 
-> **getAllowedLLMs**(): [`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>[]
+> **getAllowedLLMs**(): `Promise`\<[`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>[]\>
 
 ## Returns
 
-[`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>[]
+`Promise`\<[`ChatModelConfig`](../classes/ChatModelConfig.md)\<`ZodTypeAny`\>[]\>

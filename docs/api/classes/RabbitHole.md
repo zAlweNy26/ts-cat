@@ -6,11 +6,13 @@
 
 ### fileParsers
 
-> `get` **fileParsers**(): `object`
+#### Get Signature
+
+> **get** **fileParsers**(): `object`
 
 Get the file parsers
 
-#### Returns
+##### Returns
 
 `object`
 
@@ -18,9 +20,13 @@ Get the file parsers
 
 ### textSplitter
 
-> `get` **textSplitter**(): `TextSplitter`
+#### Get Signature
 
-#### Returns
+> **get** **textSplitter**(): `TextSplitter`
+
+Get the text splitter
+
+##### Returns
 
 `TextSplitter`
 
@@ -28,11 +34,13 @@ Get the file parsers
 
 ### webParsers
 
-> `get` **webParsers**(): [`WebParser`](../type-aliases/WebParser.md)[]
+#### Get Signature
+
+> **get** **webParsers**(): [`WebParser`](../type-aliases/WebParser.md)[]
 
 Get the web parsers
 
-#### Returns
+##### Returns
 
 [`WebParser`](../type-aliases/WebParser.md)[]
 
@@ -51,7 +59,7 @@ Ingests textual content into the memory.
 | `stray` | [`StrayCat`](StrayCat.md) | `undefined` | The StrayCat instance. |
 | `content` | `string` \| `string`[] | `undefined` | The textual content to ingest. |
 | `source` | `string` | `'unknown'` | The source of the content (default: 'unknown'). |
-| `metadata`? | `Record`\<`string`, `any`\> | `undefined` | Additional metadata to store with the content. |
+| `metadata`? | `Record`\<`string`, `any`\> | `undefined` | Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten) |
 
 #### Returns
 
@@ -73,7 +81,7 @@ Ingests a file and processes its content.
 | `file` | `File` | The file to ingest. |
 | `chunkSize`? | `number` | The size of each chunk for splitting the content. |
 | `chunkOverlap`? | `number` | The overlap between chunks. |
-| `metadata`? | `Record`\<`string`, `any`\> | Additional metadata to store with the content. |
+| `metadata`? | `Record`\<`string`, `any`\> | Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten) |
 
 #### Returns
 
@@ -121,7 +129,7 @@ If the input is a file system path, it reads the file and processes the content.
 | `path` | `string` | The path or URL to ingest. |
 | `chunkSize`? | `number` | The size of each chunk for splitting the content. |
 | `chunkOverlap`? | `number` | The overlap between chunks. |
-| `metadata`? | `Record`\<`string`, `any`\> | Additional metadata to store with the content. |
+| `metadata`? | `Record`\<`string`, `any`\> | Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten) |
 
 #### Returns
 
@@ -172,7 +180,7 @@ It sends a websocket notification of the progress and when the reading process i
 | `stray` | [`StrayCat`](StrayCat.md) | The StrayCat instance. |
 | `docs` | `Document`\<`Record`\<`string`, `any`\>\>[] | An array of documents to store. |
 | `source` | `string` | The source of the documents. |
-| `metadata`? | `Record`\<`string`, `any`\> | Additional metadata to store with the content. |
+| `metadata`? | `Record`\<`string`, `any`\> | Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten) |
 
 #### Returns
 

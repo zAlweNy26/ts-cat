@@ -8,6 +8,6 @@ The agent reply configuration.
 
 | Property | Type |
 | ------ | ------ |
-| `intermediateSteps?` | [`IntermediateStep`](IntermediateStep.md)[] |
-| `output` | `string` |
-| `returnDirect?` | `boolean` |
+| <a id="intermediatesteps"></a> `intermediateSteps?` | [`IntermediateStep`](IntermediateStep.md)[] |
+| <a id="output"></a> `output` | `string` |
+| <a id="returndirect"></a> `returnDirect?` | `boolean` |

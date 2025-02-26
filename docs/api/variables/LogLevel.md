@@ -2,4 +2,4 @@
 
 # LogLevel
 
-> `const` **LogLevel**: readonly [`"error"`, `"warning"`, `"normal"`, `"info"`, `"debug"`]
+> `const` **LogLevel**: readonly \[`"error"`, `"warning"`, `"normal"`, `"info"`, `"debug"`\]

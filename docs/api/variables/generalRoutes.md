@@ -2,4 +2,4 @@
 
 # generalRoutes
 
-> `const` **generalRoutes**: `Elysia`\<`""`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **generalRoutes**: `Elysia`\<`""`, \{\}, \{\}, \{\}, `object` & `object` & `object` & `object` & `object`, \{\}, \{\}\>

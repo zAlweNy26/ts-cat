@@ -2,8 +2,8 @@
 
 # embedderCache()
 
-> **embedderCache**(): `BaseStore`\<`any`, `any`\> \| `undefined`
+> **embedderCache**(): `undefined` \| `BaseStore`\<`any`, `any`\>
 
 ## Returns
 
-`BaseStore`\<`any`, `any`\> \| `undefined`
+`undefined` \| `BaseStore`\<`any`, `any`\>

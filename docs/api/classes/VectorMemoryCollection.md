@@ -6,15 +6,15 @@
 
 | Property | Modifier | Type |
 | ------ | ------ | ------ |
-| `embedderName` | `public` | `string` |
-| `embedderSize` | `public` | `number` |
-| `name` | `public` | `string` |
+| <a id="embeddername"></a> `embedderName` | `public` | `string` |
+| <a id="embeddersize"></a> `embedderSize` | `public` | `number` |
+| <a id="name"></a> `name` | `public` | `string` |
 
 ## Methods
 
 ### addPoint()
 
-> **addPoint**(`content`, `vector`, `metadata`?, `id`?, ...`args`?): `Promise`\<`undefined` \| `object`\>
+> **addPoint**(`content`, `vector`, `metadata`?, `id`?, ...`args`?): `Promise`\<`undefined` \| \{\}\>
 
 Add a point (and its metadata) to the vector store.
 
@@ -25,12 +25,12 @@ Add a point (and its metadata) to the vector store.
 | `content` | `string` | Original content to push. |
 | `vector` | `number`[] | The embedding vector. |
 | `metadata`? | `Record`\<`string`, `any`\> | Optional metadata associated with the content. |
-| `id`? | \`$\{string\}-$\{string\}-$\{string\}-$\{string\}-$\{string\}\` | id to associate with the point. It has to be a UUID-like string. |
-| ...`args`? | `object` & `object` \| `object`[] | Optional arguments to pass. |
+| `id`? | `` `${string}-${string}-${string}-${string}-${string}` `` | id to associate with the point. It has to be a UUID-like string. |
+| ...`args`? | `object` & \{\} \| \{\}[] | Optional arguments to pass. |
 
 #### Returns
 
-`Promise`\<`undefined` \| `object`\>
+`Promise`\<`undefined` \| \{\}\>
 
 The id of the added point.
 
@@ -38,7 +38,7 @@ The id of the added point.
 
 ### addPoints()
 
-> **addPoints**(`points`, ...`args`): `Promise`\<`object`\>
+> **addPoints**(`points`, ...`args`): `Promise`\<\{\}\>
 
 Adds an array of points to the vector memory collection.
 
@@ -47,11 +47,11 @@ Adds an array of points to the vector memory collection.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `points` | `object`[] | An array of [PointData](../type-aliases/PointData.md) representing the points to be added. |
-| ...`args` | `object` & `object` \| `object`[] | - |
+| ...`args` | `object` & \{\} \| \{\}[] | - |
 
 #### Returns
 
-`Promise`\<`object`\>
+`Promise`\<\{\}\>
 
 The result of the upsert operation.
 
@@ -71,7 +71,7 @@ Creates a new collection with the specified configuration.
 
 ### deletePoints()
 
-> **deletePoints**(`ids`): `Promise`\<`object`\>
+> **deletePoints**(`ids`): `Promise`\<\{\}\>
 
 Delete points by their IDs.
 
@@ -83,7 +83,7 @@ Delete points by their IDs.
 
 #### Returns
 
-`Promise`\<`object`\>
+`Promise`\<\{\}\>
 
 The result of the deletion.
 
@@ -91,7 +91,7 @@ The result of the deletion.
 
 ### deletePointsByMetadata()
 
-> **deletePointsByMetadata**(`metadata`): `undefined` \| `Promise`\<`object`\>
+> **deletePointsByMetadata**(`metadata`): `undefined` \| `Promise`\<\{\}\>
 
 Delete points by their metadata.
 
@@ -99,11 +99,11 @@ Delete points by their metadata.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `metadata` | `Record`\<`string`, `undefined` \| `null` \| `object` \| `object` \| `object` \| `object` \| `Record`\<`string`, `unknown`\>\> | The metadata of the points to delete. |
+| `metadata` | `Record`\<`string`, `undefined` \| `null` \| \{\} \| \{\} \| \{\} \| \{\} \| `Record`\<`string`, `unknown`\>\> | The metadata of the points to delete. |
 
 #### Returns
 
-`undefined` \| `Promise`\<`object`\>
+`undefined` \| `Promise`\<\{\}\>
 
 The result of the deletion.
 
@@ -120,7 +120,7 @@ Retrieves all points from the vector memory collection.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `limit` | `number` | `10000` | The maximum number of points to retrieve (default: 10000). |
-| `filter`? | `Record`\<`string`, `undefined` \| `null` \| `object` \| `object` \| `object` \| `object` \| `Record`\<`string`, `unknown`\>\> | `undefined` | An optional filter to apply to the points. |
+| `filter`? | `Record`\<`string`, `undefined` \| `null` \| \{\} \| \{\} \| \{\} \| \{\} \| `Record`\<`string`, `unknown`\>\> | `undefined` | An optional filter to apply to the points. |
 
 #### Returns
 
@@ -160,8 +160,8 @@ Retrieves memories from the vector database based on an embedded vector.
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `embedding` | `number`[] \| `object` \| `object` | `undefined` | The embedding vector to search for. |
-| `filter`? | `Record`\<`string`, `undefined` \| `null` \| `object` \| `object` \| `object` \| `object` \| `Record`\<`string`, `unknown`\>\> | `undefined` | Optional filter to apply to the search. |
+| `embedding` | `number`[] \| \{\} \| \{\} | `undefined` | The embedding vector to search for. |
+| `filter`? | `Record`\<`string`, `undefined` \| `null` \| \{\} \| \{\} \| \{\} \| \{\} \| `Record`\<`string`, `unknown`\>\> | `undefined` | Optional filter to apply to the search. |
 | `k`? | `number` | `10` | The maximum number of memories to retrieve (default: 10). |
 | `threshold`? | `number` | `undefined` | The score threshold for retrieved memories. |
 

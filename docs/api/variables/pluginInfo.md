@@ -2,16 +2,4 @@
 
 # pluginInfo
 
-> `const` **pluginInfo**: `TObject`\<`object`\>
-
-## Type declaration
-
-| Name | Type |
-| ------ | ------ |
-| `active` | `TBoolean` |
-| `forms` | `TArray`\<`TObject`\<`object`\>\> |
-| `hooks` | `TArray`\<`TObject`\<`object`\>\> |
-| `id` | `TString` |
-| `manifest` | `TRef`\<`TObject`\<`object`\>\> |
-| `tools` | `TArray`\<`TObject`\<`object`\>\> |
-| `upgradable` | `TBoolean` |
+> `const` **pluginInfo**: `TObject`\<\{ `active`: `TBoolean`; `forms`: `TArray`\<`TObject`\<\{ `active`: `TBoolean`; `description`: `TString`; `name`: `TString`; \}\>\>; `hooks`: `TArray`\<`TObject`\<\{ `name`: `TString`; `priority`: `TNumber`; \}\>\>; `id`: `TString`; `manifest`: `TRef`\<`"pluginManifest"`\>; `tools`: `TArray`\<`TObject`\<\{ `active`: `TBoolean`; `description`: `TString`; `name`: `TString`; \}\>\>; `upgradable`: `TBoolean`; \}\>

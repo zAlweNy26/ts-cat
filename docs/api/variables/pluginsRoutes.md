@@ -2,4 +2,4 @@
 
 # pluginsRoutes
 
-> `const` **pluginsRoutes**: `Elysia`\<`"/plugins"`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **pluginsRoutes**: `Elysia`\<`"/plugins"`, \{\}, \{\}, \{\}, `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object`, \{\}, \{\}\>

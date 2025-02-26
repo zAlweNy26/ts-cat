@@ -2,4 +2,4 @@
 
 # Primitive
 
-> **Primitive**: `string` \| `number` \| `boolean` \| `bigint` \| `symbol` \| `object`
+> **Primitive**: `string` \| `number` \| `boolean` \| `bigint` \| `symbol` \| \{\}

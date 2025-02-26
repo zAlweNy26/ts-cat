@@ -2,6 +2,8 @@
 
 # WhiteRabbit
 
+I'm late, I'm late, for a very important date!
+
 ## Methods
 
 ### getJobs()
@@ -103,6 +105,10 @@ Schedule a new job
 
 > `static` **getInstance**(): `Promise`\<[`WhiteRabbit`](WhiteRabbit.md)\>
 
+Get the White Rabbit instance
+
 #### Returns
 
 `Promise`\<[`WhiteRabbit`](WhiteRabbit.md)\>
+
+The White Rabbit class as a singleton

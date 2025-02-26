@@ -2,4 +2,4 @@
 
 # WebParser
 
-> **WebParser**: [`RegExp`, (`url`) => `BaseDocumentLoader`]
+> **WebParser**: \[`RegExp`, (`url`) => `BaseDocumentLoader`\]

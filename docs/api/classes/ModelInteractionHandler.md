@@ -32,7 +32,7 @@
 
 | Property | Type | Default value | Overrides |
 | ------ | ------ | ------ | ------ |
-| `name` | `string` | `'ModelInteraction'` | `BaseCallbackHandler.name` |
+| <a id="name"></a> `name` | `string` | `'ModelInteraction'` | `BaseCallbackHandler.name` |
 
 ## Methods
 

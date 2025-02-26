@@ -15,7 +15,7 @@ The stray cat goes around tools and hook, making troubles
 | Parameter | Type |
 | ------ | ------ |
 | `userId` | `string` |
-| `ws`? | [`WS`](../type-aliases/WS.md) |
+| `ws`? | `ElysiaWS`\<`unknown`, \{\}\> |
 
 #### Returns
 
@@ -25,18 +25,22 @@ The stray cat goes around tools and hook, making troubles
 
 | Property | Modifier | Type | Default value |
 | ------ | ------ | ------ | ------ |
-| `activeForm?` | `public` | `string` | `undefined` |
-| `userId` | `public` | `string` | `undefined` |
-| `workingMemory` | `public` | [`WorkingMemory`](../interfaces/WorkingMemory.md) | `undefined` |
-| `wsQueue` | `public` | [`WSMessage`](../type-aliases/WSMessage.md)[] | `[]` |
+| <a id="activeform"></a> `activeForm?` | `public` | `string` | `undefined` |
+| <a id="userid-1"></a> `userId` | `public` | `string` | `undefined` |
+| <a id="workingmemory"></a> `workingMemory` | `public` | [`WorkingMemory`](../interfaces/WorkingMemory.md) | `undefined` |
+| <a id="wsqueue"></a> `wsQueue` | `public` | [`WSMessage`](../type-aliases/WSMessage.md)[] | `[]` |
 
 ## Accessors
 
 ### agentManager
 
-> `get` **agentManager**(): [`AgentManager`](AgentManager.md)
+#### Get Signature
 
-#### Returns
+> **get** **agentManager**(): [`AgentManager`](AgentManager.md)
+
+Get the AgentManager instance.
+
+##### Returns
 
 [`AgentManager`](AgentManager.md)
 
@@ -44,9 +48,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### currentEmbedder
 
-> `get` **currentEmbedder**(): `Embeddings`
+#### Get Signature
 
-#### Returns
+> **get** **currentEmbedder**(): `Embeddings`
+
+Get the current instance of the Embedder selected.
+
+##### Returns
 
 `Embeddings`
 
@@ -54,9 +62,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### currentLLM
 
-> `get` **currentLLM**(): `BaseChatModel`\<`BaseChatModelCallOptions`, `AIMessageChunk`\>
+#### Get Signature
 
-#### Returns
+> **get** **currentLLM**(): `BaseChatModel`\<`BaseChatModelCallOptions`, `AIMessageChunk`\>
+
+Get the current instance of the LLM selected.
+
+##### Returns
 
 `BaseChatModel`\<`BaseChatModelCallOptions`, `AIMessageChunk`\>
 
@@ -64,9 +76,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### lastUserMessage
 
-> `get` **lastUserMessage**(): [`Message`](../interfaces/Message.md)
+#### Get Signature
 
-#### Returns
+> **get** **lastUserMessage**(): [`Message`](../interfaces/Message.md)
+
+Get the last user message.
+
+##### Returns
 
 [`Message`](../interfaces/Message.md)
 
@@ -74,9 +90,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### plugins
 
-> `get` **plugins**(): `object`[]
+#### Get Signature
 
-#### Returns
+> **get** **plugins**(): `object`[]
+
+Get the current installed plugins.
+
+##### Returns
 
 `object`[]
 
@@ -84,9 +104,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### rabbitHole
 
-> `get` **rabbitHole**(): [`RabbitHole`](RabbitHole.md)
+#### Get Signature
 
-#### Returns
+> **get** **rabbitHole**(): [`RabbitHole`](RabbitHole.md)
+
+Get the RabbitHole instance.
+
+##### Returns
 
 [`RabbitHole`](RabbitHole.md)
 
@@ -94,9 +118,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### vectorMemory
 
-> `get` **vectorMemory**(): [`VectorMemory`](VectorMemory.md)
+#### Get Signature
 
-#### Returns
+> **get** **vectorMemory**(): [`VectorMemory`](VectorMemory.md)
+
+Get the memory instance.
+
+##### Returns
 
 [`VectorMemory`](VectorMemory.md)
 
@@ -104,9 +132,13 @@ The stray cat goes around tools and hook, making troubles
 
 ### whiteRabbit
 
-> `get` **whiteRabbit**(): [`WhiteRabbit`](WhiteRabbit.md)
+#### Get Signature
 
-#### Returns
+> **get** **whiteRabbit**(): [`WhiteRabbit`](WhiteRabbit.md)
+
+Get the WhiteRabbit instance.
+
+##### Returns
 
 [`WhiteRabbit`](WhiteRabbit.md)
 
@@ -122,7 +154,7 @@ Adds messages to the chat history.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `message` | [`MemoryMessage`](../interfaces/MemoryMessage.md)[] | the messages to add |
+| `message` | [`MemoryMessage`](../type-aliases/MemoryMessage.md)[] | the messages to add |
 
 #### Returns
 
@@ -132,7 +164,7 @@ Adds messages to the chat history.
 
 ### addInteraction()
 
-> **addInteraction**(`interaction`): `void`
+> **addInteraction**(`interaction`): `Promise`\<`void`\>
 
 Adds an interaction to the working memory.
 
@@ -144,7 +176,7 @@ Adds an interaction to the working memory.
 
 #### Returns
 
-`void`
+`Promise`\<`void`\>
 
 ***
 
@@ -158,7 +190,7 @@ This property is used to establish a new WebSocket connection.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `value` | `undefined` \| [`WS`](../type-aliases/WS.md) | The WebSocket instance. |
+| `value` | `undefined` \| `ElysiaWS`\<`unknown`, \{\}\> | The WebSocket instance. |
 
 #### Returns
 
@@ -179,7 +211,7 @@ Classifies the given sentence into one of the provided labels.
 | Type Parameter |
 | ------ |
 | `S` *extends* `string` |
-| `T` *extends* [`S`, `...S[]`] |
+| `T` *extends* \[`S`, `...S[]`\] |
 
 #### Parameters
 
@@ -211,7 +243,7 @@ Clears the chat history.
 
 ### getHistory()
 
-> **getHistory**(`k`?): [`MemoryMessage`](../interfaces/MemoryMessage.md)[]
+> **getHistory**(`k`?): [`MemoryMessage`](../type-aliases/MemoryMessage.md)[]
 
 If passed a number k, retrieves the last k messages in the chat history.
 Otherwise, retrieves all messages in the chat history.
@@ -224,7 +256,7 @@ Otherwise, retrieves all messages in the chat history.
 
 #### Returns
 
-[`MemoryMessage`](../interfaces/MemoryMessage.md)[]
+[`MemoryMessage`](../type-aliases/MemoryMessage.md)[]
 
 the messages present in the chat history
 
@@ -253,13 +285,19 @@ the interactions present in the working memory
 
 ### getPluginInfo()
 
-> **getPluginInfo**(): `Promise`\<`undefined` \| `object`\>
+> **getPluginInfo**(`id`): `undefined` \| \{ `active`: `boolean`; `manifest`: \{ `authorName`: `string`; `authorUrl`: `string`; `description`: `string`; `name`: `string`; `pluginUrl`: `string`; `tags`: `string`[]; `thumb`: `string`; `version`: `string`; \}; `settings`: \{\}; \}
 
-Retrieves information about a plugin based on where it's executed.
+Retrieves information about a plugin.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `id` | `string` | The ID of the plugin. |
 
 #### Returns
 
-`Promise`\<`undefined` \| `object`\>
+`undefined` \| \{ `active`: `boolean`; `manifest`: \{ `authorName`: `string`; `authorUrl`: `string`; `description`: `string`; `name`: `string`; `pluginUrl`: `string`; `tags`: `string`[]; `thumb`: `string`; `version`: `string`; \}; `settings`: \{\}; \}
 
 An object containing the plugin's active status, manifest, and settings.
 
@@ -269,7 +307,7 @@ Returns undefined if the plugin is not found.
 
 ### llm()
 
-#### llm(prompt, stream)
+#### Call Signature
 
 > **llm**(`prompt`, `stream`?): `Promise`\<`AIMessageChunk`\>
 
@@ -286,16 +324,18 @@ Executes the LLM with the given prompt and returns the response.
 
 `Promise`\<`AIMessageChunk`\>
 
-#### llm(prompt, stream)
+#### Call Signature
 
 > **llm**(`prompt`, `stream`?): `Promise`\<`IterableReadableStream`\<`AIMessageChunk`\>\>
 
+Executes the LLM with the given prompt and returns the response.
+
 ##### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `prompt` | `BaseLanguageModelInput` |
-| `stream`? | `true` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prompt` | `BaseLanguageModelInput` | The prompt or messages to be passed to the LLM. |
+| `stream`? | `true` | Optional parameter to enable streaming mode. |
 
 ##### Returns
 
@@ -323,7 +363,7 @@ Executes a SQL query based on a natural language question.
 | ------ | ------ | ------ |
 | `question` | `string` | The user question. |
 | `type` | `T` | The SQL dialect to use. |
-| `source` | `Omit`\<`Extract`\<`MysqlConnectionOptions`, `object`\> \| `Extract`\<`PostgresConnectionOptions`, `object`\> \| `Extract`\<`CockroachConnectionOptions`, `object`\> \| `Extract`\<`SqliteConnectionOptions`, `object`\> \| `Extract`\<`SqlServerConnectionOptions`, `object`\> \| `Extract`\<`SapConnectionOptions`, `object`\> \| `Extract`\<`OracleConnectionOptions`, `object`\> \| `Extract`\<`CordovaConnectionOptions`, `object`\> \| `Extract`\<`NativescriptConnectionOptions`, `object`\> \| `Extract`\<`ReactNativeConnectionOptions`, `object`\> \| `Extract`\<`SqljsConnectionOptions`, `object`\> \| `Extract`\<`MongoConnectionOptions`, `object`\> \| `Extract`\<`AuroraMysqlConnectionOptions`, `object`\> \| `Extract`\<`AuroraPostgresConnectionOptions`, `object`\> \| `Extract`\<`ExpoConnectionOptions`, `object`\> \| `Extract`\<`BetterSqlite3ConnectionOptions`, `object`\> \| `Extract`\<`CapacitorConnectionOptions`, `object`\> \| `Extract`\<`SpannerConnectionOptions`, `object`\>, `"type"`\> | The data source to execute the query on. |
+| `source` | `Omit`\<`Extract`\<`MysqlConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`PostgresConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`CockroachConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`SqliteConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`SqlServerConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`SapConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`OracleConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`CordovaConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`NativescriptConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`ReactNativeConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`SqljsConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`MongoConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`AuroraMysqlConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`AuroraPostgresConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`ExpoConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`BetterSqlite3ConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`CapacitorConnectionOptions`, \{ `type`: `T`; \}\> \| `Extract`\<`SpannerConnectionOptions`, \{ `type`: `T`; \}\>, `"type"`\> | The data source to execute the query on. |
 
 #### Returns
 
@@ -376,13 +416,11 @@ The response message.
 
 ### send()
 
-> **send**(`msg`): `void`
+> **send**(`msg`): `Promise`\<`void`\>
 
 Sends a message through the websocket connection.
 
 If the websocket connection is not open, the message is queued.
-
-If the message is of type 'chat', it is also stored in the chat history.
 
 #### Parameters
 
@@ -392,4 +430,4 @@ If the message is of type 'chat', it is also stored in the chat history.
 
 #### Returns
 
-`void`
+`Promise`\<`void`\>

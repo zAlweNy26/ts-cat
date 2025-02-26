@@ -2,6 +2,6 @@
 
 # WSMessage
 
-> **WSMessage**: `object` \| `object` \| `object` & [`MemoryMessage`](../interfaces/MemoryMessage.md)
+> **WSMessage**: \{ `description`: `string`; `name`: `string`; `type`: `"error"`; \} \| \{ `content`: `string`; `type`: `"token"` \| `"notification"`; \} \| `object` & [`MemoryMessage`](MemoryMessage.md)
 
 A message object sent by the websocket.

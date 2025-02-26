@@ -6,17 +6,19 @@
 
 | Property | Type |
 | ------ | ------ |
-| `collections` | [`VectorMemoryCollections`](../interfaces/VectorMemoryCollections.md) |
+| <a id="collections"></a> `collections` | [`VectorMemoryCollections`](../interfaces/VectorMemoryCollections.md) |
 
 ## Accessors
 
 ### db
 
-> `get` **db**(): `QdrantClient`
+#### Get Signature
+
+> **get** **db**(): `QdrantClient`
 
 Gets the vector database.
 
-#### Returns
+##### Returns
 
 `QdrantClient`
 

@@ -13,7 +13,6 @@ import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables
 import { AsyncGeneratorWithSetup, IterableReadableStream } from '@langchain/core/utils/stream'
 import { log } from '@logger'
 import { madHatter } from '@mh'
-import { rabbitHole } from '@rh'
 import { deepDefaults, normalizeMessageChunks } from '@utils'
 import { createSqlQueryChain } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'

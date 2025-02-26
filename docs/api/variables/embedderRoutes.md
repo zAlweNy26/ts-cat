@@ -2,4 +2,4 @@
 
 # embedderRoutes
 
-> `const` **embedderRoutes**: `Elysia`\<`"/embedder"`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **embedderRoutes**: `Elysia`\<`"/embedder"`, \{\}, \{\}, \{\}, `object` & `object` & `object` & `object`, \{\}, \{\}\>

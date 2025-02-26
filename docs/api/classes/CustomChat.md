@@ -16,7 +16,7 @@
 
 | Parameter | Type |
 | ------ | ------ |
-| `params` | `BaseLanguageModelParams` & `object` |
+| `params` | `BaseLanguageModelParams` & `object` & `object` |
 
 #### Returns
 

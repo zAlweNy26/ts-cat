@@ -2,7 +2,7 @@
 
 # getZodDefaults()
 
-> **getZodDefaults**\<`T`\>(`schema`, `discriminant`?): `T`\[`"_output"`\] \| `undefined`
+> **getZodDefaults**\<`T`\>(`schema`, `discriminant`?): `undefined` \| `T`\[`"_output"`\]
 
 Retrieves the default values for a given Zod schema.
 
@@ -21,4 +21,4 @@ Retrieves the default values for a given Zod schema.
 
 ## Returns
 
-`T`\[`"_output"`\] \| `undefined`
+`undefined` \| `T`\[`"_output"`\]

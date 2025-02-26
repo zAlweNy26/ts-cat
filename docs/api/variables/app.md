@@ -2,4 +2,4 @@
 
 # app
 
-> `const` **app**: `Elysia`\<`""`, `false`, `object`, `object`, `object`, `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object` & `object`, `object`, `object`\>
+> `const` **app**: `Elysia`\<`""`, `any`, \{\}, `any`, `any`, \{\}, `any`\>
