@@ -27,7 +27,7 @@ import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.t
 export class AgentManager {
 	private verboseRunnable = new RunnableLambda({
 		func: (x: any) => {
-			if (parsedEnv.verbose) log.dir(x)
+			if (parsedEnv.verbose) log.dir(x?.toString())
 			return x
 		},
 	})
@@ -42,6 +42,7 @@ export class AgentManager {
 	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
 	 */
 	async executeProceduresChain(agentInput: ContextInput, chatHistory: string, stray: StrayCat) {
+		// Get tools and Forms
 		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
 				&& ['description', 'startExample'].includes(p.metadata?.trigger)
@@ -51,94 +52,52 @@ export class AgentManager {
 		const returnDirectTools: string[] = []
 
 		recalledProcedures = await madHatter.executeHook('allowedTools', recalledProcedures, stray)
-
-		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
+		madHatter.tools.filter(t => t.active).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p) && p.returnDirect) returnDirectTools.push(p.name)
 				p.assignCat(stray)
 				allowedProcedures[p.name] = p
 			}
 		})
-
 		const allowedTools = Object.values(allowedProcedures)
 
 		let examples = ''
 		if (allowedTools.map(p => p.startExamples).some(examples => examples.length > 0)) {
 			examples += allowedTools.reduce((acc, p) => {
 				const question = `Question: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
-				const example = `{{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}}`
+				const example = `{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}`
 				return `${acc}\n${question}\n${example}\n`
-			}, '## Here some examples:\n')
-			examples += '{{\n\t"action": "final-answer",\n\t"actionInput": null\n}}'
+			}, '\n')
+			// examples += '{{\n\t"action": "final-answer",\n\t"actionInput": null\n}}'
 		}
 
-		let prompt = ChatPromptTemplate.fromMessages([
+		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
+			...(await this.getLangchainChatHistory(stray.getHistory(5))),
 		])
+		const tools = allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n')
 
-		prompt = await prompt.partial({
-			tools: allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n'),
+		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new ProceduresOutputParser())
+
+		const result = await chain.invoke({
+			tools,
 			tool_names: Object.keys(allowedProcedures).map(p => `"${p}"`).join(', '),
-			chat_history: chatHistory,
-			scratchpad: '',
 			examples,
+		}, {
+			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
 		})
 
-		const agent = AgentRunnableSequence.fromRunnables([
-			RunnablePassthrough.assign({
-				agent_scratchpad: x => ((x.intermediateSteps ?? []) as AgentStep[]).reduce((acc, { action, observation }) => {
-					let thought = `${action.log}\n`
-					thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
-					return acc + thought
-				}, ''),
-			}),
-			prompt,
-			this.verboseRunnable,
-			stray.currentLLM,
-			new ProceduresOutputParser(),
-		], { singleAction: true })
+		log.success(result)
+		
+		const toolSelected: Tool = allowedProcedures[result?.tool] as Tool
 
-		const agentExecutor = AgentExecutor.fromAgentAndTools({
-			agent,
-			tools: allowedTools.filter(isTool),
-			returnIntermediateSteps: true,
-			maxIterations: 3,
-			verbose: parsedEnv.verbose,
-		})
+		const output = await toolSelected.invoke(result?.toolInput)
 
-		let result = await agentExecutor.invoke(agentInput, {
-			callbacks: [new ModelInteractionHandler(stray, 'ProceduresChain')],
-		})
 
-		result.returnDirect = false
-		const intermediateSteps: IntermediateStep[] = []
-		for (const step of (result.intermediateSteps ?? []) as AgentStep[]) {
-			const { action, observation } = step
-			const { tool, toolInput } = action
-			if (returnDirectTools.includes(tool)) result.returnDirect = true
-			intermediateSteps.push({
-				procedure: tool,
-				input: typeof toolInput === 'string' ? toolInput : null,
-				observation,
-			})
-		}
-
-		if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
-			const form = allowedProcedures[result.form] as Form
-			form.assignCat(stray)
-			stray.activeForm = result.form
-			result = await form.next()
-			result.returnDirect = true
-			intermediateSteps.push({
-				procedure: form.name,
-				input: null,
-				observation: result.output,
-			})
-		}
-
-		result.intermediateSteps = intermediateSteps
-
-		return result as AgentFastReply
+		return {
+			output,
+			returnDirect: toolSelected.returnDirect
+		} as AgentFastReply
 	}
 
 	/**

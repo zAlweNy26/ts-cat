@@ -49,8 +49,15 @@ export class CheshireCat {
 			db.update(db => madHatter.executeHook('beforeBootstrap', db))
 			await CheshireCat.instance.loadNaturalLanguage()
 			madHatter.onPluginsSyncCallback = () => CheshireCat.instance.embedProcedures()
-			await CheshireCat.instance.loadMemory()
-			await CheshireCat.instance.embedProcedures()
+			try {
+				await CheshireCat.instance.loadMemory()
+				await CheshireCat.instance.embedProcedures()
+			}
+			catch (e) {
+				log.error('Error during embedder inizialization: ')
+				log.error(e)
+			}
+
 			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
 			log.success('Cheshire Cat is ready.')
 		}
@@ -186,7 +193,10 @@ export class CheshireCat {
 		)
 
 		// QUESTION: Should we also set it in the db?
-		if (error) this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
+		if (error) {
+			this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
+			throw error
+		}
 
 		this._embedderSize = vector.length
 		if (this._embedderSize === 0) {
