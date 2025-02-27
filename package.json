@@ -131,7 +131,7 @@
     "typescript": "5.7.3",
     "vite-tsconfig-paths": "^5.1.4",
     "vitepress": "1.6.3",
-    "vitest": "3.0.3"
+    "vitest": "3.0.5"
   },
   "overrides": {
     "@langchain/core": "0.3.33"
