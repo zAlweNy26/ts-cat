@@ -55,9 +55,8 @@ export class CheshireCat {
 			}
 			catch (e) {
 				log.error('Error during embedder inizialization: ')
-				log.error(e)
+				log.dir(e)
 			}
-
 			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
 			log.success('Cheshire Cat is ready.')
 		}
@@ -193,9 +192,9 @@ export class CheshireCat {
 			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
 		)
 
-		// QUESTION: Should we also set it in the db?
 		if (error) {
 			this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
+			await this.loadMemory()
 			throw error
 		}
 
@@ -274,7 +273,7 @@ export class CheshireCat {
 
 		const activeTriggersToEmbed = pointsToAdd.map(p => actProcHashes[p]!)
 		for (const t of activeTriggersToEmbed) {
-			// TODO: check if is better than embedDocument
+			// QUESTION: Should we use embedDocument or embedQuery here?
 			const triggerEmbedding = await this.embedder.embedQuery(t.content)
 			if (triggerEmbedding.length === 0) {
 				log.error(`Could not embed ${t.type} trigger "${t.trigger}" of "${t.name}" with content: ${t.content}`)

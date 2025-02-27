@@ -32,11 +32,7 @@ export class AgentManager {
 
 	/**
 	 * Executes the procedures chain. It gets the tools and forms and passes them to the agent.
-	 *
-	 * @param agentInput The input context for the agent.
-	 * @param chatHistory The history of the chat as a string.
 	 * @param stray The `StrayCat` instance.
-	 *
 	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
 	 */
 	async executeProceduresChain(stray: StrayCat): Promise<AgentFastReply> {
@@ -85,12 +81,25 @@ export class AgentManager {
 			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
 		})
 
-		// TODO: refactor this beauty
+		// FIXME: Handle this the right way
 		if ('returnValues' in result) {
 			return {
-				output: 'no_action',
+				output: 'no-action',
 			}
 		}
+
+		// if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
+		// 	const form = allowedProcedures[result.form] as Form
+		// 	form.assignCat(stray)
+		// 	stray.activeForm = result.form
+		// 	result = await form.next()
+		// 	result.returnDirect = true
+		// 	intermediateSteps.push({
+		// 		procedure: form.name,
+		// 		input: null,
+		// 		observation: result.output,
+		// 	})
+		// }
 
 		const toolSelected: Tool = allowedProcedures[result?.tool] as Tool
 

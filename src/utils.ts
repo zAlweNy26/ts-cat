@@ -169,7 +169,7 @@ export async function existsDir(path: string) {
 
 /**
  * Parses a JSON string using the specified Zod schema.
- * It also cleans a few common issues with generated JSON strings.
+ * It also cleans a few common issues with generated JSON strings. #IHateLLMs
  * @param text The JSON string to parse.
  * @param schema The Zod schema to use for parsing.
  * @param addDefaults Whether to add default values to the parsed object.
@@ -177,7 +177,6 @@ export async function existsDir(path: string) {
  */
 export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
 	text = text.replace(/^```(json)?|```$/g, '').trim()
-	// I hate llms
 	text = text.replace(/^``(json)?|``$/g, '').trim()
 	text = text.replace(/^`(json)?|`$/g, '').trim()
 	text += text.endsWith('}') ? '' : '}'

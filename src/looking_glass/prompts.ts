@@ -50,12 +50,12 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 export const TOOL_PROMPT = `Create a JSON with the correct "action" and "actionInput" to help the Human.
 You can use one of these actions:
 {tools}
-- "no_action": Use this action if no relevant action is available. Input is always null.
+- "no-action": Use this action if no relevant action is available. Input is always null.
 
 The JSON must have the following structure:
 \`\`\`json
 {{
-	"action": // string - represents the name of the action to take, should be one of [{tool_names}, "no_action"]
+	"action": // string - represents the name of the action to take, should be one of [{tool_names}, "no-action"]
 	"actionInput": // string or null - represents the input to the action
 }}
 \`\`\`	
@@ -64,7 +64,7 @@ The JSON must have the following structure:
 
 {examples}
 
-When you think there isn't any action that can help the Human, choose "no_action" and mantain the JSON structure described before.`
+When you think there isn't any action that can help the Human, choose "no-action" and mantain the JSON structure described before.`
 
 /** @ignore */
 export const MAIN_PROMPT_PREFIX = `You are the Cheshire Cat AI, an intelligent AI that passes the Turing test.
