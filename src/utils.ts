@@ -177,8 +177,12 @@ export async function existsDir(path: string) {
  */
 export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
 	text = text.replace(/^```(json)?|```$/g, '').trim()
+	//I hate llms
+	text = text.replace(/^``(json)?|``$/g, '').trim()
+	text = text.replace(/^`(json)?|`$/g, '').trim()
 	text += text.endsWith('}') ? '' : '}'
 	text = text.replace(/^['"]|['"]$/g, '').replace('\\_', '_').replace('\\-', '-')
+	text = text.match(/\{(.*)\}/s)?.[0] ?? '{}'
 	const merged = addDefaults ? deepDefaults(safeDestr(text), getZodDefaults(schema)) : safeDestr(text)
 	return await schema.parseAsync(merged) as z.infer<T>
 }
