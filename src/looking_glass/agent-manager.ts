@@ -1,18 +1,16 @@
 import type { AgentFastReply, ContextInput, IntermediateStep } from '@dto/agent.ts'
 import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
 import type { Form, Tool } from '@mh'
-import type { AgentStep } from 'langchain/agents'
 import type { StrayCat } from './stray-cat.ts'
 import { db } from '@db'
 import { AIMessage, HumanMessage } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { ChatPromptTemplate, interpolateFString, SystemMessagePromptTemplate } from '@langchain/core/prompts'
-import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
+import { RunnableLambda } from '@langchain/core/runnables'
 import { log } from '@logger'
 import { FormState, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { formatDistanceToNow } from 'date-fns'
-import { AgentExecutor, AgentRunnableSequence } from 'langchain/agents'
 import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
 import _Random from 'lodash/random.js'
 import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
@@ -87,7 +85,7 @@ export class AgentManager {
 			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
 		})
 
-		//TODO: refactor this beauty
+		// TODO: refactor this beauty
 		if ('returnValues' in result) {
 			return {
 				output: 'no_action',

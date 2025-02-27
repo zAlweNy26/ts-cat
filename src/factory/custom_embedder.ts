@@ -1,7 +1,6 @@
 import type { EmbeddingsParams } from '@langchain/core/embeddings'
 import { join } from 'node:path'
 import { Embeddings } from '@langchain/core/embeddings'
-import { log } from '@logger'
 import { FlagEmbedding } from 'fastembed'
 import { ofetch } from 'ofetch'
 

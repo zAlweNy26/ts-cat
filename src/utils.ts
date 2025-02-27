@@ -177,7 +177,7 @@ export async function existsDir(path: string) {
  */
 export async function parseJson<T extends z.AnyZodObject>(text: string, schema: T, addDefaults = false) {
 	text = text.replace(/^```(json)?|```$/g, '').trim()
-	//I hate llms
+	// I hate llms
 	text = text.replace(/^``(json)?|``$/g, '').trim()
 	text = text.replace(/^`(json)?|`$/g, '').trim()
 	text += text.endsWith('}') ? '' : '}'
