@@ -274,12 +274,13 @@ export class CheshireCat {
 
 		const activeTriggersToEmbed = pointsToAdd.map(p => actProcHashes[p]!)
 		for (const t of activeTriggersToEmbed) {
-			const triggerEmbedding = await this.embedder.embedDocuments([t.content])
+			// TODO: check if is better than embedDocument
+			const triggerEmbedding = await this.embedder.embedQuery(t.content)
 			if (triggerEmbedding.length === 0) {
 				log.error(`Could not embed ${t.type} trigger "${t.trigger}" of "${t.name}" with content: ${t.content}`)
 				continue
 			}
-			this.memory.collections.procedural.addPoint(t.content, triggerEmbedding[0]!, {
+			this.memory.collections.procedural.addPoint(t.content, triggerEmbedding, {
 				source: t.name,
 				type: t.type,
 				trigger: t.trigger,
