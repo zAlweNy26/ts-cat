@@ -8,6 +8,8 @@ import type { VectorMemoryCollection } from '@memory'
 import type { FileParsers, WebParser } from '@rh'
 import type { TextSplitter } from 'langchain/text_splitter'
 
+type AIMessage = Extract<MemoryMessage, { role: 'AI' }>
+
 export interface HookTypes {
 	// Cheshire Cat hooks
 	beforeBootstrap: (db: Readonly<DatabaseConfig>) => NotPromise<DatabaseConfig>
@@ -27,7 +29,7 @@ export interface HookTypes {
 	// Stray Cat hooks
 	recallQuery: (query: string, stray: StrayCat) => MaybePromise<string>
 	beforeReadMessage: (msg: Message, stray: StrayCat) => MaybePromise<Message>
-	beforeSendMessage: (msg: MemoryMessage, stray: StrayCat) => MaybePromise<MemoryMessage>
+	beforeSendMessage: (msg: AIMessage, stray: StrayCat) => MaybePromise<AIMessage>
 	afterSendMessage: (msg: WSMessage, stray: StrayCat) => MaybePromise<WSMessage>
 	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
 	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>

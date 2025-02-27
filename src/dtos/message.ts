@@ -67,7 +67,7 @@ export type ModelInteraction = LLMInteraction | EmbedderInteraction
  */
 export type MemoryMessage = {
 	role: 'AI' | 'User'
-	what: string
+	what: string | File | Array<string | File>
 	who: string
 	when: number
 } & ({
@@ -87,6 +87,9 @@ export type MemoryMessage = {
  */
 export interface Message {
 	text: string
+	image?: string | File
+	audio?: string | File
+	video?: string | File
 	[key: string]: any
 }
 
