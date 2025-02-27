@@ -64,7 +64,7 @@ export const memoryMessage = t.Object({
 		input: t.String(),
 		intermediateSteps: t.Array(t.Object({
 			procedure: t.String(),
-			input: t.Union([t.String(), t.Null()]),
+			input: t.Union([t.String(), t.Null(), t.Record(t.String(), t.Any())]),
 			observation: t.String(),
 		})),
 		memory: t.Intersect([

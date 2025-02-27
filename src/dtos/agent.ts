@@ -15,7 +15,7 @@ export interface ContextInput {
  */
 export interface IntermediateStep {
 	procedure: string
-	input: string | null
+	input: string | null | Record<string, any>
 	observation: string
 }
 
