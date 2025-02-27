@@ -50,7 +50,7 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 export const TOOL_PROMPT = `Create a JSON with the correct "action" and "actionInput" to help the Human.
 You can use one of these actions:
 {tools}
-  - "no_action": Use this action if no relevant action is available. Input is always null.
+- "no_action": Use this action if no relevant action is available. Input is always null.
 
 The JSON must have the following structure:
 \`\`\`json

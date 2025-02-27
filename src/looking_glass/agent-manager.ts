@@ -41,7 +41,7 @@ export class AgentManager {
 	 *
 	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
 	 */
-	async executeProceduresChain(agentInput: ContextInput, chatHistory: string, stray: StrayCat) {
+	async executeProceduresChain(stray: StrayCat): Promise<AgentFastReply> {
 		// Get tools and Forms
 		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
@@ -67,7 +67,7 @@ export class AgentManager {
 				const question = `Question: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
 				const example = `{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}`
 				return `${acc}\n${question}\n${example}\n`
-			}, '\n')
+			}, '')
 			// examples += '{{\n\t"action": "final-answer",\n\t"actionInput": null\n}}'
 		}
 
@@ -87,17 +87,26 @@ export class AgentManager {
 			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
 		})
 
-		log.success(result)
-		
+		//TODO: refactor this beauty
+		if ('returnValues' in result) {
+			return {
+				output: 'no_action',
+			}
+		}
+
 		const toolSelected: Tool = allowedProcedures[result?.tool] as Tool
 
 		const output = await toolSelected.invoke(result?.toolInput)
 
-
 		return {
 			output,
-			returnDirect: toolSelected.returnDirect
-		} as AgentFastReply
+			returnDirect: toolSelected.returnDirect,
+			intermediateSteps: [{
+				procedure: result?.tool,
+				input: result?.toolInput,
+				observation: output,
+			}],
+		}
 	}
 
 	/**
@@ -208,7 +217,7 @@ export class AgentManager {
 		if (proceduralMemories.length > 0) {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
-				const proceduresResult = await this.executeProceduresChain(agentInput, agentInput.chat_history, stray)
+				const proceduresResult = await this.executeProceduresChain(stray)
 				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
 				intermediateSteps = afterProcedures.intermediateSteps ?? []
@@ -285,8 +294,8 @@ export class AgentManager {
 	getLangchainChatHistory(history: MemoryMessage[]) {
 		const chatHistory = new ChatMessageHistory()
 		history.forEach((m) => {
-			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: m.who, content: m.what }))
-			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: m.what }))
+			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ content: m.what }))
+			else chatHistory.addMessage(new HumanMessage({ content: m.what }))
 		})
 		return chatHistory.getMessages()
 	}
