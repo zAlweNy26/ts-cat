@@ -104,6 +104,7 @@ export const CatForm = Object.freeze({
 	},
 })
 
+// TODO: Fix the form class flow
 export class Form<
 	T extends Record<string, z.ZodType> = Record<string, z.ZodType>,
 	S extends z.infer<z.ZodObject<T>> = z.infer<z.ZodObject<T>>,
@@ -320,7 +321,9 @@ JSON:
 
 	private stringifyChatHistory() {
 		const userMsg = this.#cat.lastUserMessage.text
-		const chatHistory = this.#cat.getHistory(10)
+
+		// TODO: Get the last 10 messages from the specific chat
+		const chatHistory = this.#cat.getHistory('', 10)
 
 		let history = chatHistory.map(m => `- ${m.role}: ${m.what}`).join('\n')
 		history += `\nHuman: ${userMsg}`

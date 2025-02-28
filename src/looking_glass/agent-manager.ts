@@ -123,13 +123,13 @@ export class AgentManager {
 	 * @param stray The `StrayCat` instance.
 	 * @returns A promise that resolves with the result of the memory chain invocation.
 	 */
-	async executeMemoryChain(input: ContextInput, stray: StrayCat) {
+	async executeMemoryChain(input: ContextInput, stray: StrayCat, chatId?: string) {
 		const prefix = await madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const suffix = await madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(prefix + suffix),
-			...(await this.getLangchainChatHistory(stray.getHistory(5))),
+			...chatId ? await this.getLangchainChatHistory(stray.getHistory(chatId, 5)) : [],
 		])
 
 		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new StringOutputParser())
@@ -196,10 +196,10 @@ export class AgentManager {
 	 * @param stray The `StrayCat` instance.
 	 * @returns An `AgentFastReply` object containing the agent's output and any intermediate steps.
 	 */
-	async executeAgent(stray: StrayCat): Promise<AgentFastReply> {
+	async executeAgent(stray: StrayCat, chatId?: string): Promise<AgentFastReply> {
 		const agentInput = await madHatter.executeHook('beforeAgentStarts', {
 			input: stray.lastUserMessage.text,
-			chat_history: this.stringifyChatHistory(stray.getHistory(5)),
+			chat_history: chatId ? this.stringifyChatHistory(stray.getHistory(chatId, 5)) : '',
 			episodic_memory: this.getEpisodicMemoriesPrompt(stray.workingMemory.episodic),
 			declarative_memory: this.getDeclarativeMemoriesPrompt(stray.workingMemory.declarative),
 			tools_output: '',

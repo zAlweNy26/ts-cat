@@ -57,6 +57,7 @@ export const messageInput = t.Intersect([
 
 export const memoryMessage = t.Object({
 	role: t.Union([t.Literal('AI'), t.Literal('User')]),
+	chatId: t.Optional(t.String()),
 	what: t.String(),
 	who: t.String(),
 	when: t.Number(),

@@ -3,6 +3,7 @@ import type { FilterMatch } from '@dto/vector-memory.ts'
 import { memoryMessage, serverContext, swaggerTags } from '@/context'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
+import { validate as isUUID } from 'uuid'
 
 export const memoryRoutes = new Elysia({
 	name: 'memory',
@@ -396,39 +397,70 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).get('/history', ({ stray }) => {
+}).get('/history/:chatId', ({ stray, params }) => {
+	const { chatId } = params
+
 	return {
-		history: stray.getHistory(),
+		history: stray.getHistory(chatId),
 	}
 }, {
 	detail: {
 		description: 'Get the specified user\'s conversation history from working memory.',
 		summary: 'Get conversation history',
 	},
+	params: t.Object({
+		chatId: t.String({
+			title: 'Chat ID',
+			description: 'The ID of the chat',
+		}),
+	}),
 	response: {
 		200: 'chatHistory',
 		400: 'error',
 	},
-}).delete('/history', ({ stray, set }) => {
-	stray.clearHistory()
+}).delete('/history/:chatId?', ({ stray, set, params, HttpError }) => {
+	const { chatId } = params
+
+	if (chatId && !isUUID(chatId)) throw HttpError.BadRequest('Invalid chat ID. Must be a UUID.')
+
+	if (chatId && !stray.hasChat(chatId)) throw HttpError.NotFound('Chat not found.')
+
+	stray.clearHistory(chatId)
+
 	set.status = 204
 }, {
 	detail: {
 		description: 'Delete the specified user\'s conversation history from working memory.',
 		summary: 'Wipe conversation history',
 	},
+	params: t.Object({
+		chatId: t.Optional(t.String({
+			title: 'Chat ID',
+			description: 'The ID of the chat',
+		})),
+	}),
 	response: {
 		204: t.Void({ title: 'History wiped', description: 'History wiped successfully' }),
 		400: 'error',
 	},
-}).put('/history', ({ stray, body, set }) => {
-	stray.addHistory(body.history)
+}).put('/history/:chatId', ({ stray, body, set, params, HttpError }) => {
+	const { chatId } = params
+
+	if (!isUUID(chatId)) throw HttpError.BadRequest('Invalid chat ID. Must be a UUID.')
+
+	stray.addHistory(body.history, chatId)
 	set.status = 204
 }, {
 	detail: {
 		description: 'Add conversation history messages to the specified user\'s working memory.',
 		summary: 'Add conversation history messages',
 	},
+	params: t.Object({
+		chatId: t.String({
+			title: 'Chat ID',
+			description: 'The ID of the chat',
+		}),
+	}),
 	body: t.Object({
 		history: t.Array(t.Omit(memoryMessage, ['why'])),
 	}, {

@@ -25,7 +25,7 @@ import { cheshireCat } from './cheshire-cat.ts'
  * The stray cat goes around tools and hook, making troubles
  */
 export class StrayCat {
-	private chatHistory: MemoryMessage[] = []
+	private chatHistory: Map<string, MemoryMessage[]> = new Map()
 	private modelsInteractions: ModelInteraction[] = []
 	private userMessage!: Message
 	public wsQueue: WSMessage[] = []
@@ -142,7 +142,7 @@ export class StrayCat {
 	 * @param returnWhy Whether to return the 'why' field in the response (default: true).
 	 * @returns The response message.
 	 */
-	async run(msg: Message, save = true, returnWhy = true): Promise<WSMessage> {
+	async run(msg: Message, save = true, returnWhy = true, chatId?: string): Promise<WSMessage> {
 		log.info(`Received message from user "${this.userId}":`)
 		log.info(msg)
 
@@ -165,10 +165,11 @@ export class StrayCat {
 		// 		content: 'The input is too long. Storing it as document...',
 		// 	}
 		// }
+		if (save && chatId) this.addHistory({ role: 'User', what: response.text, who: this.userId, chatId, when: Date.now() }, chatId)
 
-		if (save) this.chatHistory.push({ role: 'User', what: response.text, who: this.userId, when: Date.now() })
+		if (save && chatId) this.addHistory({ role: 'User', what: response.text, who: this.userId, chatId, when: Date.now() }, chatId)
 
-		try { await this.recallRelevantMemories() }
+		try { await this.recallRelevantMemories(undefined, chatId) }
 		catch (error) {
 			log.error(error)
 			return {
@@ -191,6 +192,7 @@ export class StrayCat {
 		let doc = new Document<Record<string, any>>({
 			pageContent: response.text,
 			metadata: {
+				chatId,
 				who: this.userId,
 				when: Date.now(),
 			},
@@ -201,6 +203,7 @@ export class StrayCat {
 		await this.vectorMemory.collections.episodic.addPoint(doc.pageContent, docEmbedding[0]!, doc.metadata)
 
 		const finalOutput = await madHatter.executeHook('beforeSendMessage', {
+			chatId,
 			role: 'AI',
 			what: catMsg.output,
 			who: this.userId,
@@ -213,7 +216,7 @@ export class StrayCat {
 			},
 		}, this)
 
-		if (save) this.chatHistory.push(structuredClone(finalOutput))
+		if (save && chatId) this.addHistory(structuredClone(finalOutput), chatId)
 
 		if (!returnWhy && finalOutput.role === 'AI') delete finalOutput.why
 
@@ -295,28 +298,56 @@ ${labelsList}${examplesList}
 	}
 
 	/**
-	 * If passed a number k, retrieves the last k messages in the chat history.
-	 * Otherwise, retrieves all messages in the chat history.
-	 * @param k the number of messages to retrieve
-	 * @returns the messages present in the chat history
+	 * Checks if a chat history exists for the given chat ID.
+	 * @param chatId The ID that identifies a specific chat
+	 * @returns True if a chat history exists, otherwise false
 	 */
-	getHistory(k?: number) {
-		return k ? this.chatHistory.slice(-k) : [...this.chatHistory]
+	hasChat(chatId: string) {
+		return this.chatHistory.has(chatId)
 	}
 
 	/**
-	 * Clears the chat history.
+	 * Retrieves the IDs of all available chats in the chat history.
+	 * @returns An array of chat IDs.
 	 */
-	clearHistory() {
-		this.chatHistory = []
+	getAvailableChats(): string[] {
+		return [...this.chatHistory.keys()]
+	}
+
+	/**
+	 * If passed a number k, retrieves the last k messages in the chat history.
+	 * Otherwise, retrieves all messages in the chat history.
+	 * @param chatId The ID that identifies a specific chat
+	 * @param k the number of messages to retrieve
+	 * @returns the messages present in the chat history
+	 */
+	getHistory(chatId: string, k?: number) {
+		return k ? this.chatHistory.get(chatId)?.slice(-k) || [] : [...this.chatHistory.get(chatId) || []]
+	}
+
+	/**
+	 * Clears all the chats histories.
+	 * If a chat ID is provided, it clears only the chat history with that ID.
+	 * @param chatId The ID that identifies a specific chat
+	 * @returns True if the chat history was cleared, otherwise false
+	 */
+	clearHistory(chatId?: string) {
+		if (chatId) return this.chatHistory.delete(chatId)
+		else {
+			this.chatHistory.clear()
+			return true
+		}
 	}
 
 	/**
 	 * Adds messages to the chat history.
-	 * @param message the messages to add
+	 * @param message the message to add. It can be a single message or an array of messages.
+	 * @param chatId The ID that identifies a specific chat
 	 */
-	addHistory(message: MemoryMessage[]) {
-		this.chatHistory.push(...message)
+	addHistory(message: MemoryMessage | MemoryMessage[], chatId: string) {
+		const msgs = Array.isArray(message) ? message : [message]
+		if (!this.chatHistory.has(chatId)) this.chatHistory.set(chatId, msgs)
+		else this.chatHistory.get(chatId)?.push(...msgs)
 	}
 
 	/**
@@ -343,7 +374,7 @@ ${labelsList}${examplesList}
 	 * If no query is provided, it uses the last user's message text as the query.
 	 * @param query The query string to search for relevant memories.
 	 */
-	async recallRelevantMemories(query?: string) {
+	async recallRelevantMemories(query?: string, chatId?: string) {
 		if (!query) query = this.userMessage.text
 
 		const interaction: EmbedderInteraction = {
@@ -364,6 +395,7 @@ ${labelsList}${examplesList}
 
 		const queryEmbedding = await this.currentEmbedder.embedQuery(query)
 
+		// TODO: filter episodic and declarative memories by user.
 		let recallConfigs: MemoryRecallConfigs = {
 			declarative: {
 				embedding: queryEmbedding,
@@ -374,6 +406,7 @@ ${labelsList}${examplesList}
 				embedding: queryEmbedding,
 				k: 3,
 				threshold: 0.7,
+				filter: { 'metadata.chatId': { value: chatId } },
 			},
 			procedural: {
 				embedding: queryEmbedding,
@@ -381,6 +414,7 @@ ${labelsList}${examplesList}
 				threshold: 0.7,
 			},
 		}
+		log.info(`Recalled memories for chat: ${chatId}`)
 		recallConfigs = deepDefaults(await madHatter.executeHook('beforeRecallMemories', recallConfigs, this), recallConfigs)
 		for (const [key, value] of Object.entries(recallConfigs)) {
 			const memories = await this.vectorMemory.collections[key]?.recallMemoriesFromEmbedding(
