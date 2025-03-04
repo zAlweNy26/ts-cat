@@ -210,7 +210,7 @@ export class CheshireCat {
 		const hashes: Record<string, string> = {}
 		for (const proc of procedures) {
 			const metadata = proc.payload?.metadata as Record<string, any>
-			const pageContent = (proc.payload?.pageContent as string).toLowerCase().replace(/\s/g, '_')
+			const pageContent = ((proc.payload?.pageContent as string) ?? '').toLowerCase().replace(/\s/g, '_')
 			const description = metadata.trigger === 'description' ? '' : `.${pageContent ?? 'empty'}`
 			const hash = `${metadata.source ?? 'unknown'}.${metadata.trigger ?? 'unsupported'}${description}`
 			hashes[hash] = proc.id.toString()

@@ -1,3 +1,2 @@
 # Run checks
-#bun run ci
-exit 0
+bun run typecheck && bun run lint

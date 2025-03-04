@@ -42,7 +42,7 @@ export const rabbitHoleRoutes = new Elysia({
 			title: 'Allowed URIs',
 			description: 'List of allowed URIs RegEx that can be ingested',
 			examples: [{
-				allowedURIs: ['^.*$', '^https:\/\/(www\.)?.*\/.*\.xml$'],
+				allowedURIs: ['^.*$', '^https://(www.)?.*/.*.xml$'],
 			}],
 		}),
 		400: 'error',

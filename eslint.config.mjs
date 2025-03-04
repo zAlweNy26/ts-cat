@@ -9,7 +9,7 @@ export default antfu({
 	typescript: true,
 	yaml: true,
 	markdown: true,
-	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/', 'docs/api/**'],
+	ignores: ['package.json', 'dist/', 'node_modules/', 'test/mocks/', 'docs/api/**', '.bun-create/plugin/tsconfig.json'],
 	rules: {
 		'unused-imports/no-unused-vars': 'warn',
 		'style/max-statements-per-line': 'off',
@@ -25,6 +25,4 @@ export default antfu({
 		'no-console': 'off',
 		'one-var': 'off',
 	},
-}, [
-	oxlint.configs['flat/recommended'],
-])
+}, oxlint.configs['flat/recommended'])

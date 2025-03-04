@@ -64,7 +64,7 @@ export class MadHatter {
 	 * Gets a copy of the installed plugins.
 	 */
 	get installedPlugins() {
-		return [...this.plugins.values().map(p => p.info)]
+		return Array.from(this.plugins.values().map(p => p.info))
 	}
 
 	/**

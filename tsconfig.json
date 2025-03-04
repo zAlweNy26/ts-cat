@@ -53,6 +53,7 @@
 	"include": [
 		"./src/**/*.ts",
 		"./src/**/*",
+		"./test/**/*",
 		"./test/**/*.ts",
 		"src/globals.d.ts",
 		"eslint.config.mjs",
