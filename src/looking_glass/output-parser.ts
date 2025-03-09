@@ -1,10 +1,11 @@
 import type { AgentAction, AgentFinish } from 'langchain/agents'
 import { catchError } from '@/errors.ts'
 import { OutputParserException } from '@langchain/core/output_parsers'
+import { log } from '@logger'
 import { madHatter } from '@mh'
 import { parseJson } from '@utils'
 import { AgentActionOutputParser } from 'langchain/agents'
-import { z } from 'zod'
+import { z, ZodError } from 'zod'
 
 const agentOutputSchema = z.object({
 	action: z.string(),
@@ -23,10 +24,11 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 	async parse(output: string): Promise<AgentFinish | AgentAction> {
 		const [parseError, parsedOutput] = await catchError(
 			parseJson(output, agentOutputSchema),
-			{ errorsToCatch: [OutputParserException], logMessage: `Could not parse LLM output: ${output}` },
+			{ errorsToCatch: [OutputParserException, ZodError, SyntaxError], logMessage: `Could not parse LLM output: ${output}` },
 		)
 
 		if (parseError) {
+			log.dir(parsedOutput)
 			return {
 				log: output,
 				returnValues: {
@@ -39,7 +41,7 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 
 		const { action, actionInput } = parsedOutput
 
-		if (action === 'final-answer') {
+		if (action === 'no-action') {
 			return {
 				log: parsedLog,
 				returnValues: {

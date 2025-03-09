@@ -49,9 +49,14 @@ export class CheshireCat {
 			db.update(db => madHatter.executeHook('beforeBootstrap', db))
 			await CheshireCat.instance.loadNaturalLanguage()
 			madHatter.onPluginsSyncCallback = () => CheshireCat.instance.embedProcedures()
-			try { await CheshireCat.instance.loadMemory() }
-			catch (error) { log.dir(error) }
-			await CheshireCat.instance.embedProcedures()
+			try {
+				await CheshireCat.instance.loadMemory()
+				await CheshireCat.instance.embedProcedures()
+			}
+			catch (e) {
+				log.error('Error during embedder inizialization: ')
+				log.dir(e)
+			}
 			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
 			log.success('Cheshire Cat is ready.')
 		}
@@ -188,7 +193,6 @@ export class CheshireCat {
 		)
 
 		if (error) {
-			// QUESTION: Should we also set it in the db?
 			this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
 			await this.loadMemory()
 			throw error
@@ -269,12 +273,13 @@ export class CheshireCat {
 
 		const activeTriggersToEmbed = pointsToAdd.map(p => actProcHashes[p]!)
 		for (const t of activeTriggersToEmbed) {
-			const triggerEmbedding = await this.embedder.embedDocuments([t.content])
+			// QUESTION: Should we use embedDocument or embedQuery here?
+			const triggerEmbedding = await this.embedder.embedQuery(t.content)
 			if (triggerEmbedding.length === 0) {
 				log.error(`Could not embed ${t.type} trigger "${t.trigger}" of "${t.name}" with content: ${t.content}`)
 				continue
 			}
-			this.memory.collections.procedural.addPoint(t.content, triggerEmbedding[0]!, {
+			this.memory.collections.procedural.addPoint(t.content, triggerEmbedding, {
 				source: t.name,
 				type: t.type,
 				trigger: t.trigger,

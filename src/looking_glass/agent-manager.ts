@@ -1,18 +1,16 @@
 import type { AgentFastReply, ContextInput, IntermediateStep } from '@dto/agent.ts'
 import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
 import type { Form, Tool } from '@mh'
-import type { AgentStep } from 'langchain/agents'
 import type { StrayCat } from './stray-cat.ts'
 import { db } from '@db'
 import { AIMessage, HumanMessage } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { ChatPromptTemplate, interpolateFString, SystemMessagePromptTemplate } from '@langchain/core/prompts'
-import { RunnableLambda, RunnablePassthrough } from '@langchain/core/runnables'
+import { RunnableLambda } from '@langchain/core/runnables'
 import { log } from '@logger'
 import { FormState, isTool, madHatter } from '@mh'
 import { parsedEnv } from '@utils'
 import { formatDistanceToNow } from 'date-fns'
-import { AgentExecutor, AgentRunnableSequence } from 'langchain/agents'
 import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
 import _Random from 'lodash/random.js'
 import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
@@ -27,21 +25,18 @@ import { MAIN_PROMPT_PREFIX, MAIN_PROMPT_SUFFIX, TOOL_PROMPT } from './prompts.t
 export class AgentManager {
 	private verboseRunnable = new RunnableLambda({
 		func: (x: any) => {
-			if (parsedEnv.verbose) log.dir(x)
+			if (parsedEnv.verbose) log.dir(x?.toString())
 			return x
 		},
 	})
 
 	/**
 	 * Executes the procedures chain. It gets the tools and forms and passes them to the agent.
-	 *
-	 * @param agentInput The input context for the agent.
-	 * @param chatHistory The history of the chat as a string.
 	 * @param stray The `StrayCat` instance.
-	 *
 	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
 	 */
-	async executeProceduresChain(agentInput: ContextInput, chatHistory: string, stray: StrayCat) {
+	async executeProceduresChain(stray: StrayCat): Promise<AgentFastReply> {
+		// Get tools and Forms
 		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
 				&& ['description', 'startExample'].includes(p.metadata?.trigger)
@@ -51,94 +46,73 @@ export class AgentManager {
 		const returnDirectTools: string[] = []
 
 		recalledProcedures = await madHatter.executeHook('allowedTools', recalledProcedures, stray)
-
-		Array.from([...madHatter.forms.filter(f => f.active), ...madHatter.tools.filter(t => t.active)]).forEach((p) => {
+		madHatter.tools.filter(t => t.active).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p) && p.returnDirect) returnDirectTools.push(p.name)
 				p.assignCat(stray)
 				allowedProcedures[p.name] = p
 			}
 		})
-
 		const allowedTools = Object.values(allowedProcedures)
 
 		let examples = ''
 		if (allowedTools.map(p => p.startExamples).some(examples => examples.length > 0)) {
 			examples += allowedTools.reduce((acc, p) => {
 				const question = `Question: ${p.startExamples[_Random(p.startExamples.length - 1)]}`
-				const example = `{{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}}`
+				const example = `{\n\t"action": "${p.name}",\n\t"actionInput": // Input of the action according to its description\n}`
 				return `${acc}\n${question}\n${example}\n`
-			}, '## Here some examples:\n')
-			examples += '{{\n\t"action": "final-answer",\n\t"actionInput": null\n}}'
+			}, '')
+			// examples += '{{\n\t"action": "final-answer",\n\t"actionInput": null\n}}'
 		}
 
-		let prompt = ChatPromptTemplate.fromMessages([
+		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
+			...(await this.getLangchainChatHistory(stray.getHistory(5))),
 		])
+		const tools = allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n')
 
-		prompt = await prompt.partial({
-			tools: allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n'),
+		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new ProceduresOutputParser())
+
+		const result = await chain.invoke({
+			tools,
 			tool_names: Object.keys(allowedProcedures).map(p => `"${p}"`).join(', '),
-			chat_history: chatHistory,
-			scratchpad: '',
 			examples,
+		}, {
+			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
 		})
 
-		const agent = AgentRunnableSequence.fromRunnables([
-			RunnablePassthrough.assign({
-				agent_scratchpad: x => ((x.intermediateSteps ?? []) as AgentStep[]).reduce((acc, { action, observation }) => {
-					let thought = `${action.log}\n`
-					thought += `${JSON.stringify({ actionOutput: observation }, undefined, 4)}\n`
-					return acc + thought
-				}, ''),
-			}),
-			prompt,
-			this.verboseRunnable,
-			stray.currentLLM,
-			new ProceduresOutputParser(),
-		], { singleAction: true })
+		if ('returnValues' in result) {
+			// if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
+			// 	const form = allowedProcedures[result.form] as Form
+			// 	form.assignCat(stray)
+			// 	stray.activeForm = result.form
+			// 	result = await form.next()
+			// 	result.returnDirect = true
+			// 	intermediateSteps.push({
+			// 		procedure: form.name,
+			// 		input: null,
+			// 		observation: result.output,
+			// 	})
+			// }
 
-		const agentExecutor = AgentExecutor.fromAgentAndTools({
-			agent,
-			tools: allowedTools.filter(isTool),
-			returnIntermediateSteps: true,
-			maxIterations: 3,
-			verbose: parsedEnv.verbose,
-		})
-
-		let result = await agentExecutor.invoke(agentInput, {
-			callbacks: [new ModelInteractionHandler(stray, 'ProceduresChain')],
-		})
-
-		result.returnDirect = false
-		const intermediateSteps: IntermediateStep[] = []
-		for (const step of (result.intermediateSteps ?? []) as AgentStep[]) {
-			const { action, observation } = step
-			const { tool, toolInput } = action
-			if (returnDirectTools.includes(tool)) result.returnDirect = true
-			intermediateSteps.push({
-				procedure: tool,
-				input: typeof toolInput === 'string' ? toolInput : null,
-				observation,
-			})
+			return {
+				output: 'no-action',
+			}
 		}
 
-		if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
-			const form = allowedProcedures[result.form] as Form
-			form.assignCat(stray)
-			stray.activeForm = result.form
-			result = await form.next()
-			result.returnDirect = true
-			intermediateSteps.push({
-				procedure: form.name,
-				input: null,
-				observation: result.output,
-			})
+		const toolSelected: Tool = allowedProcedures[result?.tool] as Tool
+
+		const output = await toolSelected.invoke(result?.toolInput)
+
+		return {
+			output,
+			returnDirect: toolSelected.returnDirect,
+			intermediateSteps: [{
+				procedure: result?.tool,
+				input: result?.toolInput,
+				observation: output,
+			}],
 		}
-
-		result.intermediateSteps = intermediateSteps
-
-		return result as AgentFastReply
 	}
 
 	/**
@@ -249,7 +223,7 @@ export class AgentManager {
 		if (proceduralMemories.length > 0) {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
-				const proceduresResult = await this.executeProceduresChain(agentInput, agentInput.chat_history, stray)
+				const proceduresResult = await this.executeProceduresChain(stray)
 				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
 				intermediateSteps = afterProcedures.intermediateSteps ?? []
@@ -326,8 +300,8 @@ export class AgentManager {
 	getLangchainChatHistory(history: MemoryMessage[]) {
 		const chatHistory = new ChatMessageHistory()
 		history.forEach((m) => {
-			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ name: m.who, content: m.what }))
-			else chatHistory.addMessage(new HumanMessage({ name: m.who, content: m.what }))
+			if (m.role === 'AI') chatHistory.addMessage(new AIMessage({ content: m.what }))
+			else chatHistory.addMessage(new HumanMessage({ content: m.what }))
 		})
 		return chatHistory.getMessages()
 	}

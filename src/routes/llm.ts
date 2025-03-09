@@ -55,6 +55,13 @@ export const llmRoutes = new Elysia({
 	if (!llm) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const parsed = llm.config.safeParse(body)
 	if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
+	// FIXME: Update the embedder settings in the database only after the memory is successfully loaded, not before
+	db.update((db) => {
+		db.selectedLLM = id
+		const llmIndex = db.llms.findIndex(l => l.name === id)
+		if (llmIndex === -1) db.llms.push({ name: id, value: parsed.data })
+		else db.llms[llmIndex]!.value = parsed.data
+	})
 	cat.loadNaturalLanguage()
 	try {
 		await cat.loadMemory()
@@ -64,12 +71,6 @@ export const llmRoutes = new Elysia({
 		log.error('Failed to load memory', error)
 		throw HttpError.InternalServer('Failed to load memory for the selected embedder')
 	}
-	db.update((db) => {
-		db.selectedLLM = id
-		const llmIndex = db.llms.findIndex(l => l.name === id)
-		if (llmIndex === -1) db.llms.push({ name: id, value: parsed.data })
-		else db.llms[llmIndex]!.value = parsed.data
-	})
 	return {
 		name: id,
 		value: parsed.data,

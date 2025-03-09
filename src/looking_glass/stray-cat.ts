@@ -182,9 +182,10 @@ export class StrayCat {
 			output: 'I am sorry, I could not process your request.',
 		}] = await catchError(this.agentManager.executeAgent(this), { logMessage: 'Failed to execute agent.' })
 
-		if (!agentError) {
+		if (agentError) {
 			log.normal('Agent response:')
-			log.dir(catMsg)
+			log.dir(agentError)
+			throw agentError
 		}
 
 		let doc = new Document<Record<string, any>>({

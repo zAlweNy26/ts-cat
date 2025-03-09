@@ -200,7 +200,15 @@ const qdrantFastEmbedSettings = new EmbedderConfig({
 	model: FastEmbedEmbeddings,
 })
 
-const googleEmbeddingModels = ['embedding-gecko-001', 'embedding-gecko-002', 'embedding-gecko-003', 'embedding-gecko-multilingual-001'] as const
+const googleEmbeddingModels = [
+	'embedding-gecko-001',
+	'embedding-gecko-003',
+	'embedding-gecko-multilingual-001',
+	'text-embedding-004',
+	'text-embedding-005',
+	'textembedding-gecko-multilingual-001',
+	'text-multilingual-embedding-002',
+] as const
 
 const googleEmbedderSettings = new EmbedderConfig({
 	name: 'Google Gemini',
@@ -208,7 +216,7 @@ const googleEmbedderSettings = new EmbedderConfig({
 	link: 'https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/text-embeddings',
 	config: z.object({
 		apiKey: z.string(),
-		model: z.enum(googleEmbeddingModels).default('embedding-gecko-001'),
+		model: z.enum(googleEmbeddingModels).default('text-embedding-004'),
 	}),
 	model: GoogleGenerativeAIEmbeddings,
 })

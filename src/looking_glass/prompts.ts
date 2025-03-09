@@ -47,40 +47,24 @@ export class ToolPromptTemplate<RunInput extends InputValues = any, PartialVaria
 }
 
 /** @ignore */
-export const TOOL_PROMPT = `Create a JSON action to complete the action sequence, with the correct "action" and "actionInput" to help the Human.
+export const TOOL_PROMPT = `Create a JSON with the correct "action" and "actionInput" to help the Human.
 You can use one of these actions:
 {tools}
-	- "final-answer": Use this action to finish or no relevant action is available. Input is always null.
+- "no-action": Use this action if no relevant action is available. Input is always null.
 
-## To add an action, use only the following format:
+The JSON must have the following structure:
+\`\`\`json
 {{
-	"action": // string - represents the name of the action to take, should be one of [{tool_names}, "final-answer"]
+	"action": // string - represents the name of the action to take, should be one of [{tool_names}, "no-action"]
 	"actionInput": // string or null - represents the input to the action
 }}
+\`\`\`	
+
+## Below some examples to better understand your task
 
 {examples}
 
-## Action output
-After each action there will be an action output in this format:
-{{
-    "actionOutput": // Output of the previous action
-}}
-
-## Final answer / no action available
-When you have a final answer (or no actions are relevant), use the following format:
-{{
-    "action": "final-answer",
-    "actionInput": null
-}}
-
-## Conversation with Human
-{chat_history}
-
-## Actions sequence used until now
-{scratchpad}
-
-## Next action to perform or final_answer:
-`
+When you think there isn't any action that can help the Human, choose "no-action" and mantain the JSON structure described before.`
 
 /** @ignore */
 export const MAIN_PROMPT_PREFIX = `You are the Cheshire Cat AI, an intelligent AI that passes the Turing test.

@@ -3,6 +3,7 @@ import { db } from '@db'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatCohere } from '@langchain/cohere'
 import { BedrockChat } from '@langchain/community/chat_models/bedrock'
+import { ChatTogetherAI } from '@langchain/community/chat_models/togetherai'
 import { ChatDeepSeek } from '@langchain/deepseek'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatMistralAI } from '@langchain/mistralai'
@@ -228,6 +229,18 @@ const bedrockChatLLMConfig = new ChatModelConfig({
 	model: BedrockChat,
 })
 
+const togetherAIChatLLMConfig = new ChatModelConfig({
+	name: 'Together AI',
+	description: 'Configuration for Together AI models',
+	config: z.object({
+		apiKey: z.string(),
+		temperature: z.number().default(0.7),
+		model: z.string().default('meta-llama/Llama-3.3-70B-Instruct-Turbo-Free'),
+		maxTokens: z.number().default(4096),
+	}),
+	model: ChatTogetherAI,
+})
+
 export async function getAllowedLLMs() {
 	const allowedLLMs: ChatModelConfig<any>[] = [
 		fakeLLMConfig,
@@ -243,6 +256,7 @@ export async function getAllowedLLMs() {
 		ollamaLLMConfig,
 		geminiChatLLMConfig,
 		bedrockChatLLMConfig,
+		togetherAIChatLLMConfig,
 	]
 	const models = await madHatter.executeHook('allowedLLMs', allowedLLMs)
 	db.update((db) => {

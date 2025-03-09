@@ -43,26 +43,31 @@ export class CustomOpenAIEmbeddings extends Embeddings {
 type FastEmbeddingsParams = EmbeddingsParams & Parameters<typeof FlagEmbedding.init>[0] & { docEmbedType: 'passage' | 'default' }
 
 export class FastEmbedEmbeddings extends Embeddings {
-	private embedder: Promise<FlagEmbedding>
+	private embedder!: FlagEmbedding
 
 	constructor(private params: FastEmbeddingsParams) {
 		super(params)
-		this.embedder = FlagEmbedding.init({
-			...params,
+		this.init()
+	}
+
+	private async init() {
+		this.embedder = await FlagEmbedding.init({
+			...this.params,
 			showDownloadProgress: false,
 		})
 	}
 
+	// Javascript moment: Float32array !== number[]
 	async embedDocuments(documents: string[]): Promise<number[][]> {
-		const embedder = await this.embedder
+		if (!this.embedder) await this.init()
 		const results: number[][][] = []
-		const docsEmbed = this.params.docEmbedType === 'passage' ? embedder.passageEmbed : embedder.embed
-		for await (const value of docsEmbed(documents)) results.push(value)
+		for await (const value of this.embedder.passageEmbed(documents))
+			results.push(value.map(s => Array.from(s)))
 		return results.flat()
 	}
 
 	async embedQuery(document: string): Promise<number[]> {
-		const embedder = await this.embedder
-		return embedder.queryEmbed(document)
+		if (!this.embedder) await this.init()
+		return Array.from(await this.embedder.queryEmbed(document))
 	}
 }
