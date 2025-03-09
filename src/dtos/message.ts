@@ -69,6 +69,7 @@ export type MemoryMessage = {
 	role: 'AI' | 'User'
 	what: string
 	who: string
+	chatId?: string
 	when: number
 } & ({
 	role: 'AI'

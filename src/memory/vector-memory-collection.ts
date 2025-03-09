@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { log } from '@logger'
 import { parsedEnv } from '@utils'
 import { ofetch } from 'ofetch'
-import { randomUUID } from 'uncrypto'
+import { v4 as uuidv4 } from 'uuid'
 import { vectorDb } from './vector-memory.ts'
 
 export class VectorMemoryCollection {
@@ -137,9 +137,9 @@ export class VectorMemoryCollection {
 	 * @param args Optional arguments to pass.
 	 * @returns The id of the added point.
 	 */
-	async addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = randomUUID(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
+	async addPoint(content: string, vector: number[], metadata?: Record<string, any>, id = uuidv4(), ...args: Parameters<typeof vectorDb.upsert>['1'][]) {
 		const point: PointData = {
-			id: id ?? randomUUID(),
+			id: id ?? uuidv4(),
 			vector,
 			payload: {
 				pageContent: content,
@@ -222,7 +222,6 @@ export class VectorMemoryCollection {
 				},
 			},
 		})
-
 		const documents: MemoryDocument[] = []
 		for (const memory of memories) {
 			documents.push({

@@ -59,7 +59,7 @@ const app = new Elysia()
 						description: 'User ID header',
 					},
 				},
-				headers: { // BUGFIX: Headers not showing in Swagger UI
+				headers: { // BUG: Headers not showing in Swagger UI
 					user: {
 						description: 'User ID header',
 						required: false,

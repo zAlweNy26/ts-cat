@@ -3,6 +3,7 @@ import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
 import { normalizeMessageChunks, parsedEnv } from '@utils'
 import { Elysia, t } from 'elysia'
+import { validate as isUUID, v4 as uuidv4 } from 'uuid'
 import pkg from '~/package.json'
 
 export const generalRoutes = new Elysia({
@@ -82,16 +83,38 @@ export const generalRoutes = new Elysia({
 		}),
 		400: 'error',
 	},
-}).post('/chat', async ({ stray, body, query }) => {
+}).get('/chat/list', async ({ stray }) => {
+	return stray.getAvailableChats()
+}, {
+	detail: {
+		summary: 'List chat',
+		description: 'Get the list of available chats.',
+	},
+	response: {
+		200: t.Array(t.String()),
+		400: 'error',
+	},
+}).post('/chat/:chatId?', async ({ params, stray, body, query, HttpError }) => {
+	const { chatId } = params
 	const { save, why } = query
-	const res = await stray.run(body, save, why)
-	return res
+
+	if (chatId && !isUUID(chatId)) throw HttpError.BadRequest('Invalid chat ID. Must be a UUID.')
+
+	if (chatId && !stray.hasChat(chatId)) throw HttpError.NotFound('Chat not found.')
+
+	return await stray.run(body, save, why, save ? chatId || uuidv4() : undefined)
 }, {
 	body: 'messageInput',
+	params: t.Object({
+		chatId: t.Optional(t.String({
+			title: 'Chat ID',
+			description: 'The ID of the chat',
+		})),
+	}),
 	query: t.Object({
 		save: t.Boolean({
 			title: 'Save',
-			description: 'Whether to save the message in the memory',
+			description: 'Whether to start or continue a chat',
 			default: true,
 		}),
 		why: t.Boolean({
@@ -100,6 +123,7 @@ export const generalRoutes = new Elysia({
 			default: true,
 		}),
 	}),
+	// TODO: better definition required
 	detail: {
 		summary: 'Chat',
 		description: 'Get a response from the Cheshire Cat using the RAG.',
