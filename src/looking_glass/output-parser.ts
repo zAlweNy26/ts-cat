@@ -41,7 +41,7 @@ export class ProceduresOutputParser extends AgentActionOutputParser {
 
 		const { action, actionInput } = parsedOutput
 
-		if (action === 'final-answer') {
+		if (action === 'no-action') {
 			return {
 				log: parsedLog,
 				returnValues: {

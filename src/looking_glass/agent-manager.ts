@@ -81,25 +81,24 @@ export class AgentManager {
 			callbacks: [new NewTokenHandler(stray), new ModelInteractionHandler(stray, 'MemoryChain'), new RateLimitHandler()],
 		})
 
-		// FIXME: Handle this the right way
 		if ('returnValues' in result) {
+			// if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
+			// 	const form = allowedProcedures[result.form] as Form
+			// 	form.assignCat(stray)
+			// 	stray.activeForm = result.form
+			// 	result = await form.next()
+			// 	result.returnDirect = true
+			// 	intermediateSteps.push({
+			// 		procedure: form.name,
+			// 		input: null,
+			// 		observation: result.output,
+			// 	})
+			// }
+
 			return {
 				output: 'no-action',
 			}
 		}
-
-		// if ('form' in result && typeof result.form === 'string' && result.form in allowedProcedures) {
-		// 	const form = allowedProcedures[result.form] as Form
-		// 	form.assignCat(stray)
-		// 	stray.activeForm = result.form
-		// 	result = await form.next()
-		// 	result.returnDirect = true
-		// 	intermediateSteps.push({
-		// 		procedure: form.name,
-		// 		input: null,
-		// 		observation: result.output,
-		// 	})
-		// }
 
 		const toolSelected: Tool = allowedProcedures[result?.tool] as Tool
 
