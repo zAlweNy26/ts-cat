@@ -3,7 +3,7 @@ import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
 import { normalizeMessageChunks, parsedEnv } from '@utils'
 import { Elysia, t } from 'elysia'
-import { validate as isUUID, v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import pkg from '~/package.json'
 
 export const generalRoutes = new Elysia({
@@ -16,6 +16,7 @@ export const generalRoutes = new Elysia({
 	query: t.Object({
 		why: t.Boolean({ default: false }),
 		save: t.Boolean({ default: true }),
+		chatId: t.Optional(t.String({ format: 'uuid' })),
 		token: t.Optional(t.String()),
 	}),
 	body: 'messageInput',
@@ -44,11 +45,11 @@ export const generalRoutes = new Elysia({
 	},
 	message: async ({ data: { params, query } }, body) => {
 		const user = params.userId
-		const { save, why } = query
+		const { save, why, chatId } = query
 		const stray = cat.getStray(user)!
 		if (!body) return
 		try {
-			const res = await stray.run(body, save, why)
+			const res = await stray.run(body, save, why, save ? chatId || uuidv4() : undefined)
 			await stray.send(res)
 		}
 		catch (error) {
@@ -98,8 +99,6 @@ export const generalRoutes = new Elysia({
 	const { chatId } = params
 	const { save, why } = query
 
-	if (chatId && !isUUID(chatId)) throw HttpError.BadRequest('Invalid chat ID. Must be a UUID.')
-
 	if (chatId && !stray.hasChat(chatId)) throw HttpError.NotFound('Chat not found.')
 
 	return await stray.run(body, save, why, save ? chatId || uuidv4() : undefined)
@@ -109,6 +108,7 @@ export const generalRoutes = new Elysia({
 		chatId: t.Optional(t.String({
 			title: 'Chat ID',
 			description: 'The ID of the chat',
+			format: 'uuid',
 		})),
 	}),
 	query: t.Object({
