@@ -19,7 +19,7 @@ export const generalRoutes = new Elysia({
 		token: t.Optional(t.String()),
 	}),
 	body: 'messageInput',
-	idleTimeout: 300, // TODO: Set a proper idle timeout
+	idleTimeout: 300, // QUESTION: Should this be a configurable value?
 	beforeHandle: ({ query, HttpError }) => {
 		const apiKey = query.token, realKey = parsedEnv.apiKey
 		if (realKey && realKey !== apiKey)
@@ -123,7 +123,6 @@ export const generalRoutes = new Elysia({
 			default: true,
 		}),
 	}),
-	// TODO: better definition required
 	detail: {
 		summary: 'Chat',
 		description: 'Get a response from the Cheshire Cat using the RAG.',

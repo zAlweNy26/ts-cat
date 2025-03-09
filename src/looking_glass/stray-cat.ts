@@ -165,7 +165,6 @@ export class StrayCat {
 		// 		content: 'The input is too long. Storing it as document...',
 		// 	}
 		// }
-		if (save && chatId) this.addHistory({ role: 'User', what: response.text, who: this.userId, chatId, when: Date.now() }, chatId)
 
 		if (save && chatId) this.addHistory({ role: 'User', what: response.text, who: this.userId, chatId, when: Date.now() }, chatId)
 
@@ -395,7 +394,7 @@ ${labelsList}${examplesList}
 
 		const queryEmbedding = await this.currentEmbedder.embedQuery(query)
 
-		// TODO: filter episodic and declarative memories by user.
+		// TODO: Filter episodic and declarative memories by user.
 		let recallConfigs: MemoryRecallConfigs = {
 			declarative: {
 				embedding: queryEmbedding,

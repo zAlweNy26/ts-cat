@@ -35,7 +35,7 @@ export class AgentManager {
 	 * @param stray The `StrayCat` instance.
 	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
 	 */
-	async executeProceduresChain(stray: StrayCat): Promise<AgentFastReply> {
+	async executeProceduresChain(stray: StrayCat, chatId?: string): Promise<AgentFastReply> {
 		// Get tools and Forms
 		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
@@ -67,7 +67,7 @@ export class AgentManager {
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
-			...(await this.getLangchainChatHistory(stray.getHistory(5))),
+			...chatId ? await this.getLangchainChatHistory(stray.getHistory(chatId, 5)) : [],
 		])
 		const tools = allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n')
 
@@ -223,7 +223,7 @@ export class AgentManager {
 		if (proceduralMemories.length > 0) {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
-				const proceduresResult = await this.executeProceduresChain(stray)
+				const proceduresResult = await this.executeProceduresChain(stray, chatId)
 				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
 				intermediateSteps = afterProcedures.intermediateSteps ?? []
