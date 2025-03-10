@@ -51,6 +51,8 @@
 		"skipLibCheck": true
 	},
 	"include": [
+		"./plugins/**/*.ts",
+		"./plugins/**/*",
 		"./src/**/*.ts",
 		"./src/**/*",
 		"./test/**/*",

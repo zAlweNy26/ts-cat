@@ -17,7 +17,7 @@ nodemon({
 	exec: 'bun',
 	script: 'src/main.ts',
 	legacyWatch: inDocker,
-	ignoreRoot: watch ? ['**/settings.json', 'src/plugins/**', 'src/assets/**'] : ['**/**'],
+	ignoreRoot: watch ? undefined : ['**/**'],
 	env: {
 		NODE_ENV: watch ? 'development' : 'production',
 		NODE_NO_WARNINGS: verbose ? '0' : '1',

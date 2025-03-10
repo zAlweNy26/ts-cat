@@ -14,8 +14,8 @@ services:
       - ${CORE_PORT:-1865}:80
     volumes:
       - ./data:/app/data
-      - ./static:/app/src/static
-      - ./plugins:/app/src/plugins
+      - ./assets:/app/assets
+      - ./plugins:/app/plugins
     restart: unless-stopped
     depends_on:
       - vector-memory

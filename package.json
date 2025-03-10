@@ -137,7 +137,7 @@
     "@langchain/core": "0.3.42"
   },
   "workspaces": [
-    "src/plugins/*"
+    "./plugins/*"
   ],
   "changelog": {
     "types": {

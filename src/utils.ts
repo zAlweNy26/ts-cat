@@ -1,7 +1,6 @@
 import type { BaseMessageChunk } from '@langchain/core/messages'
 import type { CriteriaLike } from 'langchain/evaluation'
 import { stat } from 'node:fs/promises'
-import { join } from 'node:path'
 import { safeDestr } from 'destr'
 import { loadEvaluator } from 'langchain/evaluation'
 import _DefaultsDeep from 'lodash/defaultsDeep.js'
@@ -84,27 +83,19 @@ function getBaseUrl() {
 /**
  * It contains various paths and URLs used in the application.
  */
-export const catPaths = {
-	/**
-	 * The base path of the application.
-	 */
-	basePath: 'src',
+export const catUrls = {
 	/**
 	 * The base URL of the application.
 	 */
 	baseUrl: getBaseUrl().href,
 	/**
-	 * The path to the plugins directory.
-	 */
-	pluginsPath: join('src', 'plugins'),
-	/**
-	 * The path to the assets directory.
-	 */
-	assetsPath: join('src', 'assets'),
-	/**
 	 * The URL to the assets directory.
 	 */
 	assetsUrl: `${getBaseUrl().href}assets`,
+	/**
+	 * The URL to the WebSocket server.
+	 */
+	wsUrl: `${getBaseUrl().href.replace('http', 'ws')}ws`,
 }
 
 /**
@@ -114,9 +105,8 @@ export async function logWelcome() {
 	const cat = await Bun.file('src/welcome.txt').text()
 	console.log(cat)
 	console.log('===================== ^._.^ =====================')
-	console.log(`WEBSOCKET: ${getBaseUrl().href.replace('http', 'ws')}ws`)
-	console.log(`REST API:  ${getBaseUrl().href}docs`)
-	// console.log(`ADMIN:     ${getBaseUrl().href}admin`)
+	console.log(`WEBSOCKET: ${catUrls.wsUrl}`)
+	console.log(`REST API:  ${catUrls.baseUrl}docs`)
 	console.log('=================================================')
 }
 
@@ -158,12 +148,8 @@ export function normalizeMessageChunks(chunk: BaseMessageChunk) {
  * Checks if a directory exists.
  * @param path The path to the directory to check.
  */
-// TODO: Wait for a Bun internal method to be implemented
 export async function existsDir(path: string) {
-	const glob = new Bun.Glob(path)
-	const scans = await Array.fromAsync(glob.scan({ onlyFiles: false }))
-	if (scans.length === 0) return false
-	const stats = await stat(scans[0]!)
+	const stats = await stat(path)
 	return stats.isDirectory()
 }
 
