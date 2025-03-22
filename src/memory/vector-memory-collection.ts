@@ -1,5 +1,5 @@
 import type { MemoryDocument } from '@dto/message.ts'
-import type { EmbeddedVector, Filter, FilterCondition, FilterMatch, PointData } from '@dto/vector-memory.ts'
+import type { EmbeddedVector, Filter, PointData } from '@dto/vector-memory.ts'
 import { lstat, mkdir, rename } from 'node:fs/promises'
 import { join } from 'node:path'
 import { log } from '@logger'
@@ -116,19 +116,6 @@ export class VectorMemoryCollection {
 	}
 
 	/**
-	 * Filters the dictionary based on the provided filter object.
-	 * @param filter The filter object containing key-value pairs to match against.
-	 * @returns The constructed filter object or undefined if the filter is empty.
-	 */
-	private filterFromDict(filter: Record<string, FilterMatch>): Filter | undefined {
-		if (Object.keys(filter).length === 0) return undefined
-		return {
-			must: Object.entries(filter).reduce((acc, [key, match]) =>
-				acc.concat({ key, match }), [] as FilterCondition[]),
-		}
-	}
-
-	/**
 	 * Add a point (and its metadata) to the vector store.
 	 * @param content Original content to push.
 	 * @param vector The embedding vector.
@@ -164,13 +151,11 @@ export class VectorMemoryCollection {
 	}
 
 	/**
-	 * Delete points by their metadata.
-	 * @param metadata The metadata of the points to delete.
+	 * Delete points from the vector memory collection based on a filter.
+	 * @param filter The filter to apply to the deletion.
 	 * @returns The result of the deletion.
 	 */
-	deletePointsByMetadata(metadata: Record<string, FilterMatch>) {
-		const filter = this.filterFromDict(metadata)
-		if (!filter) return undefined
+	deletePointsByMetadata(filter: Filter) {
 		return vectorDb.delete(this.name, { filter })
 	}
 
@@ -202,18 +187,18 @@ export class VectorMemoryCollection {
 	 * Retrieves memories from the vector database based on an embedded vector.
 	 * @param embedding The embedding vector to search for.
 	 * @param filter Optional filter to apply to the search.
-	 * @param k The maximum number of memories to retrieve (default: 10).
+	 * @param limit The maximum number of memories to retrieve (default: 10).
 	 * @param threshold The score threshold for retrieved memories.
 	 * @returns An array of {@link MemoryDocument} representing the retrieved memories.
 	 */
-	async recallMemoriesFromEmbedding(embedding: EmbeddedVector, filter?: Record<string, FilterMatch>, k = 10, threshold?: number) {
+	async recallMemoriesFromEmbedding(embedding: EmbeddedVector, filter?: Filter, limit = 10, threshold?: number) {
 		const memories = await vectorDb.search(this.name, {
 			vector: embedding,
-			filter: filter ? this.filterFromDict(filter) : undefined,
 			with_payload: true,
 			with_vector: true,
-			limit: k,
 			score_threshold: threshold,
+			filter,
+			limit,
 			params: {
 				quantization: {
 					ignore: false,
@@ -242,11 +227,11 @@ export class VectorMemoryCollection {
 	 * @param filter An optional filter to apply to the points.
 	 * @returns An array of {@link PointData}.
 	 */
-	async getAllPoints(limit = 10000, filter?: Record<string, FilterMatch>) {
+	async getAllPoints(limit = 10000, filter?: Filter) {
 		const list = await vectorDb.scroll(this.name, {
-			filter: filter ? this.filterFromDict(filter) : undefined,
 			with_vector: true,
 			with_payload: true,
+			filter,
 			limit,
 		})
 

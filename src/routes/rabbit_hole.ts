@@ -48,10 +48,11 @@ export const rabbitHoleRoutes = new Elysia({
 		400: 'error',
 	},
 }).post('/chunk', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { sync, source } = query, { chunk, metadata } = body
+	const { sync, source, chatId } = query, { chunk, metadata } = body
+	const realStray = chatId ? stray.getChat(chatId) : stray
 	try {
-		if (sync) await rh.ingestContent(stray, chunk, source, metadata)
-		else rh.ingestContent(stray, chunk, source, metadata).catch(log.error)
+		if (sync) await rh.ingestContent(realStray, chunk, source, metadata)
+		else rh.ingestContent(realStray, chunk, source, metadata).catch(log.error)
 	}
 	catch (error) {
 		log.error('Error while ingesting chunk:', error)
@@ -68,6 +69,7 @@ export const rabbitHoleRoutes = new Elysia({
 	query: t.Object({
 		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the chunk synchronously', default: true }),
 		source: t.String({ title: 'Source', description: 'Source of the chunk', default: 'unknown' }),
+		chatId: t.Optional(t.String({ title: 'Chat ID', description: 'The ID of the chat', format: 'uuid' })),
 	}),
 	detail: {
 		description: 'Upload a text chunk whose content will be segmented into smaller chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -84,10 +86,11 @@ export const rabbitHoleRoutes = new Elysia({
 		500: 'error',
 	},
 }).post('/file', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { file, metadata } = body, { sync, chunkOverlap, chunkSize } = query
+	const { file, metadata } = body, { sync, chunkOverlap, chunkSize, chatId } = query
+	const realStray = chatId ? stray.getChat(chatId) : stray
 	try {
-		if (sync) await rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
-		else rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
+		if (sync) await rh.ingestFile(realStray, file, chunkSize, chunkOverlap, metadata)
+		else rh.ingestFile(realStray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
 	}
 	catch (error) {
 		log.error('Error while ingesting file:', error)
@@ -105,6 +108,7 @@ export const rabbitHoleRoutes = new Elysia({
 		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the plugin synchronously', default: true }),
 		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
 		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
+		chatId: t.Optional(t.String({ title: 'Chat ID', description: 'The ID of the chat', format: 'uuid' })),
 	}),
 	detail: {
 		description: 'Upload a file whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -121,15 +125,16 @@ export const rabbitHoleRoutes = new Elysia({
 		500: 'error',
 	},
 }).post('/files', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { content } = body, { sync, chunkOverlap, chunkSize } = query
+	const { content } = body, { sync, chunkOverlap, chunkSize, chatId } = query
+	const realStray = chatId ? stray.getChat(chatId) : stray
 	try {
 		if (sync) {
 			for (const { file, metadata } of content)
-				await rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata)
+				await rh.ingestFile(realStray, file, chunkSize, chunkOverlap, metadata)
 		}
 		else {
 			for (const { file, metadata } of content)
-				rh.ingestFile(stray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
+				rh.ingestFile(realStray, file, chunkSize, chunkOverlap, metadata).catch(log.error)
 		}
 	}
 	catch (error) {
@@ -150,6 +155,7 @@ export const rabbitHoleRoutes = new Elysia({
 		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the plugins synchronously', default: true }),
 		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
 		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
+		chatId: t.Optional(t.String({ title: 'Chat ID', description: 'The ID of the chat', format: 'uuid' })),
 	}),
 	detail: {
 		description: 'Upload a list of files whose contents will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',
@@ -166,10 +172,11 @@ export const rabbitHoleRoutes = new Elysia({
 		500: 'error',
 	},
 }).post('/web', async ({ rh, body, query, stray, log, HttpError }) => {
-	const { webUrl, metadata } = body, { sync, chunkOverlap, chunkSize } = query
+	const { webUrl, metadata } = body, { sync, chunkOverlap, chunkSize, chatId } = query
+	const realStray = chatId ? stray.getChat(chatId) : stray
 	try {
-		if (sync) await rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap, metadata)
-		else rh.ingestPathOrURL(stray, webUrl, chunkSize, chunkOverlap, metadata).catch(log.error)
+		if (sync) await rh.ingestPathOrURL(realStray, webUrl, chunkSize, chunkOverlap, metadata)
+		else rh.ingestPathOrURL(realStray, webUrl, chunkSize, chunkOverlap, metadata).catch(log.error)
 	}
 	catch (error) {
 		log.error('Error while ingesting web url:', error)
@@ -191,6 +198,7 @@ export const rabbitHoleRoutes = new Elysia({
 		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the website synchronously', default: true }),
 		chunkSize: t.Number({ title: 'Chunk Size', description: 'Size of the chunks to be created', default: 256 }),
 		chunkOverlap: t.Number({ title: 'Chunk Overlap', description: 'Overlap between the chunks', default: 64 }),
+		chatId: t.Optional(t.String({ title: 'Chat ID', description: 'The ID of the chat', format: 'uuid' })),
 	}),
 	detail: {
 		description: 'Upload a website whose content will be extracted and segmented into chunks. Chunks will be then vectorized and stored into documents memory.',

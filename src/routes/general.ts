@@ -1,9 +1,9 @@
-import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
+import { serverContext, swaggerTags } from '@/context'
+import { cheshireCat as cat, cheshireCat } from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
 import { normalizeMessageChunks, parsedEnv } from '@utils'
 import { Elysia, t } from 'elysia'
 import { v4 as uuidv4 } from 'uuid'
-import { serverContext, swaggerTags } from '@/context'
 import pkg from '~/package.json'
 
 export const generalRoutes = new Elysia({
@@ -16,7 +16,7 @@ export const generalRoutes = new Elysia({
 	query: t.Object({
 		why: t.Boolean({ default: false }),
 		save: t.Boolean({ default: true }),
-		chatId: t.Optional(t.String({ format: 'uuid' })),
+		chatId: t.String({ format: 'uuid' }),
 		token: t.Optional(t.String()),
 	}),
 	body: 'messageInput',
@@ -27,15 +27,14 @@ export const generalRoutes = new Elysia({
 			throw HttpError.Unauthorized('Invalid API key')
 	},
 	open: async (ws) => {
-		const { data: { params } } = ws
-		const user = params.userId
-		let stray = cat.getStray(user)
-		if (stray) stray.addWebSocket(ws)
-		else stray = cat.addStray(user, ws)
-		log.debug(`User ${user} connected to the WebSocket.`)
-		while (stray.wsQueue.length) {
-			const message = stray.wsQueue.shift()
-			if (message) await stray.send(message)
+		const { data: { params, query } } = ws
+		const user = params.userId, chat = query.chatId
+		const stray = cat.getStray(user)
+		const kitten = stray.getChat(chat)
+		log.debug(`User ${user} connected to the WebSocket with chat ID ${chat}`)
+		while (kitten.wsQueue.length) {
+			const message = kitten.wsQueue.shift()
+			if (message) await kitten.send(message)
 		}
 	},
 	close: ({ data: { params } }) => {
@@ -47,10 +46,11 @@ export const generalRoutes = new Elysia({
 		const user = params.userId
 		const { save, why, chatId } = query
 		const stray = cat.getStray(user)!
+		const kitten = stray.getChat(chatId)
 		if (!body) return
 		try {
-			const res = await stray.run(body, save, why, save ? chatId || uuidv4() : undefined)
-			await stray.send(res)
+			const res = await kitten.run(body, save, why)
+			await kitten.send(res)
 		}
 		catch (error) {
 			log.error(error)
@@ -101,7 +101,9 @@ export const generalRoutes = new Elysia({
 
 	if (chatId && !stray.hasChat(chatId)) throw HttpError.NotFound('Chat not found.')
 
-	return await stray.run(body, save, why, save ? chatId || uuidv4() : undefined)
+	const kitten = stray.getChat(chatId || uuidv4())
+
+	return await kitten.run(body, save, why)
 }, {
 	body: 'messageInput',
 	params: t.Object({
@@ -131,12 +133,12 @@ export const generalRoutes = new Elysia({
 		200: 'chatMessage',
 		400: 'error',
 	},
-}).post('/pure', async function* ({ stray, body, query }) {
+}).post('/pure', async function* ({ body, query }) {
 	const { stream } = query
 
-	if (!stream) return normalizeMessageChunks(await stray.llm(body.messages))
+	if (!stream) return normalizeMessageChunks(await cheshireCat.pure(body.messages))
 
-	const res = await stray.llm(body.messages, stream)
+	const res = await cheshireCat.pure(body.messages, stream)
 	for await (const chunk of res) yield normalizeMessageChunks(chunk)
 }, {
 	body: t.Object({
@@ -161,8 +163,8 @@ export const generalRoutes = new Elysia({
 		200: t.Union([t.String(), t.Record(t.String(), t.Any())]),
 		400: 'error',
 	},
-}).post('/embed', async ({ stray, body }) => {
-	const res = await stray.currentEmbedder.embedQuery(body.text)
+}).post('/embed', async ({ body }) => {
+	const res = await cheshireCat.currentEmbedder.embedQuery(body.text)
 	return res
 }, {
 	body: t.Object({

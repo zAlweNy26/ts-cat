@@ -1,5 +1,6 @@
 import type { AgentFastReply } from '@dto/agent.ts'
-import type { StrayCat } from '@lg'
+import type { StrayKitten } from '@lg'
+import { catchError } from '@/errors.ts'
 import { db } from '@db'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { log } from '@logger'
@@ -8,7 +9,6 @@ import _Merge from 'lodash/merge.js'
 import _Unset from 'lodash/unset.js'
 import { kebabCase } from 'scule'
 import { z } from 'zod'
-import { catchError } from '@/errors.ts'
 
 export enum FormState {
 	/**
@@ -37,9 +37,9 @@ interface FormActionOptions<T extends TModel = TModel> {
 	 */
 	state: FormState
 	/**
-	 * The StrayCat instance linked to the form
+	 * The StrayKitten instance linked to the form
 	 */
-	cat: StrayCat
+	cat: StrayKitten
 	/**
 	 * The current model of the form
 	 */
@@ -50,7 +50,7 @@ interface FormActionOptions<T extends TModel = TModel> {
 	invalidFields: string[]
 }
 
-type FormSubmit<T extends TModel = TModel> = (output: T, cat: StrayCat) => Promise<AgentFastReply>
+type FormSubmit<T extends TModel = TModel> = (output: T, cat: StrayKitten) => Promise<AgentFastReply>
 
 type FormAction<T extends TModel = TModel> = (current: FormActionOptions<T>) => Promise<AgentFastReply>
 
@@ -109,7 +109,7 @@ export class Form<
 	T extends Record<string, z.ZodType> = Record<string, z.ZodType>,
 	S extends z.infer<z.ZodObject<T>> = z.infer<z.ZodObject<T>>,
 > {
-	#cat!: StrayCat
+	#cat!: StrayKitten
 	#state: FormState = FormState.INCOMPLETE
 	#active = false
 	name: string
@@ -150,7 +150,7 @@ export class Form<
 		})
 	}
 
-	assignCat(cat: StrayCat) {
+	assignCat(cat: StrayKitten) {
 		this.#cat = cat
 		return this
 	}
@@ -272,7 +272,7 @@ Updated JSON:
 	}
 
 	private async askUserConfirm() {
-		const userMsg = this.#cat.lastUserMessage.text
+		const userMsg = this.#cat.lastUserMessage!.text
 		const confirmPrompt = `
 		Your task is to produce a JSON representing whether a user is confirming or not.
 JSON must be in this format:
@@ -292,7 +292,7 @@ JSON:
 	}
 
 	private async checkExitIntent() {
-		const userMsg = this.#cat.lastUserMessage.text
+		const userMsg = this.#cat.lastUserMessage!.text
 		let stopExamples = `Examples where { exit: true }:
 - Exit form
 - Stop form
@@ -320,10 +320,9 @@ JSON:
 	}
 
 	private stringifyChatHistory() {
-		const userMsg = this.#cat.lastUserMessage.text
+		const userMsg = this.#cat.lastUserMessage!.text
 
-		// TODO: Get the last 10 messages from the specific chat
-		const chatHistory = this.#cat.getHistory('', 10)
+		const chatHistory = this.#cat.getHistory(10)
 
 		let history = chatHistory.map(m => `- ${m.role}: ${m.what}`).join('\n')
 		history += `\nHuman: ${userMsg}`

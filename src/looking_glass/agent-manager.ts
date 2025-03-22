@@ -1,7 +1,7 @@
 import type { AgentFastReply, ContextInput, IntermediateStep } from '@dto/agent.ts'
 import type { MemoryDocument, MemoryMessage } from '@dto/message.ts'
 import type { Form, Tool } from '@mh'
-import type { StrayCat } from './stray-cat.ts'
+import type { StrayKitten } from './stray-kitten.ts'
 import { db } from '@db'
 import { AIMessage, HumanMessage } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
@@ -32,10 +32,10 @@ export class AgentManager {
 
 	/**
 	 * Executes the procedures chain. It gets the tools and forms and passes them to the agent.
-	 * @param stray The `StrayCat` instance.
+	 * @param stray The `StrayKitten` instance.
 	 * @returns An `AgentFastReply` object containing the result of the procedure chain execution.
 	 */
-	async executeProceduresChain(stray: StrayCat, chatId?: string): Promise<AgentFastReply> {
+	async executeProceduresChain(stray: StrayKitten): Promise<AgentFastReply> {
 		// Get tools and Forms
 		let recalledProcedures = stray.workingMemory.procedural.filter((p) => {
 			return ['tool', 'form'].includes(p.metadata?.type)
@@ -67,7 +67,7 @@ export class AgentManager {
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
-			...chatId ? await this.getLangchainChatHistory(stray.getHistory(chatId, 5)) : [],
+			...await this.getLangchainChatHistory(stray.getHistory(5)),
 		])
 		const tools = allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n')
 
@@ -120,16 +120,16 @@ export class AgentManager {
 	 * passes it to the LLM.
 	 *
 	 * @param input The context input to be processed by the memory chain.
-	 * @param stray The `StrayCat` instance.
+	 * @param stray The `StrayKitten` instance.
 	 * @returns A promise that resolves with the result of the memory chain invocation.
 	 */
-	async executeMemoryChain(input: ContextInput, stray: StrayCat, chatId?: string) {
+	async executeMemoryChain(input: ContextInput, stray: StrayKitten) {
 		const prefix = await madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
 		const suffix = await madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(prefix + suffix),
-			...chatId ? await this.getLangchainChatHistory(stray.getHistory(chatId, 5)) : [],
+			...await this.getLangchainChatHistory(stray.getHistory(5)),
 		])
 
 		const chain = prompt.pipe(this.verboseRunnable).pipe(stray.currentLLM).pipe(new StringOutputParser())
@@ -142,10 +142,10 @@ export class AgentManager {
 	/**
 	 * Executes the form associated with the given stray cat.
 	 *
-	 * @param stray The `StrayCat` instance whose form is to be executed.
+	 * @param stray The `StrayKitten` instance whose form is to be executed.
 	 * @returns The result of the next step of the form or `undefined` if no form is found.
 	 */
-	async executeFormAgent(stray: StrayCat) {
+	async executeFormAgent(stray: StrayKitten) {
 		const form = madHatter.forms.find(f => f.name === stray.activeForm)
 		if (form) {
 			if (form.state === FormState.CLOSED) {
@@ -164,10 +164,10 @@ export class AgentManager {
 	 * Executes a tool based on the provided input.
 	 *
 	 * @param input The context input containing the command or query.
-	 * @param stray The `StrayCat` instance to be used with the tool.
+	 * @param stray The `StrayKitten` instance to be used with the tool.
 	 * @returns An `AgentFastReply` containing the tool's output and intermediate steps, or `undefined` if no tool is executed.
 	 */
-	async executeTool(input: ContextInput, stray: StrayCat): Promise<AgentFastReply | undefined> {
+	async executeTool(input: ContextInput, stray: StrayKitten): Promise<AgentFastReply | undefined> {
 		const instantTool = db.data.instantTool
 		if (!instantTool) return undefined
 
@@ -193,13 +193,13 @@ export class AgentManager {
 	/**
 	 * Executes the agent's main logic flow, including hooks, tools, forms, procedures, and memory chains.
 	 *
-	 * @param stray The `StrayCat` instance.
+	 * @param stray The `StrayKitten` instance.
 	 * @returns An `AgentFastReply` object containing the agent's output and any intermediate steps.
 	 */
-	async executeAgent(stray: StrayCat, chatId?: string): Promise<AgentFastReply> {
+	async executeAgent(stray: StrayKitten): Promise<AgentFastReply> {
 		const agentInput = await madHatter.executeHook('beforeAgentStarts', {
-			input: stray.lastUserMessage.text,
-			chat_history: chatId ? this.stringifyChatHistory(stray.getHistory(chatId, 5)) : '',
+			input: stray.lastUserMessage!.text,
+			chat_history: this.stringifyChatHistory(stray.getHistory(5)),
 			episodic_memory: this.getEpisodicMemoriesPrompt(stray.workingMemory.episodic),
 			declarative_memory: this.getDeclarativeMemoriesPrompt(stray.workingMemory.declarative),
 			tools_output: '',
@@ -223,7 +223,7 @@ export class AgentManager {
 		if (proceduralMemories.length > 0) {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
-				const proceduresResult = await this.executeProceduresChain(stray, chatId)
+				const proceduresResult = await this.executeProceduresChain(stray)
 				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
 				intermediateSteps = afterProcedures.intermediateSteps ?? []

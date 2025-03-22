@@ -1,15 +1,15 @@
 import type { WorkingMemory } from '@dto/message.ts'
-import type { FilterMatch } from '@dto/vector-memory.ts'
+import type { Filter, MemoryJson } from '@dto/vector-memory.ts'
+import { memoryMessage, serverContext, swaggerTags } from '@/context'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
-import { memoryMessage, serverContext, swaggerTags } from '@/context'
 
 export const memoryRoutes = new Elysia({
 	name: 'memory',
 	prefix: '/memory',
 	detail: { tags: [swaggerTags.memory.name] },
 }).use(serverContext).get('/recall', async ({ query, stray, log, db, HttpError }) => {
-	const { text, k } = query
+	const { text, k, chatId } = query
 	const userId = stray.userId
 
 	const queryEmbedding = await cat.currentEmbedder.embedQuery(text)
@@ -21,8 +21,18 @@ export const memoryRoutes = new Elysia({
 
 	for (const collection of Object.values(cat.vectorMemory.collections)) {
 		recalled[collection.name] = []
-		let userFilter: Record<string, FilterMatch> | undefined
-		if (collection.name === 'episodic') userFilter = { source: { any: [userId] } }
+		const userFilter: Filter = {
+			must: [
+				{
+					key: 'who',
+					match: { any: [userId] },
+				},
+				{
+					key: 'chatId',
+					match: { any: [chatId] },
+				},
+			],
+		}
 		try {
 			const docs = await collection.recallMemoriesFromEmbedding(queryEmbedding, userFilter, k)
 			recalled[collection.name] = docs
@@ -52,6 +62,7 @@ export const memoryRoutes = new Elysia({
 	query: t.Object({
 		text: t.String({ title: 'Text', description: 'Text to search for' }),
 		k: t.Number({ title: 'K', description: 'Number of memories to extract', default: 10 }),
+		chatId: t.Optional(t.String({ title: 'Chat ID', description: 'The ID of the chat', format: 'uuid' })),
 	}),
 	response: {
 		200: 'memoryRecall',
@@ -399,8 +410,10 @@ export const memoryRoutes = new Elysia({
 }).get('/history/:chatId', ({ stray, params }) => {
 	const { chatId } = params
 
+	const kitten = stray.getChat(chatId)
+
 	return {
-		history: stray.getHistory(chatId),
+		history: kitten.getHistory(),
 	}
 }, {
 	detail: {
@@ -415,25 +428,25 @@ export const memoryRoutes = new Elysia({
 		}),
 	}),
 	response: {
-		200: t.Object({
-			history: t.Array(serverContext.Ref('memoryMessage')),
-		}, {
-			title: 'Chat History',
-			description: 'Chat messages history',
-		}),
+		200: 'chatHistory',
 		400: 'error',
 	},
-}).delete('/history/:chatId?', ({ stray, params }) => {
+}).delete('/history/:chatId?', ({ stray, params, HttpError }) => {
 	const { chatId } = params
 
-	let totalMessages = 0
+	if (chatId && !stray.hasChat(chatId)) throw HttpError.NotFound('Chat not found.')
 
-	if (chatId) totalMessages = stray.getHistory(chatId).length
-	else totalMessages = stray.getAvailableChats().reduce((acc, chat) => acc + stray.getHistory(chat).length, 0)
+	if (!chatId) {
+		const chats = stray.getAvailableChats()
+		return {
+			messages: chats.reduce((acc, chat) => acc + stray.getChat(chat).clearHistory(), 0),
+		}
+	}
+
+	const kitten = stray.getChat(chatId)
 
 	return {
-		deleted: stray.clearHistory(chatId),
-		messages: totalMessages,
+		messages: kitten.clearHistory(),
 	}
 }, {
 	detail: {
@@ -449,13 +462,11 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		200: t.Object({
-			deleted: t.Boolean({ title: 'Deleted', description: 'History messages deleted successfully' }),
 			messages: t.Number({ title: 'Messages', description: 'Total messages deleted' }),
 		}, {
 			title: 'History Deleted',
 			description: 'History messages deleted successfully',
 			examples: [{
-				deleted: true,
 				messages: 26,
 			}],
 		}),
@@ -464,7 +475,9 @@ export const memoryRoutes = new Elysia({
 }).put('/history/:chatId', ({ stray, body, set, params }) => {
 	const { chatId } = params
 
-	stray.addHistory(body.history, chatId)
+	const kitten = stray.getChat(chatId)
+
+	kitten.addHistory(body.history)
 	set.status = 204
 }, {
 	detail: {
@@ -496,6 +509,37 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		204: t.Void({ title: 'History added', description: 'History added successfully' }),
+		400: 'error',
+	},
+}).get('/memory', async ({ db }) => {
+	const allCollections = Object.values(cat.vectorMemory.collections)
+
+	const collections: MemoryJson['collections'] = {
+		episodic: [],
+		declarative: [],
+		procedural: [],
+	}
+
+	for (const collection of allCollections) collections[collection.name] = await collection.getAllPoints()
+
+	return {
+		embedder: db.data.selectedEmbedder,
+		collections,
+	}
+}, {
+	detail: {
+		description: 'Export the user\'s memory to a file.',
+		summary: 'Add conversation history messages',
+	},
+	params: t.Object({
+		chatId: t.String({
+			title: 'Chat ID',
+			description: 'The ID of the chat',
+			format: 'uuid',
+		}),
+	}),
+	response: {
+		200: 'memoryJson',
 		400: 'error',
 	},
 })

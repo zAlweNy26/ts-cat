@@ -1,16 +1,19 @@
 import type { PointData } from '@dto/vector-memory.ts'
+import type { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import type { Embeddings } from '@langchain/core/embeddings'
+import type { BaseLanguageModelInput } from '@langchain/core/language_models/base'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import type { VectorMemory } from '@memory'
 import type { Form, Tool } from '@mh'
-import type { ElysiaWS as WS } from 'elysia/ws'
+import { catchError } from '@/errors.ts'
+import { rabbitHole } from '@/rabbit-hole.ts'
 import { db } from '@db'
 import { getEmbedder, getEmbedderSettings, getLLM, getLLMSettings } from '@factory'
+import { AIMessageChunk } from '@langchain/core/messages'
+import { AsyncGeneratorWithSetup, IterableReadableStream } from '@langchain/core/utils/stream'
 import { log } from '@logger'
 import { getVectorMemory } from '@memory'
 import { isForm, isTool, madHatter } from '@mh'
-import { catchError } from '@/errors.ts'
-import { rabbitHole } from '@/rabbit-hole.ts'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat } from './stray-cat.ts'
 import { whiteRabbit } from './white-rabbit.ts'
@@ -113,22 +116,30 @@ export class CheshireCat {
 	}
 
 	/**
+	 * Checks if a stray instance exists for the specified user.
+	 * @param userId The unique identifier of the stray cat.
+	 * @returns True if a user exists, otherwise false.
+	 */
+	hasUser(userId: string) {
+		return this.strays.has(userId)
+	}
+
+	/**
+	 * Retrieves the IDs of all available users.
+	 * @returns An array of user IDs.
+	 */
+	getAvailableUsers(): string[] {
+		return [...this.strays.keys()]
+	}
+
+	/**
 	 * Get the StrayCat instance associated with the given userId.
 	 * @param userId The unique identifier of the stray cat.
 	 * @returns The StrayCat instance associated with the given userId.
 	 */
 	getStray(userId: string) {
-		return this.strays.get(userId)
-	}
-
-	/**
-	 * Add a StrayCat with the given userId to the collection of strays.
-	 * @param userId The unique identifier of the stray cat.
-	 * @returns The StrayCat instance associated with the given userId.
-	 */
-	addStray(userId: string, ws?: WS) {
-		this.strays.set(userId, new StrayCat(userId, ws))
-		return this.getStray(userId)!
+		if (!this.strays.has(userId)) this.strays.set(userId, new StrayCat(userId))
+		return this.strays.get(userId)!
 	}
 
 	/**
@@ -289,6 +300,36 @@ export class CheshireCat {
 		}
 
 		log.info('Finished embedding procedures.')
+	}
+
+	/**
+	 * Executes the LLM with the given prompt and returns the response.
+	 * @param prompt The prompt or messages to be passed to the LLM.
+	 * @param stream Optional parameter to enable streaming mode.
+	 * @param callbacks Optional callbacks to be passed to the LLM.
+	 * @returns The response message or a stream of response messages.
+	 */
+	async pure(prompt: BaseLanguageModelInput, stream?: false, callbacks?: BaseCallbackHandler[]): Promise<AIMessageChunk>
+	async pure(prompt: BaseLanguageModelInput, stream?: true, callbacks?: BaseCallbackHandler[]): Promise<IterableReadableStream<AIMessageChunk>>
+	async pure(prompt: BaseLanguageModelInput, stream = false, callbacks: BaseCallbackHandler[] = []): Promise<AIMessageChunk | IterableReadableStream<AIMessageChunk>> {
+		const [error, response] = stream
+			? await catchError(this.currentLLM.stream(prompt, { callbacks }), { logMessage: 'Failed to call LLM.' })
+			: await catchError(this.currentLLM.invoke(prompt, { callbacks }), { logMessage: 'Failed to call LLM.' })
+
+		if (error) {
+			if (stream) {
+				const wrappedGenerator = new AsyncGeneratorWithSetup({
+					generator: (async function* () {
+						yield new AIMessageChunk('I am sorry,')
+						yield new AIMessageChunk('I could not process your request.')
+					})(),
+				})
+				await wrappedGenerator.setup
+				return IterableReadableStream.fromAsyncGenerator(wrappedGenerator)
+			}
+			return new AIMessageChunk('I am sorry, I could not process your request.')
+		}
+		else return response
 	}
 }
 

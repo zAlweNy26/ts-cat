@@ -3,7 +3,7 @@ import type { LLMInteraction } from '@dto/message.ts'
 import type { BaseCallbackHandlerInput } from '@langchain/core/callbacks/base'
 import type { Serialized } from '@langchain/core/load/serializable'
 import type { LLMResult } from '@langchain/core/outputs'
-import type { StrayCat } from './stray-cat.ts'
+import type { StrayKitten } from './stray-kitten.ts'
 import { db } from '@db'
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base'
 import { rabbitHole } from '@rh'
@@ -11,7 +11,7 @@ import { rabbitHole } from '@rh'
 export class NewTokenHandler extends BaseCallbackHandler {
 	name = 'NewToken'
 
-	constructor(private stray: StrayCat, input?: BaseCallbackHandlerInput) {
+	constructor(private stray: StrayKitten, input?: BaseCallbackHandlerInput) {
 		super(input)
 	}
 
@@ -27,7 +27,7 @@ export class ModelInteractionHandler extends BaseCallbackHandler {
 	name = 'ModelInteraction'
 	private lastInteraction: LLMInteraction
 
-	constructor(private stray: StrayCat, source: string, input?: BaseCallbackHandlerInput) {
+	constructor(private stray: StrayKitten, source: string, input?: BaseCallbackHandlerInput) {
 		super(input)
 		this.lastInteraction = {
 			model: 'llm',
