@@ -2,14 +2,14 @@ import type { Form } from './form.ts'
 import type { HookNames, Hooks, HookTypes } from './hook.ts'
 import type { Tool } from './tool.ts'
 import { mkdir, readdir } from 'node:fs/promises'
-import { basename, join, sep } from 'node:path'
+import { basename, join, resolve, sep } from 'node:path'
 import { db } from '@db'
 import { log } from '@logger'
-import { catPaths, existsDir } from '@utils'
+import { existsDir } from '@utils'
 import chokidar from 'chokidar'
 import { Plugin } from './plugin.ts'
 
-const { pluginsPath } = catPaths
+const pluginsPath = resolve(process.cwd(), 'plugins')
 
 export class MadHatter {
 	private static instance: MadHatter
@@ -211,12 +211,12 @@ export class MadHatter {
 
 export const madHatter = await MadHatter.getInstance()
 
-chokidar.watch('src/plugins', {
+chokidar.watch(pluginsPath, {
 	ignored: path => path.endsWith('settings.json'),
 	ignoreInitial: true,
 	persistent: true,
 }).on('all', async (event, path) => {
-	const index = path.indexOf('src/plugins')
+	const index = path.indexOf('/plugins')
 	const id = path.substring(index).split(sep)[2] ?? ''
 	const hasDir = index >= 0 && index + id.length < path.length
 	if (id) {

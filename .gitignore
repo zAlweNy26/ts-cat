@@ -82,13 +82,13 @@ dist
 .vscode-test
 
 **/tmp**
-src/plugins/*
-src/assets/*
+/plugins/*
+/assets/*
 data/*
-!src/plugins/README.md
-!src/assets/README.md
-!src/assets/favicon.ico
-!src/assets/swagger-ui-theme.css
+!/plugins/README.md
+!/plugins/tsconfig.json
+!/assets/README.md
+!/assets/favicon.ico
 !data/README.md
 ccat
 docs/.vitepress/dist

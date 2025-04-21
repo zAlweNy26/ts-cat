@@ -23,7 +23,7 @@ const app = new Elysia()
 	}))
 	.use(await staticPlugin({ // BUG: NOT_FOUND error reference at https://github.com/elysiajs/elysia/issues/739
 		prefix: '/assets',
-		assets: resolve(process.cwd(), 'src', 'assets'),
+		assets: resolve(process.cwd(), 'assets'),
 	}))
 	.use(serverContext)
 	.use(await swagger({

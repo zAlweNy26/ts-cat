@@ -1,14 +1,11 @@
-import { catPaths, zodJson } from '@utils'
+import { catUrls, zodJson } from '@utils'
 import { expect, it } from 'vitest'
 
 const isGithubAction = process.env.GITHUB_ACTIONS === 'true'
 
 it.runIf(isGithubAction)('cat paths', () => {
-	expect(catPaths).toMatchObject({
-		basePath: 'src',
+	expect(catUrls).toMatchObject({
 		baseUrl: 'http://localhost:1865/',
-		pluginsPath: 'src/plugins',
-		assetsPath: 'src/assets',
 		assetsUrl: 'http://localhost:1865/assets',
 	})
 })

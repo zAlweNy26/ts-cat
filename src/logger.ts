@@ -6,7 +6,7 @@ import { getColor } from 'consola/utils'
 import { Table } from 'console-table-printer'
 import { format } from 'date-fns'
 import { Logestic } from 'logestic'
-import { catPaths, LogLevel, parsedEnv } from './utils.ts'
+import { catUrls, LogLevel, parsedEnv } from './utils.ts'
 
 const logger = createConsola({
 	level: LogLevel.indexOf(parsedEnv.logLevel),
@@ -116,7 +116,7 @@ export const httpLogger = new Logestic({
 	onFailure({ request, datetime, error }) {
 		const { method, url } = request
 		const err = error as HttpError
-		const baseUrl = url.substring(catPaths.baseUrl.length - 1)
+		const baseUrl = url.substring(catUrls.baseUrl.length - 1)
 		const dateTime = chalk.gray(format(datetime, 'dd/MM/yyyy HH:mm:ss'))
 		const methodPath = chalk.red(`${method} ${decodeURIComponent(baseUrl)}`)
 		const errorCode = chalk.bgRed(`[${err.status}]`)

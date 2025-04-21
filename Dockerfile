@@ -3,12 +3,14 @@ FROM oven/bun:1.2.0 AS build
 WORKDIR /app
 
 # Cache packages installation
-COPY package.json bun.lock ./
+COPY package.json bun.lock tsconfig.json ./
 COPY ./patches ./patches
 
 RUN bun install --ignore-scripts --production
 
 COPY ./src ./src
+COPY ./assets ./assets
+COPY ./plugins ./plugins
 
 ENV NODE_ENV=production
 
