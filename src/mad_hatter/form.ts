@@ -1,6 +1,5 @@
 import type { AgentFastReply } from '@dto/agent.ts'
 import type { StrayCat } from '@lg'
-import { catchError } from '@/errors.ts'
 import { db } from '@db'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { log } from '@logger'
@@ -9,6 +8,7 @@ import _Merge from 'lodash/merge.js'
 import _Unset from 'lodash/unset.js'
 import { kebabCase } from 'scule'
 import { z } from 'zod'
+import { catchError } from '@/errors.ts'
 
 export enum FormState {
 	/**

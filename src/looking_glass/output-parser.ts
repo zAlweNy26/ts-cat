@@ -1,11 +1,11 @@
 import type { AgentAction, AgentFinish } from 'langchain/agents'
-import { catchError } from '@/errors.ts'
 import { OutputParserException } from '@langchain/core/output_parsers'
 import { log } from '@logger'
 import { madHatter } from '@mh'
 import { parseJson } from '@utils'
 import { AgentActionOutputParser } from 'langchain/agents'
 import { z, ZodError } from 'zod'
+import { catchError } from '@/errors.ts'
 
 const agentOutputSchema = z.object({
 	action: z.string(),

@@ -1,5 +1,5 @@
-import { serverContext, swaggerTags } from '@/context'
 import { Elysia, t } from 'elysia'
+import { serverContext, swaggerTags } from '@/context'
 
 export const settingsRoutes = new Elysia({
 	name: 'settings',

@@ -1,5 +1,5 @@
-import { serverContext, swaggerTags } from '@/context'
 import { Elysia, t } from 'elysia'
+import { serverContext, swaggerTags } from '@/context'
 
 export const rabbitHoleRoutes = new Elysia({
 	name: 'rabbithole',
@@ -221,7 +221,7 @@ export const rabbitHoleRoutes = new Elysia({
 	}
 }, {
 	body: t.Object({
-		file: t.File({ description: 'Memory file to ingest. It must be a JSON.' }),
+		file: t.File({ type: 'application/json', description: 'Memory file to ingest. It must be a JSON.' }),
 	}),
 	query: t.Object({
 		sync: t.Boolean({ title: 'Synchronous', description: 'Whether to ingest the memory synchronously', default: true }),

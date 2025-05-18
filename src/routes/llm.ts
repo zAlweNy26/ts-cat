@@ -1,8 +1,8 @@
-import { serverContext, swaggerTags } from '@/context'
 import { getAllowedLLMs, getLLM, getLLMSettings } from '@factory/llm.ts'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
+import { serverContext, swaggerTags } from '@/context'
 
 export const llmRoutes = new Elysia({
 	name: 'llm',

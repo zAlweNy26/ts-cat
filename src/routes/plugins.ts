@@ -1,9 +1,9 @@
 import { mkdir, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { serverContext, swaggerTags } from '@/context'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
+import { serverContext, swaggerTags } from '@/context'
 
 export const pluginsRoutes = new Elysia({
 	name: 'plugins',
