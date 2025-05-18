@@ -4,6 +4,7 @@ import type { BaseLanguageModelInput } from '@langchain/core/language_models/bas
 import type { ElysiaWS as WS } from 'elysia/ws'
 import type { SqlDialect } from 'langchain/chains/sql_db'
 import type { DataSourceOptions } from 'typeorm'
+import type { z } from 'zod'
 import { Document } from '@langchain/core/documents'
 import { AIMessageChunk } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
@@ -101,8 +102,8 @@ export class StrayCat {
 	 *
 	 * Returns undefined if the plugin is not found.
 	 */
-	getPluginInfo(id: string) {
-		const plugin = madHatter.getPlugin(id)
+	getPluginInfo<T extends z.AnyZodObject>(id: string) {
+		const plugin = madHatter.getPlugin<T>(id)
 		if (!plugin) return undefined
 		const { active, manifest, settings } = plugin
 		return {
@@ -110,6 +111,12 @@ export class StrayCat {
 			manifest,
 			settings,
 		}
+	}
+
+	updatePluginSettings<T extends z.AnyZodObject>(id: string, settings: Partial<z.infer<T>>) {
+		const plugin = madHatter.getPlugin<T>(id)
+		if (!plugin) return undefined
+		plugin.settings = settings
 	}
 
 	/**

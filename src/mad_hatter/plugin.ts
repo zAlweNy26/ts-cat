@@ -9,7 +9,7 @@ import { deepDefaults, existsDir, getZodDefaults } from '@utils'
 import { destr } from 'destr'
 import _CloneDeep from 'lodash/cloneDeep.js'
 import _SampleSize from 'lodash/sampleSize.js'
-import { titleCase } from 'scule'
+import { kebabCase, titleCase } from 'scule'
 import { z } from 'zod'
 import { isForm } from './form.ts'
 import { isHook } from './hook.ts'
@@ -88,7 +88,7 @@ export class Plugin<
 	forms: Form[] = []
 
 	private constructor(public path: string) {
-		this._id = basename(path)
+		this._id = kebabCase(basename(path))
 		this._manifest = deepDefaults(getZodDefaults(pluginManifestSchema), { name: titleCase(this._id) }) as PluginManifest
 	}
 
@@ -170,7 +170,7 @@ export class Plugin<
 	}
 
 	set settings(settings: S) {
-		this._settings = this.schema.parse(settings) as S
+		this._settings = deepDefaults(this.schema.parse(settings) as S, this._settings)
 		const settingsPath = join(this.path, 'settings.json')
 		Bun.write(settingsPath, JSON.stringify(this._settings, null, 2))
 	}
