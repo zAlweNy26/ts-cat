@@ -415,7 +415,12 @@ export const memoryRoutes = new Elysia({
 		}),
 	}),
 	response: {
-		200: 'chatHistory',
+		200: t.Object({
+			history: t.Array(serverContext.Ref('memoryMessage')),
+		}, {
+			title: 'Chat History',
+			description: 'Chat messages history',
+		}),
 		400: 'error',
 	},
 }).delete('/history/:chatId?', ({ stray, params }) => {

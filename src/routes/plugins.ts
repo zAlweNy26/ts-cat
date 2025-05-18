@@ -20,7 +20,13 @@ export const pluginsRoutes = new Elysia({
 		summary: 'Get plugins',
 	},
 	response: {
-		200: 'pluginsInfo',
+		200: t.Object({
+			installed: t.Array(serverContext.Ref('pluginInfo')),
+			registry: t.Array(t.Pick(serverContext.Ref('pluginInfo'), ['id', 'manifest'])),
+		}, {
+			title: 'Plugins Information',
+			description: 'Information about installed and available plugins from registry',
+		}),
 		400: 'error',
 	},
 }).get('/:pluginId', ({ mh, params, HttpError }) => {
@@ -202,7 +208,12 @@ export const pluginsRoutes = new Elysia({
 		summary: 'Get plugins settings',
 	},
 	response: {
-		200: 'pluginsSettings',
+		200: t.Object({
+			settings: t.Array(serverContext.Ref('pluginSettings')),
+		}, {
+			title: 'Plugins Settings',
+			description: 'Settings of all the installed plugins',
+		}),
 		400: 'error',
 	},
 }).get('/settings/:pluginId', ({ mh, params, HttpError }) => {

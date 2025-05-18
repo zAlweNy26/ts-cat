@@ -46,7 +46,7 @@ export const messageInput = t.Intersect([
 	}),
 	t.Record(t.String(), t.Any()),
 ], {
-	$id: 'messageInput',
+	$id: 'MessageInput',
 	title: 'Message Input',
 	description: 'Message to pass to the cat',
 	default: { text: 'Hello, world' },
@@ -79,7 +79,7 @@ export const memoryMessage = t.Object({
 		interactions: t.Array(t.Record(t.String(), t.Any())),
 	})),
 }, {
-	$id: 'memoryMessage',
+	$id: 'MemoryMessage',
 	title: 'Memory Message',
 	description: 'Content object saved in memory',
 })
@@ -101,7 +101,7 @@ export const chatMessage = t.Union([
 		t.Ref('memoryMessage'),
 	]),
 ], {
-	$id: 'chatMessage',
+	$id: 'ChatMessage',
 	title: 'Chat Message',
 	description: 'Message object received from the cat',
 })
@@ -159,7 +159,7 @@ export const modelInfo = t.Object({
 	schema: t.Record(t.String(), t.Any()),
 	value: t.Record(t.String(), t.Any()),
 }, {
-	$id: 'modelInfo',
+	$id: 'ModelInfo',
 	title: 'Model Information',
 	description: 'Information about a model',
 	examples: [{
@@ -182,7 +182,7 @@ export const pluginManifest = t.Object({
 	thumb: t.Optional(t.String({ format: 'uri' })),
 	tags: t.Array(t.String(), { default: ['miscellaneous', 'unknown'] }),
 }, {
-	$id: 'pluginManifest',
+	$id: 'PluginManifest',
 	title: 'Plugin Manifest',
 	description: 'The manifest information of a plugin',
 	examples: [{
@@ -216,7 +216,7 @@ export const pluginInfo = t.Object({
 		priority: t.Number(),
 	})),
 }, {
-	$id: 'pluginInfo',
+	$id: 'PluginInfo',
 	title: 'Plugin Information',
 	description: 'Information about a plugin (including its manifest)',
 	examples: [{
@@ -235,7 +235,7 @@ export const pluginSettings = t.Object({
 	schema: t.Record(t.String(), t.Any()),
 	value: t.Record(t.String(), t.Any()),
 }, {
-	$id: 'pluginSettings',
+	$id: 'PluginSettings',
 	title: 'Plugin Settings',
 	description: 'Current settings for a plugin',
 	examples: [{
@@ -296,13 +296,6 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	pluginInfo,
 	pluginSettings,
 	chatMessage,
-	chatHistory: t.Object({
-		history: t.Array(t.Ref('memoryMessage')),
-	}, {
-		$id: 'ChatHistory',
-		title: 'Chat History',
-		description: 'Chat messages history',
-	}),
 	modelsInfo: t.Object({
 		selected: t.String(),
 		options: t.Array(t.Ref('modelInfo')),
@@ -310,20 +303,5 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		$id: 'ModelsInfo',
 		title: 'Models Information',
 		description: 'Information about available models and the selected model',
-	}),
-	pluginsInfo: t.Object({
-		installed: t.Array(t.Ref('pluginInfo')),
-		registry: t.Array(t.Pick(pluginInfo, ['id', 'manifest'])),
-	}, {
-		$id: 'PluginsInfo',
-		title: 'Plugins Information',
-		description: 'Information about installed and available plugins from registry',
-	}),
-	pluginsSettings: t.Object({
-		settings: t.Array(t.Ref('pluginSettings')),
-	}, {
-		$id: 'PluginsSettings',
-		title: 'Plugins Settings',
-		description: 'Settings of all the installed plugins',
 	}),
 })
