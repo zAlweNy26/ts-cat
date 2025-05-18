@@ -1,3 +1,4 @@
+import type { z } from 'zod'
 import type { Form } from './form.ts'
 import type { HookNames, Hooks, HookTypes } from './hook.ts'
 import type { Tool } from './tool.ts'
@@ -90,7 +91,7 @@ export class MadHatter {
 				log.error('Error creating plugins directory:', error)
 			}
 		}
-		log.success('Active plugins:', [...this.activePlugins].join(', '))
+		log.success('Active plugins:', [...this.activePlugins].join(', ') || 'no plugins active')
 		await this.syncHooksAndProcedures()
 	}
 
@@ -115,8 +116,8 @@ export class MadHatter {
 	 * Gets a plugin by its ID.
 	 * @param id The ID of the plugin to get.
 	 */
-	getPlugin(id: string) {
-		return this.plugins.get(id)
+	getPlugin<T extends z.AnyZodObject>(id: string) {
+		return this.plugins.get(id) as Plugin<T> | undefined
 	}
 
 	/**

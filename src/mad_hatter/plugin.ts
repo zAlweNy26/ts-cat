@@ -72,11 +72,11 @@ export const CatPlugin = Object.freeze({
 })
 
 export class Plugin<
-	T extends Record<string, z.ZodType> = Record<string, z.ZodType>,
-	S extends z.infer<z.ZodObject<T>> = z.infer<z.ZodObject<T>>,
+	T extends z.AnyZodObject = z.AnyZodObject,
+	S extends z.infer<T> = z.infer<T>,
 > {
 	private events: Partial<PluginEvents> = {}
-	private _schema: z.ZodObject<T> = z.object({}) as z.ZodObject<T>
+	private _schema: T = z.object({}) as T
 	private _settings: S = {} as S
 	private _manifest: PluginManifest
 	private _id: string
@@ -251,7 +251,7 @@ export class Plugin<
 			try {
 				const exported = await import(moduleUrl)
 				Object.values(exported).forEach((v) => {
-					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v
+					if (v instanceof z.ZodObject && v.description === 'Plugin settings') this._schema = v as T
 					else if (isForm(v)) this.forms.push(v)
 					else if (isTool(v)) this.tools.push(v)
 					else if (isHook(v)) this.#hooks.push({ ...v, from: this.id })
