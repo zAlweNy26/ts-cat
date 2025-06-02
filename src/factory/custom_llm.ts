@@ -2,8 +2,8 @@ import type { CallbackManagerForLLMRun } from '@langchain/core/callbacks/manager
 import type { BaseChatModelParams } from '@langchain/core/language_models/chat_models'
 import type { BaseMessage } from '@langchain/core/messages'
 import type { ChatResult } from '@langchain/core/outputs'
+import type { ChatOpenAIFields } from '@langchain/openai'
 import { BaseChatModel, SimpleChatModel } from '@langchain/core/language_models/chat_models'
-import { ChatOllama } from '@langchain/ollama'
 import { ChatOpenAI } from '@langchain/openai'
 import { ofetch } from 'ofetch'
 
@@ -65,7 +65,7 @@ export class CustomChat extends BaseChatModel {
 }
 
 export class CustomChatOpenAI extends ChatOpenAI {
-	constructor(params: ConstructorParameters<typeof ChatOpenAI>[0] & { baseUrl: string }) {
+	constructor(params: ChatOpenAIFields & { baseUrl: string }) {
 		const { baseUrl, ...args } = params
 		super({
 			...args,
@@ -77,15 +77,5 @@ export class CustomChatOpenAI extends ChatOpenAI {
 
 	_llmType(): string {
 		return 'custom'
-	}
-}
-
-export class CustomChatOllama extends ChatOllama {
-	constructor(params: NonNullable<ConstructorParameters<typeof ChatOllama>[0]> & { baseUrl: string }) {
-		const { baseUrl, ...args } = params
-		super({
-			...args,
-			baseUrl: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
-		})
 	}
 }

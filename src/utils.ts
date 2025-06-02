@@ -24,13 +24,6 @@ export const zodJson: z.ZodType<Json> = z.lazy(() =>
 )
 
 /**
- * A Zod schema for primitive values.
- */
-export const zodPrimitive: z.ZodType<Primitive> = z.lazy(() =>
-	z.union([z.string(), z.number(), z.boolean(), z.bigint(), z.symbol(), z.record(zodPrimitive)]),
-)
-
-/**
  * A Zod schema for fixing coercion of boolean value.
  */
 export const zodBoolean = z.string().transform(v => v === 'true').default('false')
@@ -38,7 +31,7 @@ export const zodBoolean = z.string().transform(v => v === 'true').default('false
 const envSchema = z.object({
 	CORE_HOST: z.string().default('localhost'),
 	CORE_PORT: z.coerce.number().default(1865),
-	CORE_USE_SECURE_PROTOCOLS: zodBoolean,
+	CORE_USE_SECURE_PROTOCOLS: z.coerce.boolean().default(false),
 	QDRANT_HOST: z.string().default('localhost'),
 	QDRANT_PORT: z.coerce.number().default(6333),
 	QDRANT_API_KEY: z.string().optional(),
@@ -46,9 +39,9 @@ const envSchema = z.object({
 	API_KEY: z.string().optional(),
 	CORS_ALLOWED_ORIGINS: z.string().transform(v => v.split(',')).default('*'),
 	LOG_LEVEL: z.preprocess(v => String(v).toLowerCase(), z.enum(LogLevel).default('normal')).default(LogLevel[2]),
-	SAVE_MEMORY_SNAPSHOTS: zodBoolean,
-	WATCH: zodBoolean,
-	CACHE: zodBoolean,
+	SAVE_MEMORY_SNAPSHOTS: z.coerce.boolean().default(false),
+	WATCH: z.coerce.boolean().default(false),
+	CACHE: z.coerce.boolean().default(false),
 }).transform(s => ({
 	host: s.CORE_HOST,
 	port: s.CORE_PORT,

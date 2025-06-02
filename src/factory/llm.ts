@@ -12,7 +12,7 @@ import { AzureChatOpenAI, ChatOpenAI } from '@langchain/openai'
 import { llmCache } from '@lg/cache.ts'
 import { madHatter } from '@mh'
 import { z } from 'zod'
-import { CustomChat, CustomChatOllama, CustomChatOpenAI, FakeChat } from './custom_llm.ts'
+import { CustomChat, CustomChatOpenAI, FakeChat } from './custom_llm.ts'
 
 interface LLMSettings<Config extends z.ZodTypeAny> {
 	name: string
@@ -64,20 +64,6 @@ const customLLMConfig = new ChatModelConfig({
 		options: z.record(z.any()).default({}),
 	}),
 	model: CustomChat,
-})
-
-const customOllamaLLMConfig = new ChatModelConfig({
-	name: 'Custom Ollama',
-	description: 'Configuration for Ollama language model',
-	config: z.object({
-		baseUrl: z.string().url(),
-		model: z.string().default('llama2'),
-		numCtx: z.number().int().gte(1).default(2045),
-		temperature: z.number().gte(0).lte(1).default(0.8),
-		repeatPenalty: z.number().gte(-2).lte(2).default(1.1),
-		repeatLastN: z.number().int().gte(1).default(64),
-	}),
-	model: CustomChatOllama,
 })
 
 const customOpenAILLMConfig = new ChatModelConfig({
@@ -186,7 +172,7 @@ const ollamaLLMConfig = new ChatModelConfig({
 	link: 'https://ollama.com/search',
 	config: z.object({
 		model: z.string().default('llama2'),
-		baseUrl: z.string().url(),
+		baseUrl: z.string().url().default('http://localhost:11434'),
 		numCtx: z.number().int().gte(1).default(2045),
 		temperature: z.number().gte(0).lte(1).default(0.8),
 		repeatPenalty: z.number().gte(-2).lte(2).default(1.1),
@@ -245,7 +231,6 @@ export async function getAllowedLLMs() {
 	const allowedLLMs: ChatModelConfig<any>[] = [
 		fakeLLMConfig,
 		customLLMConfig,
-		customOllamaLLMConfig,
 		customOpenAILLMConfig,
 		chatOpenAILLMConfig,
 		chatDeepSeekLLMConfig,
