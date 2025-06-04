@@ -16,7 +16,7 @@ import { CacheBackedEmbeddings } from 'langchain/embeddings/cache_backed'
 import { z, ZodIssueCode } from 'zod'
 import { CustomOpenAIEmbeddings, FastEmbedEmbeddings } from './custom_embedder.ts'
 
-interface EmbedderSettings<Config extends z.ZodTypeAny> {
+interface EmbedderSettings<Config extends z.AnyZodObject | z.ZodEffects<z.AnyZodObject> = z.AnyZodObject> {
 	name: string
 	description: string
 	link?: string
@@ -24,7 +24,7 @@ interface EmbedderSettings<Config extends z.ZodTypeAny> {
 	model: new (params: z.output<Config>) => Embeddings
 }
 
-export class EmbedderConfig<Config extends z.ZodTypeAny = z.ZodTypeAny> {
+export class EmbedderConfig<Config extends z.AnyZodObject | z.ZodEffects<z.AnyZodObject> = z.AnyZodObject> {
 	constructor(private _settings: EmbedderSettings<Config>) {}
 
 	get info() {

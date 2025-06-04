@@ -14,7 +14,7 @@ import { madHatter } from '@mh'
 import { z } from 'zod'
 import { CustomChat, CustomChatOpenAI, FakeChat } from './custom_llm.ts'
 
-interface LLMSettings<Config extends z.ZodTypeAny> {
+interface LLMSettings<Config extends z.AnyZodObject | z.ZodEffects<z.AnyZodObject> = z.AnyZodObject> {
 	name: string
 	description: string
 	link?: string
@@ -22,7 +22,7 @@ interface LLMSettings<Config extends z.ZodTypeAny> {
 	model: new (params: z.output<Config>) => BaseChatModel
 }
 
-export class ChatModelConfig<Config extends z.ZodTypeAny = z.ZodTypeAny> {
+export class ChatModelConfig<Config extends z.AnyZodObject | z.ZodEffects<z.AnyZodObject> = z.AnyZodObject> {
 	constructor(private _settings: LLMSettings<Config>) {}
 
 	get info() {

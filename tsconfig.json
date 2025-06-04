@@ -36,6 +36,7 @@
 		],
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
+		"maxNodeModuleJsDepth": 1,
 		"strict": true,
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedIndexedAccess": true,

@@ -12,8 +12,8 @@ export interface HookTypes {
 	// Cheshire Cat hooks
 	beforeBootstrap: (db: Readonly<DatabaseConfig>) => NotPromise<DatabaseConfig>
 	afterBootstrap: (db: Readonly<DatabaseConfig>, cat: CheshireCat) => NotPromise<DatabaseConfig>
-	allowedEmbedders: (embedders: EmbedderConfig[]) => MaybePromise<EmbedderConfig<any>[]>
-	allowedLLMs: (llms: ChatModelConfig[]) => MaybePromise<ChatModelConfig<any>[]>
+	allowedEmbedders: (embedders: EmbedderConfig[]) => MaybePromise<EmbedderConfig[]>
+	allowedLLMs: (llms: ChatModelConfig[]) => MaybePromise<ChatModelConfig[]>
 	// Agent Manager hooks
 	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
 	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>
