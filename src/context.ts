@@ -268,9 +268,8 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	const apiKey = headers.token, realKey = parsedEnv.apiKey
 	if (whitelistedPaths.some(p => path.startsWith(p))) return
 	if (realKey && realKey !== apiKey) throw HttpError.Unauthorized('Invalid API key')
-}).derive({ as: 'global' }, ({ headers, HttpError }) => {
-	const user = headers['User-ID']
-	if (!user) throw HttpError.BadRequest('User not found')
+}).derive({ as: 'global' }, ({ headers }) => {
+	const user = headers['user-id'] || 'user'
 	return { stray: cat.getStray(user) }
 }).model({
 	generic: t.Record(t.String(), t.Any(), {

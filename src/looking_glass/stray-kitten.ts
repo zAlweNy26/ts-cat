@@ -6,7 +6,6 @@ import type { IterableReadableStream } from '@langchain/core/utils/stream'
 import type { ElysiaWS as WS } from 'elysia/ws'
 import type { SqlDialect } from 'langchain/chains/sql_db'
 import type { DataSourceOptions } from 'typeorm'
-import { catchError } from '@/errors.ts'
 import { Document } from '@langchain/core/documents'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { PromptTemplate } from '@langchain/core/prompts'
@@ -18,6 +17,7 @@ import { createSqlQueryChain } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
 import { QuerySqlTool } from 'langchain/tools/sql'
 import { DataSource } from 'typeorm'
+import { catchError } from '@/errors.ts'
 import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
 import { cheshireCat } from './index.ts'
 
@@ -249,7 +249,7 @@ ${labelsList}${examplesList}
 
 		if (save) this.addHistory([{ role: 'User', what: response.text, who: this.userId, when: Date.now() }])
 
-		try { await this.recallRelevantMemories('') }
+		try { await this.recallRelevantMemories() }
 		catch (error) {
 			log.error(error)
 			return {

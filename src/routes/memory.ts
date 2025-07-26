@@ -1,8 +1,8 @@
 import type { WorkingMemory } from '@dto/message.ts'
 import type { Filter, MemoryJson } from '@dto/vector-memory.ts'
-import { memoryMessage, serverContext, swaggerTags } from '@/context'
 import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
+import { memoryMessage, serverContext, swaggerTags } from '@/context'
 
 export const memoryRoutes = new Elysia({
 	name: 'memory',
@@ -200,9 +200,8 @@ export const memoryRoutes = new Elysia({
 		title: 'Metadata filter',
 		description: 'Filter documents by metadata',
 		examples: [{
-			who: {
-				any: ['user'],
-			},
+			key: 'who',
+			match: { any: ['user'] },
 		}],
 	}),
 	response: {
