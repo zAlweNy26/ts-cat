@@ -217,12 +217,12 @@ const bedrockChatLLMConfig = new ChatModelConfig({
 
 const togetherAIChatLLMConfig = new ChatModelConfig({
 	name: 'Together AI',
-	description: 'Configuration for Together AI models',
+	description: 'Configuration for Together AI chat models',
 	config: z.object({
 		apiKey: z.string(),
 		temperature: z.number().default(0.7),
 		model: z.string().default('meta-llama/Llama-3.3-70B-Instruct-Turbo-Free'),
-		maxTokens: z.number().default(4096),
+		maxTokens: z.number().int().gte(1).default(4096),
 	}),
 	model: ChatTogetherAI,
 })
