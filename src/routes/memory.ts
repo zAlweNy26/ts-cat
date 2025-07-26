@@ -533,7 +533,7 @@ export const memoryRoutes = new Elysia({
 }, {
 	detail: {
 		description: 'Export the user\'s memory to a file.',
-		summary: 'Add conversation history messages',
+		summary: 'Export memory to file',
 	},
 	params: t.Object({
 		chatId: t.String({
