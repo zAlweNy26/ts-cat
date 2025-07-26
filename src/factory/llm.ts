@@ -87,7 +87,7 @@ const chatOpenAILLMConfig = new ChatModelConfig({
 	link: 'https://platform.openai.com/docs/models/overview',
 	config: z.object({
 		apiKey: z.string(),
-		model: z.string().default('gpt-3.5-turbo'),
+		model: z.string().default('gpt-4o-mini'),
 		temperature: z.number().gte(0).lte(1).default(0.7),
 		streaming: z.boolean().default(false),
 		maxTokens: z.number().int().gte(1).default(2048),
