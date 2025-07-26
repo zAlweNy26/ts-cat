@@ -308,7 +308,7 @@ Just output the class, nothing else.`
 
 		if (!returnWhy && finalOutput.role === 'AI') delete finalOutput.why
 
-		this.cleaInteractions()
+		this.clearInteractions()
 
 		return {
 			type: 'chat',
