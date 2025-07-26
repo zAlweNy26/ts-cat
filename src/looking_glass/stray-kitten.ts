@@ -367,7 +367,7 @@ Just output the class, nothing else.`
 	/**
 	 * Clears the model interactions.
 	 */
-	cleaInteractions() {
+	clearInteractions() {
 		this.modelsInteractions = []
 	}
 
