@@ -4,7 +4,6 @@ import type { BaseLanguageModelInput } from '@langchain/core/language_models/bas
 import type { AIMessageChunk } from '@langchain/core/messages'
 import type { IterableReadableStream } from '@langchain/core/utils/stream'
 import type { ElysiaWS as WS } from 'elysia/ws'
-import type { SqlDialect } from 'langchain/chains/sql_db'
 import type { DataSourceOptions } from 'typeorm'
 import { Document } from '@langchain/core/documents'
 import { StringOutputParser } from '@langchain/core/output_parsers'
@@ -13,6 +12,7 @@ import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables
 import { log } from '@logger'
 import { madHatter } from '@mh'
 import { deepDefaults, normalizeMessageChunks } from '@utils'
+import { closest as closestLevenshtein } from 'fastest-levenshtein'
 import { createSqlQueryChain } from 'langchain/chains/sql_db'
 import { SqlDatabase } from 'langchain/sql_db'
 import { QuerySqlTool } from 'langchain/tools/sql'
@@ -20,6 +20,14 @@ import { DataSource } from 'typeorm'
 import { catchError } from '@/errors.ts'
 import { ModelInteractionHandler, NewTokenHandler, RateLimitHandler } from './callbacks.ts'
 import { cheshireCat } from './index.ts'
+
+type SQLDialect = 'oracle' | 'postgres' | 'sqlite' | 'mysql' | 'mssql'
+
+type ExtractByType<T, K extends string> = T extends { type: infer U }
+	? U extends K
+		? Omit<T, 'type'>
+		: never
+	: never
 
 /**
  * The stray kitten goes around tools and hook, making troubles
@@ -150,32 +158,33 @@ export class StrayKitten {
 	/**
 	 * @experimental Classifies the given sentence into one of the provided labels.
 	 * @param sentence The sentence to classify.
-	 * @param labels The labels to classify the sentence into.
-	 * @param examples Optional examples to help the LLM classify the sentence.
-	 * @returns The label of the sentence or null if it could not be classified.
+	 * @param labels An object containing the labels and their corresponding examples.
+	 * @returns The label that best matches the sentence.
+	 * @throws If no labels are provided.
 	 */
-	async classify<S extends string, T extends [S, ...S[]]>(sentence: string, labels: T, examples?: { [key in T[number]]: S[] }) {
-		let examplesList = ''
-		if (examples && Object.keys(examples).length > 0) {
-			examplesList += Object.entries(examples)
-				.reduce((acc, [l, ex]) => `${acc}\n"${ex}" -> "${l}"`, '\n\nExamples:')
+	async classify(sentence: string, labels: Record<string, [string, ...string[]]>) {
+		if (Object.keys(labels).length === 0) throw new Error('No labels provided for classification.')
+
+		let examplesList = '\nExamples:'
+		for (const [label, examples] of Object.entries(labels)) {
+			for (const example of examples)
+				examplesList += `\n"${example}" -> "${label}"`
 		}
 
-		const labelsList = `"${labels.join('", "')}"`
 		const prompt = `Classify this sentence:
 "${sentence}"
 
 Allowed classes are:
-${labelsList}${examplesList}
+"${Object.keys(labels).join('", "')}"
+${examplesList}
 
-"${sentence}" -> `
+Just output the class, nothing else.`
 
 		const response = normalizeMessageChunks(await this.llm(prompt))
-		log.info(`Classified sentence: ${response}`)
+		const label = closestLevenshtein(response, Object.keys(labels))
+		log.info(`Classified sentence: ${label}`)
 
-		const label = labels.find(w => response.includes(w))
-		if (label) return label
-		else return null
+		return label
 	}
 
 	/**
@@ -185,10 +194,10 @@ ${labelsList}${examplesList}
 	 * @param source The data source to execute the query on.
 	 * @returns The result of the SQL query in natural language.
 	 */
-	async queryDb<T extends Exclude<SqlDialect, 'sap hana'>>(
+	async queryDb<T extends SQLDialect>(
 		question: string,
 		type: T,
-		source: Omit<Extract<DataSourceOptions, { type: T }>, 'type'>, // BUG: Fix type inference
+		source: ExtractByType<DataSourceOptions, T>,
 	) {
 		const appDataSource = new DataSource({ type, ...source } as DataSourceOptions)
 		const db = await SqlDatabase.fromDataSourceParams({ appDataSource })

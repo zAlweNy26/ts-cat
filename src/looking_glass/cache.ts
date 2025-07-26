@@ -7,7 +7,6 @@ import { InMemoryStore } from '@langchain/core/stores'
 import { log } from '@logger'
 import { parsedEnv } from '@utils'
 import { Redis } from 'ioredis'
-import { log } from '@/logger'
 
 const { redisUrl, cache: enabled } = parsedEnv
 
