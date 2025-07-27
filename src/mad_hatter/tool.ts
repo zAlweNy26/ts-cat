@@ -1,5 +1,5 @@
 import type { RunnableConfig } from '@langchain/core/runnables'
-import type { StrayCat } from '@lg'
+import type { StrayKitten } from '@lg'
 import { db } from '@db'
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import { parsedEnv } from '@utils'
@@ -12,7 +12,7 @@ interface ToolOptions {
 	startExamples?: string[]
 }
 
-type ToolFun = (input: string | null, cat: StrayCat) => Promise<string>
+type ToolFun = (input: string | null, cat: StrayKitten) => Promise<string>
 
 export const isTool = (tool: any): tool is Tool => tool instanceof Tool
 
@@ -42,7 +42,7 @@ const toolSchema = z.object({
 type ToolSchema = z.infer<typeof toolSchema>
 
 export class Tool extends DynamicStructuredTool<typeof toolSchema> {
-	#cat!: StrayCat
+	#cat!: StrayKitten
 	#active = false
 	startExamples: string[]
 
@@ -83,7 +83,7 @@ export class Tool extends DynamicStructuredTool<typeof toolSchema> {
 		return super.invoke(arg, config)
 	}
 
-	assignCat(cat: StrayCat) {
+	assignCat(cat: StrayKitten) {
 		this.#cat = cat
 		return this
 	}

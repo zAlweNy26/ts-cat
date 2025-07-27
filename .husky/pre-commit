@@ -1,2 +1,2 @@
 # Run checks
-bun run typecheck && bun run lint
+bun run typecheck && bun run lint:fix

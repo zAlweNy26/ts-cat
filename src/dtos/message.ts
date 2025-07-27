@@ -1,6 +1,6 @@
 import type { DocumentInput } from '@langchain/core/documents'
 import type { IntermediateStep } from './agent.ts'
-import type { FilterMatch } from './vector-memory.ts'
+import type { Filter } from './vector-memory.ts'
 
 /**
  * The configuration for memory recall.
@@ -9,7 +9,7 @@ export interface MemoryRecallConfig {
 	embedding: number[]
 	k: number
 	threshold: number
-	filter?: Record<string, FilterMatch>
+	filter?: Filter
 }
 
 /**
@@ -69,7 +69,6 @@ export type MemoryMessage = {
 	role: 'AI' | 'User'
 	what: string
 	who: string
-	chatId?: string
 	when: number
 } & ({
 	role: 'AI'

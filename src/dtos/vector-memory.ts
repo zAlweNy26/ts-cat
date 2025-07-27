@@ -5,8 +5,6 @@ export type Filter = Schemas['Filter']
 
 export type FilterCondition = Schemas['FieldCondition']
 
-export type FilterMatch = FilterCondition['match']
-
 export type PointData = Schemas['PointStruct']
 
 export type EmbeddedVector = Schemas['NamedVectorStruct']

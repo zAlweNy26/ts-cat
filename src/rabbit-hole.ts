@@ -1,6 +1,6 @@
 import type { EmbedderInteraction } from '@dto/message.ts'
 import type { MemoryJson } from '@dto/vector-memory.ts'
-import type { StrayCat } from '@lg/stray-cat.ts'
+import type { StrayCat } from '@lg'
 import type { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import type { TextSplitter } from 'langchain/text_splitter'
 import { basename, extname, resolve } from 'node:path'
@@ -10,6 +10,7 @@ import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf'
 import { PPTXLoader as OfficeLoader } from '@langchain/community/document_loaders/fs/pptx'
 import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio'
 import { Document } from '@langchain/core/documents'
+import { StrayKitten } from '@lg'
 import { cheshireCat } from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
 import { madHatter } from '@mh/mad-hatter.ts'
@@ -143,12 +144,12 @@ export class RabbitHole {
 
 	/**
 	 * Ingests textual content into the memory.
-	 * @param stray The StrayCat instance.
+	 * @param stray The StrayKitten instance.
 	 * @param content The textual content to ingest.
 	 * @param source The source of the content (default: 'unknown').
 	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 */
-	async ingestContent(stray: StrayCat, content: string | string[], source = 'unknown', metadata?: Record<string, any>) {
+	async ingestContent(stray: StrayKitten | StrayCat, content: string | string[], source = 'unknown', metadata?: Record<string, any>) {
 		log.info('Ingesting textual content...')
 		content = Array.isArray(content) ? content : [content]
 		let docs = content.map(c => new Document({ pageContent: c }))
@@ -158,23 +159,23 @@ export class RabbitHole {
 
 	/**
 	 * Ingests a file and processes its content.
-	 * @param stray The StrayCat instance.
+	 * @param stray The StrayKitten instance.
 	 * @param file The file to ingest.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
 	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 * @throws An error if the file type is not supported.
 	 */
-	async ingestFile(stray: StrayCat, file: File, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
+	async ingestFile(stray: StrayKitten | StrayCat, file: File, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
 		const mime = file.type as keyof typeof this.fileHandlers
 		if (!Object.keys(this.fileHandlers).includes(mime))
 			throw new Error(`The file type "${file.type}" is not supported. Skipping ingestion...`)
 
 		log.info('Ingesting file...')
 		const loader = new this.fileHandlers[mime]!(file as unknown as Blob)
-		await stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
+		if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 		const content = await loader.load()
-		await stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
+		if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
 		const docs = await this.splitDocs(stray, content, chunkSize, chunkOverlap)
 		await this.storeDocuments(stray, docs, file.name, metadata)
 	}
@@ -183,23 +184,23 @@ export class RabbitHole {
 	 * Ingests a path or URL and processes the content.
 	 * If the input is a URL, it uses a web handler to load the content.
 	 * If the input is a file system path, it reads the file and processes the content.
-	 * @param stray The StrayCat instance.
+	 * @param stray The StrayKitten instance.
 	 * @param path The path or URL to ingest.
 	 * @param chunkSize The size of each chunk for splitting the content.
 	 * @param chunkOverlap The overlap between chunks.
 	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 * @throws If the URL doesn't match any web handler or the path doesn't exist.
 	 */
-	async ingestPathOrURL(stray: StrayCat, path: string, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
+	async ingestPathOrURL(stray: StrayKitten | StrayCat, path: string, chunkSize?: number, chunkOverlap?: number, metadata?: Record<string, any>) {
 		try {
 			const url = new URL(path)
 			log.info('Ingesting URL...')
 			const webHandler = this.webHandlers.find(([regex]) => regex.test(url.href))
 			if (!webHandler) throw new Error(`No matching regex found for "${path}". Skipping URL ingestion...`)
 			const loader = new webHandler[1](url.href)
-			await stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
+			if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: 'Parsing the content. Big content could require some minutes...' })
 			const content = await loader.load()
-			await stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
+			if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: 'Parsing completed. Starting now the reading process...' })
 			const docs = await this.splitDocs(stray, content, chunkSize, chunkOverlap)
 			await this.storeDocuments(stray, docs, url.href, metadata)
 		}
@@ -219,23 +220,24 @@ export class RabbitHole {
 	 * Stores the given documents in memory.
 	 * The method also executes the beforeStoreDocuments and beforeInsertInMemory hooks.
 	 * It sends a websocket notification of the progress and when the reading process is completed
-	 * @param stray The StrayCat instance.
+	 * @param stray The StrayKitten instance.
 	 * @param docs An array of documents to store.
 	 * @param source The source of the documents.
 	 * @param metadata Additional metadata to store with the content. (`source`, `who`, `when` will be overwritten)
 	 */
-	async storeDocuments(stray: StrayCat, docs: Document[], source: string, metadata?: Record<string, any>) {
+	async storeDocuments(stray: StrayKitten | StrayCat, docs: Document[], source: string, metadata?: Record<string, any>) {
 		log.info(`Preparing to store ${docs.length} documents`)
 		docs = await madHatter.executeHook('beforeStoreDocuments', docs, stray)
 		for (let [i, doc] of docs.entries()) {
 			const index = i + 1
 			const percRead = Math.round((index / docs.length) * 100)
 			const readMsg = `Read ${percRead}% of ${source}`
-			await stray.send({ type: 'notification', content: readMsg })
+			if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: readMsg })
 			log.info(readMsg)
 			doc.metadata = {
 				...metadata,
 				source,
+				chatId: stray instanceof StrayKitten ? stray.chatId : undefined,
 				who: stray.userId,
 				when: Date.now(),
 			}
@@ -265,20 +267,20 @@ export class RabbitHole {
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 		}
 		docs = await madHatter.executeHook('afterStoreDocuments', docs, stray)
-		await stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
+		if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
 		log.info(`Done uploading ${source}`)
 	}
 
 	/**
 	 * Splits an array of texts into smaller chunks and creates documents.
 	 * The method also executes the beforeSplitTexts and afterSplitTexts hooks.
-	 * @param stray The StrayCat instance.
+	 * @param stray The StrayKitten instance.
 	 * @param docs The array of documents to be split.
 	 * @param chunkSize The size of each chunk for splitting the content (default: 256).
 	 * @param chunkOverlap The overlap between chunks (default: 64).
 	 * @returns An array of documents.
 	 */
-	async splitDocs(stray: StrayCat, docs: Document[], chunkSize?: number, chunkOverlap?: number) {
+	async splitDocs(stray: StrayKitten | StrayCat, docs: Document[], chunkSize?: number, chunkOverlap?: number) {
 		docs = await madHatter.executeHook('beforeSplitDocs', docs, stray)
 		this.splitter.chunkSize = chunkSize ??= db.data.chunkSize
 		this.splitter.chunkOverlap = chunkOverlap ??= db.data.chunkOverlap

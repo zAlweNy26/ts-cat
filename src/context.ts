@@ -55,9 +55,20 @@ export const messageInput = t.Intersect([
 	}],
 })
 
+export const memoryJson = t.Object({
+	embedder: t.String(),
+	collections: t.Intersect([
+		t.Object({
+			episodic: t.Array(t.Record(t.String(), t.Any())),
+			declarative: t.Array(t.Record(t.String(), t.Any())),
+			procedural: t.Array(t.Record(t.String(), t.Any())),
+		}),
+		t.Record(t.String(), t.Array(t.Record(t.String(), t.Any()))),
+	]),
+})
+
 export const memoryMessage = t.Object({
 	role: t.Union([t.Literal('AI'), t.Literal('User')]),
-	chatId: t.Optional(t.String()),
 	what: t.String(),
 	who: t.String(),
 	when: t.Number(),
@@ -256,11 +267,10 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 }).onBeforeHandle({ as: 'scoped' }, ({ headers, path, HttpError }) => {
 	const apiKey = headers.token, realKey = parsedEnv.apiKey
 	if (whitelistedPaths.some(p => path.startsWith(p))) return
-	if (realKey && realKey !== apiKey)
-		throw HttpError.Unauthorized('Invalid API key')
+	if (realKey && realKey !== apiKey) throw HttpError.Unauthorized('Invalid API key')
 }).derive({ as: 'global' }, ({ headers }) => {
-	const user = headers.user || 'user'
-	return { stray: cat.getStray(user) || cat.addStray(user) }
+	const user = headers['user-id'] || 'user'
+	return { stray: cat.getStray(user) }
 }).model({
 	generic: t.Record(t.String(), t.Any(), {
 		examples: [{ key: 'value' }],
@@ -289,6 +299,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		description: 'Custom setting for the cat',
 	}),
 	messageInput,
+	memoryJson,
 	memoryMessage,
 	memoryRecall,
 	modelInfo,

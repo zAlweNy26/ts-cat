@@ -3,7 +3,7 @@ import type { AgentFastReply, ContextInput, InstantToolTrigger } from '@dto/agen
 import type { EmbedderInteraction, MemoryMessage, MemoryRecallConfigs, Message, ModelInteraction, WorkingMemory, WSMessage } from '@dto/message.ts'
 import type { ChatModelConfig, EmbedderConfig } from '@factory'
 import type { Document } from '@langchain/core/documents'
-import type { CheshireCat, StrayCat } from '@lg'
+import type { CheshireCat, StrayCat, StrayKitten } from '@lg'
 import type { VectorMemoryCollection } from '@memory'
 import type { FileParsers, WebParser } from '@rh'
 import type { TextSplitter } from 'langchain/text_splitter'
@@ -15,36 +15,36 @@ export interface HookTypes {
 	allowedEmbedders: (embedders: EmbedderConfig[]) => MaybePromise<EmbedderConfig[]>
 	allowedLLMs: (llms: ChatModelConfig[]) => MaybePromise<ChatModelConfig[]>
 	// Agent Manager hooks
-	agentPromptInstructions: (prompt: string, stray: StrayCat) => MaybePromise<string>
-	allowedTools: (tools: string[], stray: StrayCat) => MaybePromise<string[]>
-	beforeAgentStarts: (input: ContextInput, stray: StrayCat) => MaybePromise<ContextInput>
-	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayCat) => MaybePromise<Nullable<AgentFastReply>>
-	agentPromptPrefix: (prefix: string, stray: StrayCat) => MaybePromise<string>
-	agentPromptSuffix: (suffix: string, stray: StrayCat) => MaybePromise<string>
-	afterProceduresChain: (output: AgentFastReply, stray: StrayCat) => MaybePromise<AgentFastReply>
-	afterMemoryChain: (output: AgentFastReply, stray: StrayCat) => MaybePromise<AgentFastReply>
-	instantToolTrigger: (input: Nullable<InstantToolTrigger>, stray: StrayCat) => MaybePromise<Nullable<InstantToolTrigger>>
+	agentPromptInstructions: (prompt: string, stray: StrayKitten) => MaybePromise<string>
+	allowedTools: (tools: string[], stray: StrayKitten) => MaybePromise<string[]>
+	beforeAgentStarts: (input: ContextInput, stray: StrayKitten) => MaybePromise<ContextInput>
+	agentFastReply: (reply: Nullable<AgentFastReply>, stray: StrayKitten) => MaybePromise<Nullable<AgentFastReply>>
+	agentPromptPrefix: (prefix: string, stray: StrayKitten) => MaybePromise<string>
+	agentPromptSuffix: (suffix: string, stray: StrayKitten) => MaybePromise<string>
+	afterProceduresChain: (output: AgentFastReply, stray: StrayKitten) => MaybePromise<AgentFastReply>
+	afterMemoryChain: (output: AgentFastReply, stray: StrayKitten) => MaybePromise<AgentFastReply>
+	instantToolTrigger: (input: Nullable<InstantToolTrigger>, stray: StrayKitten) => MaybePromise<Nullable<InstantToolTrigger>>
 	// Stray Cat hooks
-	recallQuery: (query: string, stray: StrayCat) => MaybePromise<string>
-	beforeReadMessage: (msg: Message, stray: StrayCat) => MaybePromise<Message>
-	beforeSendMessage: (msg: MemoryMessage, stray: StrayCat) => MaybePromise<MemoryMessage>
-	afterSendMessage: (msg: WSMessage, stray: StrayCat) => MaybePromise<WSMessage>
-	beforeStoreEpisodicMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
-	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayCat) => MaybePromise<MemoryRecallConfigs>
-	afterRecallMemories: (memory: BetterReadonly<WorkingMemory>, stray: StrayCat) => MaybePromise<BetterReadonly<WorkingMemory>>
-	afterModelInteraction: (interaction: ModelInteraction, stray: StrayCat) => MaybePromise<ModelInteraction>
+	recallQuery: (query: string, stray: StrayKitten) => MaybePromise<string>
+	beforeReadMessage: (msg: Message, stray: StrayKitten) => MaybePromise<Message>
+	beforeSendMessage: (msg: MemoryMessage, stray: StrayKitten) => MaybePromise<MemoryMessage>
+	afterSendMessage: (msg: WSMessage, stray: StrayKitten) => MaybePromise<WSMessage>
+	beforeStoreEpisodicMemory: (doc: Document, stray: StrayKitten) => MaybePromise<Document>
+	beforeRecallMemories: (configs: MemoryRecallConfigs, stray: StrayKitten) => MaybePromise<MemoryRecallConfigs>
+	afterRecallMemories: (memory: BetterReadonly<WorkingMemory>, stray: StrayKitten) => MaybePromise<BetterReadonly<WorkingMemory>>
+	afterModelInteraction: (interaction: ModelInteraction, stray: StrayKitten) => MaybePromise<ModelInteraction>
 	// Vector Memory hooks
 	memoryCollections: (collections: Record<string, VectorMemoryCollection>) => MaybePromise<Record<string, VectorMemoryCollection>>
 	// Rabbit Hole hooks
 	fileParsers: (loaders: FileParsers) => MaybePromise<FileParsers>
 	webParsers: (loaders: WebParser[]) => MaybePromise<WebParser[]>
 	textSplitter: (splitter: TextSplitter) => MaybePromise<TextSplitter>
-	beforeStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
-	afterStoreDocuments: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
-	beforeInsertInMemory: (doc: Document, stray: StrayCat) => MaybePromise<Document>
-	afterInsertInMemory: (doc: Document, interaction: EmbedderInteraction, stray: StrayCat) => MaybePromise<Document>
-	beforeSplitDocs: (texts: Document[], stray: StrayCat) => MaybePromise<Document[]>
-	afterSplitDocs: (docs: Document[], stray: StrayCat) => MaybePromise<Document[]>
+	beforeStoreDocuments: (docs: Document[], stray: StrayKitten | StrayCat) => MaybePromise<Document[]>
+	afterStoreDocuments: (docs: Document[], stray: StrayKitten | StrayCat) => MaybePromise<Document[]>
+	beforeInsertInMemory: (doc: Document, stray: StrayKitten | StrayCat) => MaybePromise<Document>
+	afterInsertInMemory: (doc: Document, interaction: EmbedderInteraction, stray: StrayKitten | StrayCat) => MaybePromise<Document>
+	beforeSplitDocs: (texts: Document[], stray: StrayKitten | StrayCat) => MaybePromise<Document[]>
+	afterSplitDocs: (docs: Document[], stray: StrayKitten | StrayCat) => MaybePromise<Document[]>
 }
 
 interface HookOptions {
