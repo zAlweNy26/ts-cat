@@ -46,21 +46,21 @@ const app = new Elysia()
 			security: [{ token: [] }],
 			components: {
 				securitySchemes: {
-					token: {
+					'token': {
 						type: 'apiKey',
 						name: 'token',
 						in: 'header',
 						description: 'Authorization header token',
 					},
-					user: {
+					'user-id': {
 						type: 'apiKey',
-						name: 'user',
+						name: 'user-id',
 						in: 'header',
 						description: 'User ID header',
 					},
 				},
 				headers: { // BUG: Headers not showing in Swagger UI
-					user: {
+					'user-id': {
 						description: 'User ID header',
 						required: false,
 						schema: { type: 'string' },
