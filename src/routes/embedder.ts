@@ -55,19 +55,20 @@ export const embedderRoutes = new Elysia({
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)
 	const parsed = emb.config.safeParse(body)
 	if (!parsed.success) throw HttpError.InternalServer(parsed.error.errors.map(e => e.message).join())
-	// FIXME: Update the embedder settings in the database only after the memory is successfully loaded, not before
 	db.update((db) => {
 		db.selectedEmbedder = id
 		const embIndex = db.embedders.findIndex(l => l.name === id)
 		if (embIndex === -1) db.embedders.push({ name: id, value: parsed.data })
 		else db.embedders[embIndex]!.value = parsed.data
-	})
+	}, false) // Do not write to the database immediately, wait for the memory to load
 	cat.loadNaturalLanguage()
 	try {
 		await cat.loadMemory()
+		db.write() // Write the database after the memory is successfully loaded
 		await mh.findPlugins()
 	}
 	catch (error) {
+		db.read() // Re-read the database to revert any changes made
 		log.error('Failed to load memory', error)
 		throw HttpError.InternalServer('Failed to load memory for the selected embedder')
 	}

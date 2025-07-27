@@ -203,21 +203,16 @@ export class CheshireCat {
 			{ logMessage: 'Failed to retrieve embedder size. Reset to FakeEmbeddings.' },
 		)
 
-		if (error) {
-			this.embedder = (await getEmbedder('FakeEmbeddings'))!.initModel({})
+		if (error || vector.length === 0) {
+			db.update(db => db.selectedEmbedder = 'FakeEmbeddings')
+			this.embedder = await this.loadLanguageEmbedder()
 			await this.loadMemory()
-			throw error
-		}
-
-		this._embedderSize = vector.length
-		if (this._embedderSize === 0) {
-			log.error('Embedder size is 0')
-			throw new Error('Embedder size is 0. Unable to proceed.')
+			return
 		}
 
 		this.memory = await getVectorMemory({
 			embedderName: db.data.selectedEmbedder,
-			embedderSize: this.embedderSize,
+			embedderSize: this._embedderSize = vector.length,
 		})
 	}
 

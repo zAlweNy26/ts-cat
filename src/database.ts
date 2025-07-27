@@ -97,12 +97,30 @@ export class Database {
 	}
 
 	/**
+	 * Reads the database configuration and initializes it with default values.
+	 */
+	read() {
+		this._db.read()
+	}
+
+	/**
+	 * Writes the current database configuration to the file.
+	 */
+	write() {
+		this._db.write()
+		this.read() // Re-read the database to ensure the latest data is available
+	}
+
+	/**
 	 * Updates the database configuration and reads the updated configuration.
 	 * @param fn A function that takes the current database configuration as a parameter and updates it.
 	 */
-	update(fn: (db: DatabaseConfig) => NotPromise<void>) {
-		this._db.update(fn)
-		this._db.read()
+	update(fn: (db: DatabaseConfig) => NotPromise<void>, write = true) {
+		if (write) {
+			this._db.update(fn)
+			this.read()
+		}
+		else fn(this._db.data)
 	}
 
 	/**
