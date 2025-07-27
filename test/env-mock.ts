@@ -1,10 +1,11 @@
+import { cheshireCat, StrayCat, StrayKitten } from '@lg'
 import { afterAll, beforeAll, test, vi } from 'vitest'
+import { v4 as uuidv4 } from 'uuid'
 
 export const mockTest = test.extend({
-	/* cheshireCat,
-	madHatter,
-	rabbitHole,
-	strayCat: new StrayCat('Alice'), */
+	cheshireCat,
+	strayCat: new StrayCat('alice'),
+	strayKitten: new StrayKitten('alice', uuidv4()),
 })
 
 beforeAll(() => {

@@ -16,22 +16,19 @@ export const generalRoutes = new Elysia({
 	query: t.Object({
 		why: t.Boolean({ default: false }),
 		save: t.Boolean({ default: true }),
-		chatId: t.String({ format: 'uuid' }),
+		chatId: t.Optional(t.String({ format: 'uuid' })),
 		token: t.Optional(t.String()),
 	}),
 	body: 'messageInput',
 	idleTimeout: 300, // QUESTION: Should this be a configurable value?
 	beforeHandle: ({ query, HttpError }) => {
 		const apiKey = query.token, realKey = parsedEnv.apiKey
-		if (realKey && realKey !== apiKey)
-			throw HttpError.Unauthorized('Invalid API key')
+		if (realKey && realKey !== apiKey) throw HttpError.Unauthorized('Invalid API key')
 	},
-	open: async (ws) => {
-		const { data: { params, query } } = ws
-		const user = params.userId, chat = query.chatId
-		const stray = cat.getStray(user)
-		const kitten = stray.getChat(chat)
-		log.debug(`User ${user} connected to the WebSocket with chat ID ${chat}`)
+	open: async ({ data: { params, query } }) => {
+		const { userId, chatId = uuidv4() } = { ...params, ...query }
+		const stray = cat.getStray(userId), kitten = stray.getChat(chatId)
+		log.debug(`User ${userId} connected to the WebSocket with chat ID ${chatId}`)
 		while (kitten.wsQueue.length) {
 			const message = kitten.wsQueue.shift()
 			if (message) await kitten.send(message)
@@ -43,11 +40,9 @@ export const generalRoutes = new Elysia({
 		log.debug(`User ${user} disconnected from the WebSocket.`)
 	},
 	message: async ({ data: { params, query } }, body) => {
-		const user = params.userId
-		const { save, why, chatId } = query
-		const stray = cat.getStray(user)!
-		const kitten = stray.getChat(chatId)
 		if (!body) return
+		const { userId, save, why, chatId = uuidv4() } = { ...params, ...query }
+		const stray = cat.getStray(userId), kitten = stray.getChat(chatId)
 		try {
 			const res = await kitten.run(body, save, why)
 			await kitten.send(res)
@@ -122,7 +117,7 @@ export const generalRoutes = new Elysia({
 		why: t.Boolean({
 			title: 'Why',
 			description: 'Whether to include the reasoning in the response',
-			default: true,
+			default: false,
 		}),
 	}),
 	detail: {
