@@ -1,9 +1,11 @@
-import { resolve } from 'node:path'
+import { resolve, sep } from 'node:path'
 import { cors } from '@elysiajs/cors'
 import { serverTiming } from '@elysiajs/server-timing'
 import { staticPlugin } from '@elysiajs/static'
 import { swagger } from '@elysiajs/swagger'
+import { madHatter } from '@mh'
 import { embedderRoutes, generalRoutes, llmRoutes, memoryRoutes, pluginsRoutes, rabbitHoleRoutes, settingsRoutes } from '@routes'
+import chokidar from 'chokidar'
 import { Elysia } from 'elysia'
 import { checkPort } from 'get-port-please'
 import isDocker from 'is-docker'
@@ -11,6 +13,22 @@ import pkg from '~/package.json'
 import { serverContext, swaggerTags } from './context.ts'
 import { httpLogger, log } from './logger.ts'
 import { logWelcome, parsedEnv } from './utils.ts'
+
+chokidar.watch(resolve(process.cwd(), 'plugins'), {
+	ignored: path => path.endsWith('settings.json'),
+	ignoreInitial: true,
+	persistent: true,
+}).on('all', async (event, path) => {
+	const index = path.indexOf('/plugins')
+	const id = path.substring(index).split(sep)[2] ?? ''
+	const hasDir = index >= 0 && index + id.length < path.length
+	if (id) {
+		const plugin = madHatter.getPlugin(id)
+		if (!plugin && event === 'addDir') await madHatter.installPlugin(path)
+		else if (plugin && event === 'unlinkDir' && !hasDir) await madHatter.removePlugin(id)
+		else if (plugin && event !== 'addDir') await madHatter.reloadPlugin(id)
+	}
+})
 
 const app = new Elysia()
 	.use(httpLogger)
