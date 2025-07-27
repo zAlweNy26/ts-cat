@@ -1,9 +1,8 @@
 import { catUrls, zodJson } from '@utils'
+import { isCI } from 'std-env'
 import { expect, it } from 'vitest'
 
-const isGithubAction = process.env.GITHUB_ACTIONS === 'true'
-
-it.runIf(isGithubAction)('cat paths', () => {
+it.runIf(isCI)('cat paths', () => {
 	expect(catUrls).toMatchObject({
 		baseUrl: 'http://localhost:1865/',
 		assetsUrl: 'http://localhost:1865/assets',

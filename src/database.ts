@@ -1,6 +1,8 @@
+import { resolve } from 'node:path'
 import _CloneDeepWith from 'lodash/cloneDeepWith.js'
-import { LowSync } from 'lowdb'
+import { LowSync, MemorySync } from 'lowdb'
 import { DataFileSync } from 'lowdb/node'
+import { isMinimal } from 'std-env'
 import { z } from 'zod'
 import { deepDefaults, getZodDefaults } from './utils'
 
@@ -56,7 +58,7 @@ export class Database {
 	private _db: LowSync<DatabaseConfig>
 
 	private constructor(path: string) {
-		this._db = new LowSync(new JSONFileSync(path), getZodDefaults(defaultDbKeys)!)
+		this._db = new LowSync(isMinimal ? new MemorySync() : new JSONFileSync(path), getZodDefaults(defaultDbKeys)!)
 		this._db.read()
 		this._db.data = deepDefaults(this._db.data, getZodDefaults(defaultDbKeys))
 		this._db.write()
@@ -134,4 +136,4 @@ export class Database {
 	}
 }
 
-export const db = Database.init('./data/metadata.json')
+export const db = Database.init(resolve(process.cwd(), 'data/metadata.json'))
