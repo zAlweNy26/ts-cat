@@ -5,6 +5,7 @@ import type { AIMessageChunk } from '@langchain/core/messages'
 import type { IterableReadableStream } from '@langchain/core/utils/stream'
 import type { ElysiaWS as WS } from 'elysia/ws'
 import type { DataSourceOptions } from 'typeorm'
+import type { z } from 'zod'
 import { Document } from '@langchain/core/documents'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { PromptTemplate } from '@langchain/core/prompts'
@@ -144,8 +145,8 @@ export class StrayKitten {
 	 *
 	 * Returns undefined if the plugin is not found.
 	 */
-	getPluginInfo(id: string) {
-		const plugin = madHatter.getPlugin(id)
+	getPluginInfo<T extends z.AnyZodObject>(id: string) {
+		const plugin = madHatter.getPlugin<T>(id)
 		if (!plugin) return undefined
 		const { active, manifest, settings } = plugin
 		return {
@@ -153,6 +154,12 @@ export class StrayKitten {
 			manifest,
 			settings,
 		}
+	}
+
+	updatePluginSettings<T extends z.AnyZodObject>(id: string, settings: Partial<z.infer<T>>) {
+		const plugin = madHatter.getPlugin<T>(id)
+		if (!plugin) return undefined
+		plugin.settings = settings
 	}
 
 	/**
