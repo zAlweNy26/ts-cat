@@ -8,7 +8,8 @@ import { StringOutputParser } from '@langchain/core/output_parsers'
 import { ChatPromptTemplate, interpolateFString, SystemMessagePromptTemplate } from '@langchain/core/prompts'
 import { RunnableLambda } from '@langchain/core/runnables'
 import { log } from '@logger'
-import { FormState, isTool, madHatter } from '@mh'
+import { FormState, isTool } from '@mh'
+import defer * as madHatter from '@mh/mad-hatter.ts'
 import { parsedEnv } from '@utils'
 import { formatDistanceToNow } from 'date-fns'
 import { ChatMessageHistory } from 'langchain/stores/message/in_memory'
@@ -45,8 +46,8 @@ export class AgentManager {
 		const allowedProcedures: Record<string, Tool | Form> = {}
 		const returnDirectTools: string[] = []
 
-		recalledProcedures = await madHatter.executeHook('allowedTools', recalledProcedures, stray)
-		madHatter.tools.filter(t => t.active).forEach((p) => {
+		recalledProcedures = await madHatter.instance.executeHook('allowedTools', recalledProcedures, stray)
+		madHatter.instance.tools.filter(t => t.active).forEach((p) => {
 			if (recalledProcedures.includes(p.name)) {
 				if (isTool(p) && p.returnDirect) returnDirectTools.push(p.name)
 				p.assignCat(stray)
@@ -66,7 +67,7 @@ export class AgentManager {
 		}
 
 		const prompt = ChatPromptTemplate.fromMessages([
-			SystemMessagePromptTemplate.fromTemplate(await madHatter.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
+			SystemMessagePromptTemplate.fromTemplate(await madHatter.instance.executeHook('agentPromptInstructions', TOOL_PROMPT, stray)),
 			...await this.getLangchainChatHistory(stray.getHistory(5)),
 		])
 		const tools = allowedTools.map(p => ` - "${p.name}": ${p.description}`).join('\n')
@@ -124,8 +125,8 @@ export class AgentManager {
 	 * @returns A promise that resolves with the result of the memory chain invocation.
 	 */
 	async executeMemoryChain(input: ContextInput, stray: StrayKitten) {
-		const prefix = await madHatter.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
-		const suffix = await madHatter.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
+		const prefix = await madHatter.instance.executeHook('agentPromptPrefix', MAIN_PROMPT_PREFIX, stray)
+		const suffix = await madHatter.instance.executeHook('agentPromptSuffix', MAIN_PROMPT_SUFFIX, stray)
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			SystemMessagePromptTemplate.fromTemplate(prefix + suffix),
@@ -146,7 +147,7 @@ export class AgentManager {
 	 * @returns The result of the next step of the form or `undefined` if no form is found.
 	 */
 	async executeFormAgent(stray: StrayKitten) {
-		const form = madHatter.forms.find(f => f.name === stray.activeForm)
+		const form = madHatter.instance.forms.find(f => f.name === stray.activeForm)
 		if (form) {
 			if (form.state === FormState.CLOSED) {
 				form.reset()
@@ -171,10 +172,10 @@ export class AgentManager {
 		const instantTool = db.data.instantTool
 		if (!instantTool) return undefined
 
-		const trigger = await madHatter.executeHook('instantToolTrigger', '@{name}', stray)
+		const trigger = await madHatter.instance.executeHook('instantToolTrigger', '@{name}', stray)
 		if (!trigger) return undefined
 
-		const calledTool = madHatter.tools.filter(t => t.active)
+		const calledTool = madHatter.instance.tools.filter(t => t.active)
 			.find(({ name }) => input.input.startsWith(interpolateFString(trigger, { name })))
 
 		if (calledTool) {
@@ -197,7 +198,7 @@ export class AgentManager {
 	 * @returns An `AgentFastReply` object containing the agent's output and any intermediate steps.
 	 */
 	async executeAgent(stray: StrayKitten): Promise<AgentFastReply> {
-		const agentInput = await madHatter.executeHook('beforeAgentStarts', {
+		const agentInput = await madHatter.instance.executeHook('beforeAgentStarts', {
 			input: stray.lastUserMessage!.text,
 			chat_history: this.stringifyChatHistory(stray.getHistory(5)),
 			episodic_memory: this.getEpisodicMemoriesPrompt(stray.workingMemory.episodic),
@@ -209,7 +210,7 @@ export class AgentManager {
 
 		if (instantTool) return instantTool
 
-		const fastReply = await madHatter.executeHook('agentFastReply', undefined, stray)
+		const fastReply = await madHatter.instance.executeHook('agentFastReply', undefined, stray)
 
 		if (fastReply) return fastReply
 
@@ -224,7 +225,7 @@ export class AgentManager {
 			log.debug(`Procedural memories retrieved: ${proceduralMemories.length}`)
 			try {
 				const proceduresResult = await this.executeProceduresChain(stray)
-				const afterProcedures = await madHatter.executeHook('afterProceduresChain', proceduresResult, stray)
+				const afterProcedures = await madHatter.instance.executeHook('afterProceduresChain', proceduresResult, stray)
 				if (afterProcedures.returnDirect) return afterProcedures
 				intermediateSteps = afterProcedures.intermediateSteps ?? []
 				if (intermediateSteps.length > 0) {
@@ -243,7 +244,7 @@ export class AgentManager {
 			output: memoryOutput,
 			intermediateSteps,
 		}
-		const afterMemory = await madHatter.executeHook('afterMemoryChain', reply, stray)
+		const afterMemory = await madHatter.instance.executeHook('afterMemoryChain', reply, stray)
 
 		return afterMemory
 	}

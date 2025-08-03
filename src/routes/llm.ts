@@ -1,5 +1,4 @@
 import { getAllowedLLMs, getLLM, getLLMSettings } from '@factory/llm.ts'
-import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { serverContext, swaggerTags } from '@/context'
@@ -49,7 +48,7 @@ export const llmRoutes = new Elysia({
 		400: 'error',
 		404: 'error',
 	},
-}).put('/settings/:llmId', async ({ mh, db, params, body, log, HttpError }) => {
+}).put('/settings/:llmId', async ({ mh, cat, db, params, body, log, HttpError }) => {
 	const id = params.llmId
 	const llm = await getLLM(id)
 	if (!llm) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)

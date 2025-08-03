@@ -11,12 +11,13 @@ import { AIMessageChunk } from '@langchain/core/messages'
 import { AsyncGeneratorWithSetup, IterableReadableStream } from '@langchain/core/utils/stream'
 import { log } from '@logger'
 import { getVectorMemory } from '@memory'
-import { isForm, isTool, madHatter } from '@mh'
+import { isForm, isTool } from '@mh'
+import defer * as madHatter from '@mh/mad-hatter.ts'
 import { catchError } from '@/errors.ts'
 import { rabbitHole } from '@/rabbit-hole.ts'
 import { AgentManager } from './agent-manager.ts'
 import { StrayCat } from './stray-cat.ts'
-import { whiteRabbit } from './white-rabbit.ts'
+import defer * as whiteRabbit from './white-rabbit.ts'
 
 type ProcedureHash = Record<string, {
 	name: string
@@ -49,9 +50,9 @@ export class CheshireCat {
 	static async getInstance() {
 		if (!CheshireCat.instance) {
 			CheshireCat.instance = new CheshireCat()
-			db.update(db => madHatter.executeHook('beforeBootstrap', db))
+			db.update(db => madHatter.instance.executeHook('beforeBootstrap', db))
 			await CheshireCat.instance.loadNaturalLanguage()
-			madHatter.onPluginsSyncCallback = () => CheshireCat.instance.embedProcedures()
+			madHatter.instance.onPluginsSyncCallback = () => CheshireCat.instance.embedProcedures()
 			try {
 				await CheshireCat.instance.loadMemory()
 				await CheshireCat.instance.embedProcedures()
@@ -60,7 +61,7 @@ export class CheshireCat {
 				log.error('Error during embedder inizialization: ')
 				log.dir(e)
 			}
-			db.update(db => madHatter.executeHook('afterBootstrap', db, CheshireCat.instance))
+			db.update(db => madHatter.instance.executeHook('afterBootstrap', db, CheshireCat.instance))
 			log.success('Cheshire Cat is ready.')
 		}
 		return CheshireCat.instance
@@ -98,7 +99,7 @@ export class CheshireCat {
 	 * Get the WhiteRabbit instance.
 	 */
 	get whiteRabbit() {
-		return whiteRabbit
+		return whiteRabbit.instance
 	}
 
 	/**
@@ -266,7 +267,7 @@ export class CheshireCat {
 		log.info('Embedding procedures...')
 		const embeddedProcedures = await this.memory.collections.procedural.getAllPoints()
 		const embProcHashes = this.buildEmbeddedProceduresHashes(embeddedProcedures)
-		const actProcHashes = this.buildActiveProceduresHashes([...madHatter.tools, ...madHatter.forms])
+		const actProcHashes = this.buildActiveProceduresHashes([...madHatter.instance.tools, ...madHatter.instance.forms])
 
 		const pointsToDel = Object.keys(embProcHashes).filter(x => !Object.keys(actProcHashes).includes(x))
 		const pointsToAdd = Object.keys(actProcHashes).filter(x => !Object.keys(embProcHashes).includes(x))
@@ -331,4 +332,4 @@ export class CheshireCat {
 /**
  * The Cheshire Cat is here to guide you through the looking glass.
  */
-export const cheshireCat = await CheshireCat.getInstance()
+export const instance = await CheshireCat.getInstance()

@@ -108,4 +108,4 @@ export class WhiteRabbit {
 /**
  * I'm late, I'm late, for a very important date!
  */
-export const whiteRabbit = await WhiteRabbit.getInstance()
+export const instance = await WhiteRabbit.getInstance()

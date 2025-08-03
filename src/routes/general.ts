@@ -1,4 +1,3 @@
-import { cheshireCat as cat, cheshireCat } from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
 import { normalizeMessageChunks, parsedEnv } from '@utils'
 import { Elysia, t } from 'elysia'
@@ -25,7 +24,7 @@ export const generalRoutes = new Elysia({
 		const apiKey = query.token, realKey = parsedEnv.apiKey
 		if (realKey && realKey !== apiKey) throw HttpError.Unauthorized('Invalid API key')
 	},
-	open: async ({ data: { params, query } }) => {
+	open: async ({ data: { params, query, cat } }) => {
 		const { userId, chatId = uuidv4() } = { ...params, ...query }
 		const stray = cat.getStray(userId), kitten = stray.getChat(chatId)
 		log.debug(`User ${userId} connected to the WebSocket with chat ID ${chatId}`)
@@ -34,12 +33,12 @@ export const generalRoutes = new Elysia({
 			if (message) await kitten.send(message)
 		}
 	},
-	close: ({ data: { params } }) => {
+	close: ({ data: { params, cat } }) => {
 		const user = params.userId
 		cat.removeStray(user)
 		log.debug(`User ${user} disconnected from the WebSocket.`)
 	},
-	message: async ({ data: { params, query } }, body) => {
+	message: async ({ data: { params, query, cat } }, body) => {
 		if (!body) return
 		const { userId, save, why, chatId = uuidv4() } = { ...params, ...query }
 		const stray = cat.getStray(userId), kitten = stray.getChat(chatId)
@@ -128,12 +127,12 @@ export const generalRoutes = new Elysia({
 		200: 'chatMessage',
 		400: 'error',
 	},
-}).post('/pure', async function* ({ body, query }) {
+}).post('/pure', async function* ({ body, query, cat }) {
 	const { stream } = query
 
-	if (!stream) return normalizeMessageChunks(await cheshireCat.pure(body.messages))
+	if (!stream) return normalizeMessageChunks(await cat.pure(body.messages))
 
-	const res = await cheshireCat.pure(body.messages, stream)
+	const res = await cat.pure(body.messages, stream)
 	for await (const chunk of res) yield normalizeMessageChunks(chunk)
 }, {
 	body: t.Object({
@@ -158,8 +157,8 @@ export const generalRoutes = new Elysia({
 		200: t.Union([t.String(), t.Record(t.String(), t.Any())]),
 		400: 'error',
 	},
-}).post('/embed', async ({ body }) => {
-	const res = await cheshireCat.currentEmbedder.embedQuery(body.text)
+}).post('/embed', async ({ body, cat }) => {
+	const res = await cat.currentEmbedder.embedQuery(body.text)
 	return res
 }, {
 	body: t.Object({

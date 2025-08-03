@@ -209,4 +209,4 @@ export class MadHatter {
 	}
 }
 
-export const madHatter = await MadHatter.getInstance()
+export const instance = await MadHatter.getInstance()

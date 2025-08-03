@@ -1,5 +1,4 @@
 import { getAllowedEmbedders, getEmbedder, getEmbedderSettings } from '@factory/embedder.ts'
-import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { serverContext, swaggerTags } from '@/context'
@@ -49,7 +48,7 @@ export const embedderRoutes = new Elysia({
 		400: 'error',
 		404: 'error',
 	},
-}).put('/settings/:embedderId', async ({ mh, db, params, body, log, HttpError }) => {
+}).put('/settings/:embedderId', async ({ cat, mh, db, params, body, log, HttpError }) => {
 	const id = params.embedderId
 	const emb = await getEmbedder(id)
 	if (!emb) throw HttpError.NotFound(`The passed embedder id '${id}' doesn't exist in the list of available embedders.`)

@@ -11,9 +11,9 @@ import { PPTXLoader as OfficeLoader } from '@langchain/community/document_loader
 import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio'
 import { Document } from '@langchain/core/documents'
 import { StrayKitten } from '@lg'
-import { cheshireCat } from '@lg/cheshire-cat.ts'
+import defer * as cheshireCat from '@lg/cheshire-cat.ts'
 import { log } from '@logger'
-import { madHatter } from '@mh/mad-hatter.ts'
+import defer * as madHatter from '@mh/mad-hatter.ts'
 import { destr } from 'destr'
 import { getEncoding } from 'js-tiktoken'
 import { JSONLoader } from 'langchain/document_loaders/fs/json'
@@ -75,9 +75,9 @@ export class RabbitHole {
 	static async getInstance() {
 		if (!RabbitHole.instance) {
 			RabbitHole.instance = new RabbitHole()
-			RabbitHole.instance.fileHandlers = await madHatter.executeHook('fileParsers', RabbitHole.instance.fileHandlers)
-			RabbitHole.instance.webHandlers = await madHatter.executeHook('webParsers', RabbitHole.instance.webHandlers)
-			RabbitHole.instance.splitter = await madHatter.executeHook('textSplitter', RabbitHole.instance.splitter)
+			RabbitHole.instance.fileHandlers = await madHatter.instance.executeHook('fileParsers', RabbitHole.instance.fileHandlers)
+			RabbitHole.instance.webHandlers = await madHatter.instance.executeHook('webParsers', RabbitHole.instance.webHandlers)
+			RabbitHole.instance.splitter = await madHatter.instance.executeHook('textSplitter', RabbitHole.instance.splitter)
 		}
 		return RabbitHole.instance
 	}
@@ -134,12 +134,12 @@ export class RabbitHole {
 
 		log.info(`Preparing to load ${vectors.length} vector memories...`)
 
-		if (vectors.length !== cheshireCat.embedderSize) {
+		if (vectors.length !== cheshireCat.instance.embedderSize) {
 			log.error('The dimensionality of the embeddings is not consistent with the current embedder.')
 			return
 		}
 
-		await cheshireCat.vectorMemory.collections.declarative.addPoints(declarativeMemories)
+		await cheshireCat.instance.vectorMemory.collections.declarative.addPoints(declarativeMemories)
 	}
 
 	/**
@@ -227,7 +227,7 @@ export class RabbitHole {
 	 */
 	async storeDocuments(stray: StrayKitten | StrayCat, docs: Document[], source: string, metadata?: Record<string, any>) {
 		log.info(`Preparing to store ${docs.length} documents`)
-		docs = await madHatter.executeHook('beforeStoreDocuments', docs, stray)
+		docs = await madHatter.instance.executeHook('beforeStoreDocuments', docs, stray)
 		for (let [i, doc] of docs.entries()) {
 			const index = i + 1
 			const percRead = Math.round((index / docs.length) * 100)
@@ -241,7 +241,7 @@ export class RabbitHole {
 				who: stray.userId,
 				when: Date.now(),
 			}
-			doc = await madHatter.executeHook('beforeInsertInMemory', doc, stray)
+			doc = await madHatter.instance.executeHook('beforeInsertInMemory', doc, stray)
 			const interaction: EmbedderInteraction = {
 				model: 'embedder',
 				reply: [],
@@ -252,8 +252,8 @@ export class RabbitHole {
 				endedAt: Date.now(),
 			}
 			if (doc.pageContent.trim().length > 0) {
-				const docEmbedding = await cheshireCat.currentEmbedder.embedDocuments([doc.pageContent])
-				await cheshireCat.vectorMemory.collections.declarative.addPoint(
+				const docEmbedding = await cheshireCat.instance.currentEmbedder.embedDocuments([doc.pageContent])
+				await cheshireCat.instance.vectorMemory.collections.declarative.addPoint(
 					doc.pageContent,
 					docEmbedding[0]!,
 					doc.metadata,
@@ -261,12 +261,12 @@ export class RabbitHole {
 				interaction.reply = docEmbedding[0]!
 				interaction.outputTokens = await this.splitter.lengthFunction(doc.pageContent)
 				interaction.endedAt = Date.now()
-				doc = await madHatter.executeHook('afterInsertInMemory', doc, interaction, stray)
+				doc = await madHatter.instance.executeHook('afterInsertInMemory', doc, interaction, stray)
 				await Bun.sleep(500) // Avoid spamming requests (maybe find another way to do this?)
 			}
 			else log.warn(`Skipped memory insertion of empty document (${index}/${docs.length})`)
 		}
-		docs = await madHatter.executeHook('afterStoreDocuments', docs, stray)
+		docs = await madHatter.instance.executeHook('afterStoreDocuments', docs, stray)
 		if (stray instanceof StrayKitten) await stray.send({ type: 'notification', content: `Finished reading ${source}. I made ${docs.length} thoughts about it.` })
 		log.info(`Done uploading ${source}`)
 	}
@@ -281,12 +281,12 @@ export class RabbitHole {
 	 * @returns An array of documents.
 	 */
 	async splitDocs(stray: StrayKitten | StrayCat, docs: Document[], chunkSize?: number, chunkOverlap?: number) {
-		docs = await madHatter.executeHook('beforeSplitDocs', docs, stray)
+		docs = await madHatter.instance.executeHook('beforeSplitDocs', docs, stray)
 		this.splitter.chunkSize = chunkSize ??= db.data.chunkSize
 		this.splitter.chunkOverlap = chunkOverlap ??= db.data.chunkOverlap
 		log.info('Splitting documents with chunk size', chunkSize, 'and overlap', chunkOverlap)
 		docs = (await this.splitter.splitDocuments(docs)).filter(d => d.pageContent.length > 10)
-		docs = await madHatter.executeHook('afterSplitDocs', docs, stray)
+		docs = await madHatter.instance.executeHook('afterSplitDocs', docs, stray)
 		return docs
 	}
 }

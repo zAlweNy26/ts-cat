@@ -1,5 +1,5 @@
-import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
-import { madHatter } from '@mh/mad-hatter.ts'
+import { instance as cheshireCat } from '@lg/cheshire-cat.ts'
+import { instance as madHatter } from '@mh/mad-hatter.ts'
 import { Elysia, t } from 'elysia'
 import { db } from './database.ts'
 import { httpError } from './errors'
@@ -259,7 +259,7 @@ export const pluginSettings = t.Object({
 const whitelistedPaths = ['/docs', '/assets', '/ws']
 
 export const serverContext = new Elysia({ name: 'server-context' }).use(httpError).decorate({
-	// cat: cheshireCat, // FIXME: Fix RangeError: Maximum call stack size exceeded.
+	cat: cheshireCat,
 	mh: madHatter,
 	rh: rabbitHole,
 	log,
@@ -270,7 +270,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	if (realKey && realKey !== apiKey) throw HttpError.Unauthorized('Invalid API key')
 }).derive({ as: 'global' }, ({ headers }) => {
 	const user = headers['user-id'] || 'user'
-	return { stray: cat.getStray(user) }
+	return { stray: cheshireCat.getStray(user) }
 }).model({
 	generic: t.Record(t.String(), t.Any(), {
 		examples: [{ key: 'value' }],

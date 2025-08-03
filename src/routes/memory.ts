@@ -1,6 +1,5 @@
 import type { WorkingMemory } from '@dto/message.ts'
 import type { Filter, MemoryJson } from '@dto/vector-memory.ts'
-import { cheshireCat as cat } from '@lg/cheshire-cat.ts'
 import { Elysia, t } from 'elysia'
 import { memoryMessage, serverContext, swaggerTags } from '@/context'
 
@@ -8,7 +7,7 @@ export const memoryRoutes = new Elysia({
 	name: 'memory',
 	prefix: '/memory',
 	detail: { tags: [swaggerTags.memory.name] },
-}).use(serverContext).get('/recall', async ({ query, stray, log, db, HttpError }) => {
+}).use(serverContext).get('/recall', async ({ cat, query, stray, log, db, HttpError }) => {
 	const { text, k, chatId } = query
 	const userId = stray.userId
 
@@ -69,7 +68,7 @@ export const memoryRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).get('/collections', async () => {
+}).get('/collections', async ({ cat }) => {
 	const collections = Object.keys(cat.vectorMemory.collections)
 	const infos = []
 	for (const collection of collections) {
@@ -116,7 +115,7 @@ export const memoryRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).delete('/collections', async ({ mh, log, HttpError, set }) => {
+}).delete('/collections', async ({ mh, cat, log, HttpError, set }) => {
 	try {
 		const collections = Object.keys(cat.vectorMemory.collections)
 		for (const collection of collections) await cat.vectorMemory.db.deleteCollection(collection)
@@ -138,7 +137,7 @@ export const memoryRoutes = new Elysia({
 		400: 'error',
 		500: 'error',
 	},
-}).delete('/collections/:collectionId', async ({ mh, params, log, HttpError, set }) => {
+}).delete('/collections/:collectionId', async ({ mh, cat, params, log, HttpError, set }) => {
 	const id = params.collectionId
 	try {
 		const collections = Object.keys(cat.vectorMemory.collections)
@@ -166,7 +165,7 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).post('/collections/:collectionId/documents', async ({ params, query, body, log, HttpError }) => {
+}).post('/collections/:collectionId/documents', async ({ params, cat, query, body, log, HttpError }) => {
 	const id = params.collectionId, limit = query.k
 	try {
 		const collections = Object.keys(cat.vectorMemory.collections)
@@ -244,7 +243,7 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).delete('/collections/:collectionId/documents', async ({ params, body, log, HttpError, set }) => {
+}).delete('/collections/:collectionId/documents', async ({ params, cat, body, log, HttpError, set }) => {
 	const id = params.collectionId
 	try {
 		const collections = Object.keys(cat.vectorMemory.collections)
@@ -279,7 +278,7 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).delete('/collections/:collectionId/point/:pointId', async ({ params, log, HttpError, set }) => {
+}).delete('/collections/:collectionId/point/:pointId', async ({ params, cat, log, HttpError, set }) => {
 	const { collectionId, pointId } = params
 	const collections = Object.keys(cat.vectorMemory.collections)
 	if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
@@ -308,7 +307,7 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).get('/collections/:collectionId/point/:pointId', async ({ params, log, HttpError }) => {
+}).get('/collections/:collectionId/point/:pointId', async ({ params, cat, log, HttpError }) => {
 	const { collectionId, pointId } = params
 	const collections = Object.keys(cat.vectorMemory.collections)
 	if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
@@ -354,7 +353,7 @@ export const memoryRoutes = new Elysia({
 		404: 'error',
 		500: 'error',
 	},
-}).post('/collections/:collectionId/point', async ({ params, body, log, HttpError }) => {
+}).post('/collections/:collectionId/point', async ({ params, cat, body, log, HttpError }) => {
 	const { collectionId } = params, { content, payload, vector } = body
 	const collections = Object.keys(cat.vectorMemory.collections)
 	if (!collections.includes(collectionId)) throw HttpError.NotFound('Collection not found.')
@@ -515,7 +514,7 @@ export const memoryRoutes = new Elysia({
 		204: t.Void({ title: 'History added', description: 'History added successfully' }),
 		400: 'error',
 	},
-}).get('/memory', async ({ db }) => {
+}).get('/memory', async ({ db, cat }) => {
 	const allCollections = Object.values(cat.vectorMemory.collections)
 
 	const collections: MemoryJson['collections'] = {
