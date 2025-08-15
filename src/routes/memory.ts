@@ -428,7 +428,7 @@ export const memoryRoutes = new Elysia({
 	}),
 	response: {
 		200: t.Object({
-			history: t.Array(serverContext.Ref('memoryMessage')),
+			history: t.Array(t.Ref('memoryMessage')),
 		}, {
 			title: 'Chat History',
 			description: 'Chat messages history',

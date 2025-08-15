@@ -116,7 +116,7 @@ export const httpError = new Elysia({ name: 'http-error' })
 				status: 400,
 				message: 'The request was invalid',
 			}],
-			$id: 'GenericError',
+			$id: 'genericError',
 			title: 'Generic Error',
 			description: 'Generic HTTP error response',
 		}),

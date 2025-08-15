@@ -46,7 +46,7 @@ export const messageInput = t.Intersect([
 	}),
 	t.Record(t.String(), t.Any()),
 ], {
-	$id: 'MessageInput',
+	$id: 'messageInput',
 	title: 'Message Input',
 	description: 'Message to pass to the cat',
 	default: { text: 'Hello, world' },
@@ -65,6 +65,10 @@ export const memoryJson = t.Object({
 		}),
 		t.Record(t.String(), t.Array(t.Record(t.String(), t.Any()))),
 	]),
+}, {
+	$id: 'memoryJson',
+	title: 'Memory JSON',
+	description: 'JSON object representing the memory collections',
 })
 
 export const memoryMessage = t.Object({
@@ -90,7 +94,7 @@ export const memoryMessage = t.Object({
 		interactions: t.Array(t.Record(t.String(), t.Any())),
 	})),
 }, {
-	$id: 'MemoryMessage',
+	$id: 'memoryMessage',
 	title: 'Memory Message',
 	description: 'Content object saved in memory',
 })
@@ -109,10 +113,10 @@ export const chatMessage = t.Union([
 		t.Object({
 			type: t.Literal('chat'),
 		}),
-		t.Ref('memoryMessage'),
+		memoryMessage,
 	]),
 ], {
-	$id: 'ChatMessage',
+	$id: 'chatMessage',
 	title: 'Chat Message',
 	description: 'Message object received from the cat',
 })
@@ -133,6 +137,7 @@ export const memoryRecall = t.Object({
 		}))),
 	}),
 }, {
+	$id: 'memoryRecall',
 	title: 'Recalled memories',
 	description: 'Recalled memories from memory collections',
 	examples: [{
@@ -170,7 +175,7 @@ export const modelInfo = t.Object({
 	schema: t.Record(t.String(), t.Any()),
 	value: t.Record(t.String(), t.Any()),
 }, {
-	$id: 'ModelInfo',
+	$id: 'modelInfo',
 	title: 'Model Information',
 	description: 'Information about a model',
 	examples: [{
@@ -193,7 +198,7 @@ export const pluginManifest = t.Object({
 	thumb: t.Optional(t.String({ format: 'uri' })),
 	tags: t.Array(t.String(), { default: ['miscellaneous', 'unknown'] }),
 }, {
-	$id: 'PluginManifest',
+	$id: 'pluginManifest',
 	title: 'Plugin Manifest',
 	description: 'The manifest information of a plugin',
 	examples: [{
@@ -211,7 +216,7 @@ export const pluginInfo = t.Object({
 	id: t.String(),
 	active: t.Boolean(),
 	upgradable: t.Boolean(),
-	manifest: t.Ref('pluginManifest'),
+	manifest: pluginManifest,
 	forms: t.Array(t.Object({
 		name: t.String(),
 		description: t.String(),
@@ -227,7 +232,7 @@ export const pluginInfo = t.Object({
 		priority: t.Number(),
 	})),
 }, {
-	$id: 'PluginInfo',
+	$id: 'pluginInfo',
 	title: 'Plugin Information',
 	description: 'Information about a plugin (including its manifest)',
 	examples: [{
@@ -246,7 +251,7 @@ export const pluginSettings = t.Object({
 	schema: t.Record(t.String(), t.Any()),
 	value: t.Record(t.String(), t.Any()),
 }, {
-	$id: 'PluginSettings',
+	$id: 'pluginSettings',
 	title: 'Plugin Settings',
 	description: 'Current settings for a plugin',
 	examples: [{
@@ -274,7 +279,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 }).model({
 	generic: t.Record(t.String(), t.Any(), {
 		examples: [{ key: 'value' }],
-		$id: 'GenericObject',
+		$id: 'genericObject',
 		title: 'Generic Object',
 		description: 'Generic key-value object',
 	}),
@@ -285,7 +290,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 			'example',
 			42,
 		],
-		$id: 'GenericJson',
+		$id: 'genericJson',
 		title: 'Generic JSON',
 		description: 'Generic object representing all JSON possible values',
 	}),
@@ -294,7 +299,7 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 		value: t.Any(),
 	}, {
 		examples: [{ name: 'key', value: 'value' }],
-		$id: 'CustomSetting',
+		$id: 'customSetting',
 		title: 'Custom Setting',
 		description: 'Custom setting for the cat',
 	}),
@@ -309,9 +314,9 @@ export const serverContext = new Elysia({ name: 'server-context' }).use(httpErro
 	chatMessage,
 	modelsInfo: t.Object({
 		selected: t.String(),
-		options: t.Array(t.Ref('modelInfo')),
+		options: t.Array(modelInfo),
 	}, {
-		$id: 'ModelsInfo',
+		$id: 'modelsInfo',
 		title: 'Models Information',
 		description: 'Information about available models and the selected model',
 	}),

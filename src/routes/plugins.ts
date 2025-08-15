@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Elysia, t } from 'elysia'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { serverContext, swaggerTags } from '@/context'
+import { pluginInfo, serverContext, swaggerTags } from '@/context'
 
 export const pluginsRoutes = new Elysia({
 	name: 'plugins',
@@ -21,8 +21,8 @@ export const pluginsRoutes = new Elysia({
 	},
 	response: {
 		200: t.Object({
-			installed: t.Array(serverContext.Ref('pluginInfo')),
-			registry: t.Array(t.Pick(serverContext.Ref('pluginInfo'), ['id', 'manifest'])),
+			installed: t.Array(t.Ref('pluginInfo')),
+			registry: t.Array(t.Pick(pluginInfo, ['id', 'manifest'])),
 		}, {
 			title: 'Plugins Information',
 			description: 'Information about installed and available plugins from registry',
@@ -209,7 +209,7 @@ export const pluginsRoutes = new Elysia({
 	},
 	response: {
 		200: t.Object({
-			settings: t.Array(serverContext.Ref('pluginSettings')),
+			settings: t.Array(t.Ref('pluginSettings')),
 		}, {
 			title: 'Plugins Settings',
 			description: 'Settings of all the installed plugins',

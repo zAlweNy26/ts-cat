@@ -50,6 +50,9 @@ const app = new Elysia()
 			isEditable: false,
 			showSidebar: true,
 			favicon: '/assets/favicon.ico',
+			spec: {
+				url: '/docs/json',
+			},
 		},
 		exclude: ['/docs', '/docs/json'],
 		autoDarkMode: true,
